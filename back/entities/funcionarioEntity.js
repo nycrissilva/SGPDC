@@ -1,15 +1,7 @@
-import Entity from "./entity.js";
+import PessoaEntity from "./pessoaEntity.js";
 
-export default class FuncionarioEntity extends Entity {
-    #id;
+export default class FuncionarioEntity extends PessoaEntity {
     #cargo;
-
-    get id() {
-        return this.#id;
-    }
-    set id(value) {
-        this.#id = value;
-    }
 
     get cargo() {
         return this.#cargo;
@@ -19,13 +11,12 @@ export default class FuncionarioEntity extends Entity {
     }
 
     constructor(id, cargo) {
-        super();
-        this.#id = id;
+        super(id, null, null, null, null, null);
         this.#cargo = cargo;
     }
 
     validar() {
-        return this.#id && this.#cargo;
+        return this.id && this.#cargo;
     }
 
     static toMap(row) {

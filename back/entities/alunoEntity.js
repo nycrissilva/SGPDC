@@ -1,17 +1,10 @@
-import Entity from "./entity.js";
 
-export default class AlunoEntity extends Entity {
-    #id;
+import PessoaEntity from "./pessoaEntity.js";
+
+export default class AlunoEntity extends PessoaEntity {
     #responsavel_id;
     #data_nascimento;
     #data_matricula;
-
-    get id() {
-        return this.#id;
-    }
-    set id(value) {
-        this.#id = value;
-    }
 
     get responsavel_id() {
         return this.#responsavel_id;
@@ -35,15 +28,14 @@ export default class AlunoEntity extends Entity {
     }
 
     constructor(id, responsavel_id, data_nascimento, data_matricula) {
-        super();
-        this.#id = id;
+        super(id, null, null, null, null, null);
         this.#responsavel_id = responsavel_id;
         this.#data_nascimento = data_nascimento;
         this.#data_matricula = data_matricula;
     }
 
     validar() {
-        return this.#id && this.#responsavel_id && this.#data_nascimento && this.#data_matricula;
+        return this.id && this.#responsavel_id && this.#data_nascimento && this.#data_matricula;
     }
 
     static toMap(row) {

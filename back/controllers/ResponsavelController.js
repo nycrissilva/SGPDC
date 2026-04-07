@@ -1,39 +1,24 @@
+import PessoaController from "./PessoaController.js";
 import PessoaEntity from "../entities/pessoaEntity.js";
 import ResponsavelEntity from "../entities/responsavelEntity.js";
-import PessoaRepository from "../repositories/PessoaRepository.js";
 import ResponsavelRepository from "../repositories/ResponsavelRepository.js";
 
-export default class ResponsavelController {
+export default class ResponsavelController extends PessoaController {
     constructor() {
-        this.pessoaRepository = new PessoaRepository();
+        super();
         this.responsavelRepository = new ResponsavelRepository();
     }
 
-    async listar(req, res) {
-        try {
-            const filtro = req.query.q || "";
-            const pagina = Number(req.query.page || 1);
-            const limite = Number(req.query.limit || 20);
-            const lista = await this.pessoaRepository.buscar(filtro, "RESPONSAVEL", pagina, limite);
-            return res.json(lista);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterTipoFiltro() {
+        return "RESPONSAVEL";
     }
 
-    async obter(req, res) {
-        try {
-            const id = Number(req.params.id);
-            const pessoa = await this.pessoaRepository.obter(id);
-            if (!pessoa) {
-                return res.status(404).json({ error: "Respons�vel n�o encontrado" });
-            }
+    obterNomeEntidade() {
+        return "Responsável";
+    }
 
-            const responsavel = await this.responsavelRepository.obter(id);
-            return res.json({ ...pessoa, ...responsavel });
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterRepositorioEspecifico() {
+        return this.responsavelRepository;
     }
 
     async cadastrar(req, res) {
@@ -41,12 +26,12 @@ export default class ResponsavelController {
             const { nome, cpf, telefone, email, status, parentesco } = req.body;
 
             if (!nome || !cpf || !email || !parentesco) {
-                return res.status(400).json({ error: "Campos obrigat�rios faltando" });
+                return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
             const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
             if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF j� cadastrado" });
+                return res.status(400).json({ error: "CPF já cadastrado" });
             }
 
             const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
@@ -59,7 +44,7 @@ export default class ResponsavelController {
             const responsavelCadastrado = await this.responsavelRepository.cadastrar(responsavel);
             if (!responsavelCadastrado) {
                 await this.pessoaRepository.inativar(pessoa.id);
-                return res.status(500).json({ error: "Erro ao cadastrar respons�vel" });
+                return res.status(500).json({ error: "Erro ao cadastrar responsável" });
             }
 
             return res.status(201).json({ id: pessoa.id });
@@ -73,7 +58,7 @@ export default class ResponsavelController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Respons�vel n�o encontrado" });
+                return res.status(404).json({ error: "Responsável não encontrado" });
             }
 
             const { nome, cpf, telefone, email, status, parentesco } = req.body;
@@ -93,7 +78,7 @@ export default class ResponsavelController {
             const responsavel = new ResponsavelEntity(id, parentesco || responsavelExistente.parentesco);
             const responsavelAtualizado = await this.responsavelRepository.alterar(responsavel);
             if (!responsavelAtualizado) {
-                return res.status(500).json({ error: "Erro ao atualizar respons�vel" });
+                return res.status(500).json({ error: "Erro ao atualizar responsável" });
             }
 
             return res.json({ success: true });
@@ -107,12 +92,12 @@ export default class ResponsavelController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Respons�vel n�o encontrado" });
+                return res.status(404).json({ error: "Responsável não encontrado" });
             }
 
             const inativado = await this.responsavelRepository.inativar(id);
             if (!inativado) {
-                return res.status(500).json({ error: "Erro ao inativar respons�vel" });
+                return res.status(500).json({ error: "Erro ao inativar responsável" });
             }
 
             return res.json({ success: true });

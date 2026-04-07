@@ -1,39 +1,24 @@
+import PessoaController from "./PessoaController.js";
 import PessoaEntity from "../entities/pessoaEntity.js";
 import FuncionarioEntity from "../entities/funcionarioEntity.js";
-import PessoaRepository from "../repositories/PessoaRepository.js";
 import FuncionarioRepository from "../repositories/FuncionarioRespository.js";
 
-export default class FuncionarioController {
+export default class FuncionarioController extends PessoaController {
     constructor() {
-        this.pessoaRepository = new PessoaRepository();
+        super();
         this.funcionarioRepository = new FuncionarioRepository();
     }
 
-    async listar(req, res) {
-        try {
-            const filtro = req.query.q || "";
-            const pagina = Number(req.query.page || 1);
-            const limite = Number(req.query.limit || 20);
-            const lista = await this.pessoaRepository.buscar(filtro, "DIRETORIA", pagina, limite);
-            return res.json(lista);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterTipoFiltro() {
+        return "DIRETORIA";
     }
 
-    async obter(req, res) {
-        try {
-            const id = Number(req.params.id);
-            const pessoa = await this.pessoaRepository.obter(id);
-            if (!pessoa) {
-                return res.status(404).json({ error: "Diretoria n�o encontrada" });
-            }
+    obterNomeEntidade() {
+        return "Funcionário";
+    }
 
-            const funcionario = await this.funcionarioRepository.obter(id);
-            return res.json({ ...pessoa, ...funcionario });
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterRepositorioEspecifico() {
+        return this.funcionarioRepository;
     }
 
     async cadastrar(req, res) {
@@ -41,12 +26,12 @@ export default class FuncionarioController {
             const { nome, cpf, telefone, email, status, cargo } = req.body;
 
             if (!nome || !cpf || !email || !cargo) {
-                return res.status(400).json({ error: "Campos obrigat�rios faltando" });
+                return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
             const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
             if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF j� cadastrado" });
+                return res.status(400).json({ error: "CPF já cadastrado" });
             }
 
             const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
@@ -73,13 +58,13 @@ export default class FuncionarioController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Diretoria n�o encontrada" });
+                return res.status(404).json({ error: "Funcionário não encontrado" });
             }
 
             const { nome, cpf, telefone, email, status, cargo } = req.body;
             const funcionarioExistente = await this.funcionarioRepository.obter(id);
             if (!funcionarioExistente) {
-                return res.status(404).json({ error: "Diretoria não encontrada" });
+                return res.status(404).json({ error: "Funcionário não encontrado" });
             }
 
             const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, cpf || pessoaExistente.cpf,
@@ -93,7 +78,7 @@ export default class FuncionarioController {
             const funcionario = new FuncionarioEntity(id, cargo || funcionarioExistente.cargo);
             const funcionarioAtualizado = await this.funcionarioRepository.alterar(funcionario);
             if (!funcionarioAtualizado) {
-                return res.status(500).json({ error: "Erro ao atualizar diretoria" });
+                return res.status(500).json({ error: "Erro ao atualizar funcionário" });
             }
 
             return res.json({ success: true });
@@ -107,12 +92,12 @@ export default class FuncionarioController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Diretoria n�o encontrada" });
+                return res.status(404).json({ error: "Funcionário não encontrado" });
             }
 
             const inativado = await this.funcionarioRepository.inativar(id);
             if (!inativado) {
-                return res.status(500).json({ error: "Erro ao inativar diretoria" });
+                return res.status(500).json({ error: "Erro ao inativar funcionário" });
             }
 
             return res.json({ success: true });

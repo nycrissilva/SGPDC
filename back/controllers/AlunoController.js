@@ -1,39 +1,24 @@
+import PessoaController from "./PessoaController.js";
 import PessoaEntity from "../entities/pessoaEntity.js";
 import AlunoEntity from "../entities/alunoEntity.js";
-import PessoaRepository from "../repositories/PessoaRepository.js";
 import AlunoRepository from "../repositories/AlunoRepository.js";
 
-export default class AlunoController {
+export default class AlunoController extends PessoaController {
     constructor() {
-        this.pessoaRepository = new PessoaRepository();
+        super();
         this.alunoRepository = new AlunoRepository();
     }
 
-    async listar(req, res) {
-        try {
-            const filtro = req.query.q || "";
-            const pagina = Number(req.query.page || 1);
-            const limite = Number(req.query.limit || 20);
-            const lista = await this.pessoaRepository.buscar(filtro, "ALUNO", pagina, limite);
-            return res.json(lista);
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterTipoFiltro() {
+        return "ALUNO";
     }
 
-    async obter(req, res) {
-        try {
-            const id = Number(req.params.id);
-            const pessoa = await this.pessoaRepository.obter(id);
-            if (!pessoa) {
-                return res.status(404).json({ error: "Aluno n�o encontrado" });
-            }
+    obterNomeEntidade() {
+        return "Aluno";
+    }
 
-            const aluno = await this.alunoRepository.obter(id);
-            return res.json({ ...pessoa, ...aluno });
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+    obterRepositorioEspecifico() {
+        return this.alunoRepository;
     }
 
     async cadastrar(req, res) {
@@ -50,12 +35,12 @@ export default class AlunoController {
             } = req.body;
 
             if (!nome || !cpf || !data_nascimento || !data_matricula) {
-                return res.status(400).json({ error: "Campos obrigat�rios faltando" });
+                return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
             const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
             if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF j� cadastrado" });
+                return res.status(400).json({ error: "CPF já cadastrado" });
             }
 
             const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
@@ -82,7 +67,7 @@ export default class AlunoController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Aluno n�o encontrado" });
+                return res.status(404).json({ error: "Aluno não encontrado" });
             }
 
             const {
@@ -131,7 +116,7 @@ export default class AlunoController {
             const id = Number(req.params.id);
             const pessoaExistente = await this.pessoaRepository.obter(id);
             if (!pessoaExistente) {
-                return res.status(404).json({ error: "Aluno n�o encontrado" });
+                return res.status(404).json({ error: "Aluno não encontrado" });
             }
 
             const inativado = await this.alunoRepository.inativar(id);

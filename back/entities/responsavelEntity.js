@@ -1,15 +1,8 @@
 
+import PessoaEntity from "./pessoaEntity.js";
 
-export default class ResponsavelEntity {
-    #id;
+export default class ResponsavelEntity extends PessoaEntity {
     #parentesco;
-
-    get id() {
-        return this.#id;
-    }
-    set id(value) {
-        this.#id = value;
-    }
 
     get parentesco() {
         return this.#parentesco;
@@ -19,13 +12,12 @@ export default class ResponsavelEntity {
     }
 
     constructor(id, parentesco) {
-        super();
-        this.#id = id;
+        super(id, null, null, null, null, null);
         this.#parentesco = parentesco;
     }
 
     validar() {
-        return this.#id && this.#parentesco;
+        return this.id && this.#parentesco;
     }
 
     static toMap(row) {

@@ -1,15 +1,8 @@
-import Entity from "./entity.js";
 
-export default class ProfessorEntity extends Entity {
-    #id;
+import PessoaEntity from "./pessoaEntity.js";
+
+export default class ProfessorEntity extends PessoaEntity {
     #modalidade;
-
-    get id() {
-        return this.#id;
-    }
-    set id(value) {
-        this.#id = value;
-    }
 
     get modalidade() {
         return this.#modalidade;
@@ -19,13 +12,12 @@ export default class ProfessorEntity extends Entity {
     }
 
     constructor(id, modalidade) {
-        super();
-        this.#id = id;
+        super(id, null, null, null, null, null);
         this.#modalidade = modalidade;
     }
 
     validar() {
-        return this.#id && this.#modalidade;
+        return this.id && this.#modalidade;
     }
 
     static toMap(row) {
