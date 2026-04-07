@@ -21,9 +21,9 @@ export default class ProfessorEntity extends PessoaEntity {
     }
 
     static toMap(row) {
-        return new ProfessorEntity(
-            row["id"],
-            row["modalidade"]
-        );
+        return {
+            id: row["id"],
+            modalidade: row["modalidade"],
+        };
     }
 }

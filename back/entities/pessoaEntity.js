@@ -51,7 +51,6 @@ export default class PessoaEntity  {
     }
 
     constructor(id, nome, cpf, telefone, email, status) {
-        super();
         this.#id = id;
         this.#nome = nome;
         this.#cpf = cpf;
@@ -65,13 +64,13 @@ export default class PessoaEntity  {
     }
 
     static toMap(row) {
-        return new PessoaEntity(
-            row["id"],
-            row["nome"],
-            row["cpf"],
-            row["telefone"],
-            row["email"],
-            row["status"]
-        );
+        return {
+            id: row["id"],
+            nome: row["nome"],
+            cpf: row["cpf"],
+            telefone: row["telefone"],
+            email: row["email"],
+            status: row["status"],
+        };
     }
 }

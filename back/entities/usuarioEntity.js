@@ -56,12 +56,12 @@ export default class UsuarioEntity {
     }
 
     static toMap(row) {
-        return new UsuarioEntity(
-            row["id"],
-            row["pessoa_id"],
-            row["email"],
-            row["senha"],
-            row["perfil"]
-        );
+        return {
+            id: row["id"],
+            pessoa_id: row["pessoa_id"],
+            email: row["email"],
+            senha: row["senha"],
+            perfil: row["perfil"],
+        };
     }
 }

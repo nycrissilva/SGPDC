@@ -39,11 +39,11 @@ export default class AlunoEntity extends PessoaEntity {
     }
 
     static toMap(row) {
-        return new AlunoEntity(
-            row["id"],
-            row["responsavel_id"],
-            row["data_nascimento"],
-            row["data_matricula"]
-        );
+        return {
+            id: row["id"],
+            responsavel_id: row["responsavel_id"],
+            data_nascimento: row["data_nascimento"],
+            data_matricula: row["data_matricula"],
+        };
     }
 }

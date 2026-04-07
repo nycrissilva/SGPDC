@@ -21,9 +21,9 @@ export default class ResponsavelEntity extends PessoaEntity {
     }
 
     static toMap(row) {
-        return new ResponsavelEntity(
-            row["id"],
-            row["parentesco"]
-        );
+        return {
+            id: row["id"],
+            parentesco: row["parentesco"],
+        };
     }
 }

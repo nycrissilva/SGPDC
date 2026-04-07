@@ -20,9 +20,9 @@ export default class FuncionarioEntity extends PessoaEntity {
     }
 
     static toMap(row) {
-        return new FuncionarioEntity(
-            row["id"],
-            row["cargo"]
-        );
+        return {
+            id: row["id"],
+            cargo: row["cargo"],
+        };
     }
 }
