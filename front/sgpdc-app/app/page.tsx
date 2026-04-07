@@ -3,28 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#1F2A5A] text-white p-6 flex flex-col">
-        <h2 className="text-xl font-semibold mb-6">Menu de Navegação</h2>
-        <nav className="flex flex-col space-y-4">
-          <Link href="/" className="hover:bg-[#E61E4D] px-4 py-2 rounded transition">
-            Início
-          </Link>
-          <Link href="/alunos" className="hover:bg-[#E61E4D] px-4 py-2 rounded transition">
-            Alunos
-          </Link>
-          <Link href="/responsaveis" className="hover:bg-[#E61E4D] px-4 py-2 rounded transition">
-            Responsáveis
-          </Link>
-          <Link href="/professores" className="hover:bg-[#E61E4D] px-4 py-2 rounded transition">
-            Professores
-          </Link>
-          <Link href="/funcionarios" className="hover:bg-[#E61E4D] px-4 py-2 rounded transition">
-            Funcionários
-          </Link>
-          {/* Adicione mais links conforme necessário */}
-        </nav>
-      </aside>
+   
 
       {/* Main Content */}
       <main className="flex-1 mx-auto max-w-4xl flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
