@@ -43,13 +43,13 @@ export default function Home() {
             <h2 className="text-lg font-semibold text-[#1F2A5A]">Acesso rápido</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Link 
-                href="/alunos"
+                href="/funcionarios/alunos"
                 className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#E61E4D] hover:bg-[#F04A6A]/10"
               >
                 Alunos
               </Link>
               <Link 
-                href="/responsaveis"
+                href="/funcionarios/responsaveis"
                 className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#6A4FBF]/10"
               >
                 Responsáveis

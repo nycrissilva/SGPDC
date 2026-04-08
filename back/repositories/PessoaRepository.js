@@ -21,7 +21,8 @@ export default class PessoaRepository extends Repository {
 
     async buscar(filtro = "", tipo = null, pagina = 1, limite = 20) {
         let sql = `
-            select p.*
+            select p.*, a.responsavel_id, a.data_nascimento, a.data_matricula,
+                   r.parentesco, pr.modalidade, d.cargo
             from pessoa p
             left join aluno a on a.id = p.id
             left join responsavel r on r.id = p.id

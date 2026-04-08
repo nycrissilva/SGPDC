@@ -1,377 +1,54 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
-type Funcionario = {
-  id: number;
-  nome: string;
-  cpf: string;
-  email: string;
-  telefone?: string;
-  status?: string;
-  cargo?: string;
-};
 
 export default function FuncionariosPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
-    nome: "",
-    cpf: "",
-    telefone: "",
-    email: "",
-    cargo: "",
-  });
-
-  useEffect(() => {
-    loadFuncionarios();
-  }, []);
-
-  const loadFuncionarios = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5001/api/funcionario");
-      const data = await response.json();
-      console.log("Funcionários carregados:", data);
-      setFuncionarios(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Erro ao carregar funcionários:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const payload = {
-        ...formData,
-        status: "ATIVO",
-      };
-
-      const url = editingId ? `http://localhost:5001/api/funcionario/${editingId}` : "http://localhost:5001/api/funcionario";
-      const method = editingId ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Erro ao salvar funcionário");
-      }
-
-      setSuccess(true);
-      resetForm();
-      await loadFuncionarios();
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Erro desconhecido";
-      setError(errorMsg);
-      console.error("Erro ao salvar:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      nome: "",
-      cpf: "",
-      telefone: "",
-      email: "",
-      cargo: "",
-    });
-    setShowForm(false);
-    setEditingId(null);
-  };
-
-  const handleEdit = (funcionario: Funcionario) => {
-    setFormData({
-      nome: funcionario.nome || "",
-      cpf: funcionario.cpf || "",
-      telefone: funcionario.telefone || "",
-      email: funcionario.email || "",
-      cargo: funcionario.cargo || "",
-    });
-    setEditingId(funcionario.id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Deseja inativar este funcionário?")) return;
-
-    try {
-      const response = await fetch(`http://localhost:5001/api/funcionario/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao inativar funcionário");
-      }
-
-      setSuccess(true);
-      await loadFuncionarios();
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Erro ao inativar";
-      setError(errorMsg);
-      console.error("Erro ao inativar:", err);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
-      <main className="mx-auto flex max-w-7xl flex-col px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 lg:hidden">
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Sistema</p>
-            <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Painel de Gestão</h1>
-          </div>
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
-          >
-            {menuOpen ? "Fechar menu" : "Abrir menu"}
-          </button>
-        </div>
+    <div className="space-y-8">
+      <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
+        <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Sistema</p>
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight">Painel de Gestão</h1>
+        <p className="mt-4 max-w-2xl text-sm leading-6 text-[#F8FAFC]/90">
+          Bem-vindo ao painel administrativo. Use o menu para gerenciar alunos, responsáveis, professores e funcionários.
+        </p>
+      </div>
 
-        <div className="mt-8 lg:grid lg:grid-cols-[280px_1fr] lg:gap-8">
-          <aside className={`${menuOpen ? "block" : "hidden"} rounded-[32px] border border-[#E5E7EB] bg-[#F2F2F2] p-6 shadow-sm lg:block`}>
-            <div className="flex flex-col gap-6">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Navegação</p>
-                <h2 className="mt-2 text-2xl font-semibold text-[#1F2A5A]">Menu</h2>
-              </div>
-              <nav className="flex flex-col gap-2">
-                <Link
-                  href="/"
-                  className="rounded-3xl border border-transparent bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#FFFFFF]"
-                >
-                  Início
-                </Link>
-                <Link
-                  href="/alunos"
-                  className="rounded-3xl border border-transparent bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#FFFFFF]"
-                >
-                  Alunos
-                </Link>
-                <Link
-                  href="/responsaveis"
-                  className="rounded-3xl border border-transparent bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#FFFFFF]"
-                >
-                  Responsáveis
-                </Link>
-                <Link
-                  href="/professores"
-                  className="rounded-3xl border border-transparent bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#FFFFFF]"
-                >
-                  Professores
-                </Link>
-                <Link
-                  href="/funcionarios"
-                  className="rounded-3xl border border-transparent bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#FFFFFF]"
-                >
-                  Funcionários
-                </Link>
-                <Link
-                  href="/"
-                  className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-[#1F2A5A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6A4FBF]"
-                >
-                  Sair
-                </Link>
-              </nav>
-            </div>
-          </aside>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/funcionarios/alunos"
+          className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]"
+        >
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Alunos</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Veja e cadastre alunos matriculados no sistema.</p>
+        </Link>
 
-          <section className="space-y-6">
-            <div className="hidden lg:block">
-              <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Funcionários</p>
-              <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Gestão de Funcionários</h1>
-            </div>
+        <Link
+          href="/funcionarios/responsaveis"
+          className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]"
+        >
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Responsáveis</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Controle os responsáveis e seus dados de contato.</p>
+        </Link>
 
-            {success && <div className="rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">Operação realizada com sucesso!</div>}
-            {error && <div className="rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
+        <Link
+          href="/funcionarios/professores"
+          className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]"
+        >
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Professores</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Visualize e atualize dados dos professores.</p>
+        </Link>
 
-            {/* Listagem de Funcionários */}
-            <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
-              <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Lista</p>
-                  <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Funcionários Cadastrados ({funcionarios.length})</h2>
-                </div>
-                <button
-                  onClick={() => (showForm && !editingId ? resetForm() : setShowForm(!showForm))}
-                  className="inline-flex items-center rounded-full border border-[#E61E4D] bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A]"
-                >
-                  {showForm ? "Fechar" : "+ Novo Funcionário"}
-                </button>
-              </div>
-
-              {loading && funcionarios.length === 0 ? (
-                <p className="text-sm text-[#2B2B2B]/70">Carregando funcionários...</p>
-              ) : funcionarios.length === 0 ? (
-                <p className="text-sm text-[#2B2B2B]/70">Nenhum funcionário cadastrado.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
-                    <thead>
-                      <tr className="bg-[#F9FAFB]">
-                        <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Nome</th>
-                        <th className="px-4 py-3 font-semibold text-[#1F2A5A]">CPF</th>
-                        <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Email</th>
-                        <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cargo</th>
-                        <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB]">
-                      {funcionarios.map((func) => (
-                        <tr key={func.id} className="bg-white hover:bg-[#F2F2F2]">
-                          <td className="px-4 py-4 font-medium">{func.nome}</td>
-                          <td className="px-4 py-4">{func.cpf}</td>
-                          <td className="px-4 py-4">{func.email}</td>
-                          <td className="px-4 py-4">{func.cargo || "-"}</td>
-                          <td className="px-4 py-4 flex gap-2">
-                            <button
-                              onClick={() => handleEdit(func)}
-                              className="text-xs rounded-full bg-[#6A4FBF]/10 px-3 py-1 text-[#6A4FBF] hover:bg-[#6A4FBF]/20 transition"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleDelete(func.id)}
-                              className="text-xs rounded-full bg-[#E61E4D]/10 px-3 py-1 text-[#E61E4D] hover:bg-[#E61E4D]/20 transition"
-                            >
-                              Inativar
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            {/* Formulário de Novo Funcionário */}
-            {showForm && (
-              <form onSubmit={handleSubmit} className="rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm space-y-6">
-                <h3 className="text-lg font-semibold text-[#1F2A5A]">{editingId ? "Editar Funcionário" : "Novo Funcionário"}</h3>
-
-                {error && <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">{error}</div>}
-                {success && <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-700">Funcionário salvo com sucesso!</div>}
-
-                <div>
-                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Nome *</label>
-                  <input
-                    type="text"
-                    name="nome"
-                    value={formData.nome}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                    placeholder="Nome completo"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[#1F2A5A] mb-2">CPF *</label>
-                    <input
-                      type="text"
-                      name="cpf"
-                      value={formData.cpf}
-                      onChange={handleChange}
-                      required
-                      className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                      placeholder="000.000.000-00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Telefone</label>
-                    <input
-                      type="tel"
-                      name="telefone"
-                      value={formData.telefone}
-                      onChange={handleChange}
-                      className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                    placeholder="funcionario@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Cargo *</label>
-                  <select
-                    name="cargo"
-                    value={formData.cargo}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                  >
-                    <option value="">Selecionar cargo</option>
-                    <option value="DIRETOR">Diretor</option>
-                    <option value="ADMINISTRADOR">Administrador</option>
-                    <option value="RECEPCAO">Recepção</option>
-                    <option value="SECRETÁRIO">Secretário</option>
-                    <option value="LIMPEZA">Limpeza</option>
-                    <option value="MANUTENCAO">Manutenção</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50"
-                  >
-                    {loading ? "Salvando..." : editingId ? "Atualizar" : "Cadastrar Funcionário"}
-                  </button>
-                  {editingId && (
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20"
-                    >
-                      Cancelar
-                    </button>
-                  )}
-                </div>
-              </form>
-            )}
-          </section>
-        </div>
-      </main>
+        <Link
+          href="/funcionarios/funcionarioGerenciar"
+          className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]"
+        >
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Funcionários</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Adicione e atualize o cadastro de funcionários.</p>
+        </Link>
+      </div>
     </div>
   );
 }
+

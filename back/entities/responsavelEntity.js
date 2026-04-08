@@ -2,7 +2,15 @@
 import PessoaEntity from "./pessoaEntity.js";
 
 export default class ResponsavelEntity extends PessoaEntity {
+    #id;
     #parentesco;
+
+    get id() {
+        return this.#id;
+    }
+    set id(value) {
+        this.#id = value;
+    }
 
     get parentesco() {
         return this.#parentesco;
