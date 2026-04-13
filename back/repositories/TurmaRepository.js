@@ -1,0 +1,116 @@
+import Repository from "./repository.js";
+import TurmaEntity from "../entities/turmaEntity.js";
+
+export default class TurmaRepository extends Repository {
+    constructor() {
+        super();
+    }
+
+    async listar() {
+        let sql = `
+            select
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                group_concat(distinct pt.professor_id) as professor_ids
+            from turma t
+            left join agenda a on a.turma_id = t.id
+            left join professor_turma pt on pt.turma_id = t.id
+            where t.status = 'ATIVA'
+            group by t.id
+            order by t.id desc`;
+
+        const rows = await this.banco.ExecutaComando(sql);
+        return rows.map((row) => TurmaEntity.toMap(row));
+    }
+
+    async obter(id) {
+        let sql = `
+            select
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                group_concat(distinct pt.professor_id) as professor_ids
+            from turma t
+            left join agenda a on a.turma_id = t.id
+            left join professor_turma pt on pt.turma_id = t.id
+            where t.id = ?
+            group by t.id`;
+
+        const rows = await this.banco.ExecutaComando(sql, [id]);
+        if (rows.length === 0) return null;
+        return TurmaEntity.toMap(rows[0]);
+    }
+
+    async cadastrar(entidade, professorIds) {
+        const sql = `insert into turma (nome, modalidade, nivel, descricao, status) values (?, ?, ?, ?, ?)`;
+        const values = [entidade.nome, entidade.modalidade, entidade.nivel, entidade.descricao, entidade.status];
+        const insertedId = await this.banco.ExecutaComandoLastInserted(sql, values);
+        if (!insertedId) return null;
+
+        const agendaSql = `insert into agenda (turma_id, dia_semana, horario_inicio, horario_fim) values (?, ?, ?, ?)`;
+        await this.banco.ExecutaComandoNonQuery(agendaSql, [insertedId, entidade.dia_semana, entidade.horario_inicio, entidade.horario_fim]);
+
+        for (const professorId of professorIds) {
+            const professorSql = `insert into professor_turma (professor_id, turma_id, funcao_prof, data_inicio) values (?, ?, ?,?)`;
+            await this.banco.ExecutaComandoNonQuery(professorSql, [professorId, insertedId, null, null]);
+        }
+
+        return insertedId;
+    }
+
+    async alterar(entidade, professorIds) {
+        const sql = `update turma set nome = ?, modalidade = ?, nivel = ?, descricao = ?, status = ? where id = ?`;
+        const values = [entidade.nome, entidade.modalidade, entidade.nivel, entidade.descricao, entidade.status, entidade.id];
+        const updated = await this.banco.ExecutaComandoNonQuery(sql, values);
+        if (!updated) return false;
+
+        const agendaSql = `update agenda set dia_semana = ?, horario_inicio = ?, horario_fim = ? where turma_id = ?`;
+        await this.banco.ExecutaComandoNonQuery(agendaSql, [entidade.dia_semana, entidade.horario_inicio, entidade.horario_fim, entidade.id]);
+
+        const deleteSql = `delete from professor_turma where turma_id = ?`;
+        await this.banco.ExecutaComandoNonQuery(deleteSql, [entidade.id]);
+
+        for (const professorId of professorIds) {
+            const professorSql = `insert into professor_turma (professor_id, turma_id, funcao_prof, data_inicio) values (?, ?, ?, ?)`;
+            await this.banco.ExecutaComandoNonQuery(professorSql, [professorId, entidade.id, null, null]);
+        }
+
+        return true;
+    }
+
+    async inativar(id) {
+        const sql = `update turma set status = 'INATIVA' where id = ?`;
+        return await this.banco.ExecutaComandoNonQuery(sql, [id]);
+    }
+
+    async existeConflito(professorId, diaSemana, inicio, fim, turmaId = null) {
+        let sql = `
+            select count(*) as total
+            from professor_turma pt
+            join agenda a on a.turma_id = pt.turma_id
+            where pt.professor_id = ?
+              and a.dia_semana = ?
+              and not (a.horario_fim <= ? or a.horario_inicio >= ?)`;
+        const values = [professorId, diaSemana, inicio, fim];
+        if (turmaId) {
+            sql += ` and pt.turma_id <> ?`;
+            values.push(turmaId);
+        }
+
+        const rows = await this.banco.ExecutaComando(sql, values);
+        return rows[0]?.total > 0;
+    }
+}

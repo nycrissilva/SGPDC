@@ -55,6 +55,7 @@ CREATE TABLE turma (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100),
     modalidade VARCHAR(100),
+    nivel VARCHAR(50),
     descricao VARCHAR(255),
     status VARCHAR(50)
 );

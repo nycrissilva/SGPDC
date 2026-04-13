@@ -8,8 +8,14 @@ type Responsavel = {
   nome: string;
 };
 
+type Turma = {
+  id: number;
+  nome: string;
+};
+
 export default function CadastroAlunoPage() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -22,12 +28,13 @@ export default function CadastroAlunoPage() {
     data_matricula: new Date().toISOString().split("T")[0],
     responsavel_id: "",
     status: "ATIVO",
+    turma_ids: [] as number[],
   });
 
   useEffect(() => {
     async function loadResponsaveis() {
       try {
-        const response = await fetch("http://localhost:5001/api/responsaveis");
+        const response = await fetch(`${apiBase}/api/responsaveis`);
         if (response.ok) {
           const data = await response.json();
           setResponsaveis(data);
@@ -37,7 +44,20 @@ export default function CadastroAlunoPage() {
       }
     }
 
+    async function loadTurmas() {
+      try {
+        const response = await fetch(`${apiBase}/api/turmas`);
+        if (response.ok) {
+          const data = await response.json();
+          setTurmas(data);
+        }
+      } catch (err) {
+        console.log("Erro ao carregar turmas");
+      }
+    }
+
     loadResponsaveis();
+    loadTurmas();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -45,18 +65,33 @@ export default function CadastroAlunoPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTurmaToggle = (id: number) => {
+    setFormData((prev) => {
+      const exists = prev.turma_ids.includes(id);
+      const turma_ids = exists ? prev.turma_ids.filter((turmaId) => turmaId !== id) : [...prev.turma_ids, id];
+      return { ...prev, turma_ids };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    if (formData.turma_ids.length === 0) {
+      setError("Selecione ao menos uma turma para matricular o aluno.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         ...formData,
         responsavel_id: formData.responsavel_id ? Number(formData.responsavel_id) : null,
+        turma_ids: formData.turma_ids,
       };
 
-      const response = await fetch("http://localhost:5001/api/alunos", {
+      const response = await fetch(`${apiBase}/api/alunos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -77,6 +112,7 @@ export default function CadastroAlunoPage() {
         data_matricula: new Date().toISOString().split("T")[0],
         responsavel_id: "",
         status: "ATIVO",
+        turma_ids: [],
       });
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -212,6 +248,30 @@ export default function CadastroAlunoPage() {
                 <option value="INATIVO">Inativo</option>
               </select>
             </div>
+          </div>
+
+          <div className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] p-4">
+            <p className="text-sm font-medium text-[#1F2A5A] mb-3">Turmas *</p>
+            {turmas.length === 0 ? (
+              <p className="text-sm text-[#2B2B2B]/70">Nenhuma turma ativa disponível.</p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {turmas.map((turma) => (
+                  <label
+                    key={turma.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 transition hover:border-[#6A4FBF]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.turma_ids.includes(turma.id)}
+                      onChange={() => handleTurmaToggle(turma.id)}
+                      className="h-4 w-4 rounded border-[#6A4FBF] text-[#6A4FBF] focus:ring-[#6A4FBF]"
+                    />
+                    <span className="text-sm text-[#2B2B2B]">{turma.nome}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           <button

@@ -15,6 +15,7 @@ export default function FuncionariosLayout({
     { href: "/funcionarios/alunos", label: "Alunos" },
     { href: "/funcionarios/responsaveis", label: "Responsáveis" },
     { href: "/funcionarios/professores", label: "Professores" },
+    { href: "/funcionarios/turmas", label: "Turmas" },
     { href: "/funcionarios/funcionarioGerenciar", label: "Funcionários" },
   ];
 
@@ -84,3 +85,4 @@ export default function FuncionariosLayout({
     </div>
   );
 }
+

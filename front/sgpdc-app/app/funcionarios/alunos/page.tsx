@@ -1,5 +1,6 @@
 "use client";
 
+import { apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -20,9 +21,15 @@ type Responsavel = {
   nome: string;
 };
 
+type Turma = {
+  id: number;
+  nome: string;
+};
+
 export default function AlunosPage() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -36,17 +43,19 @@ export default function AlunosPage() {
     data_nascimento: "",
     data_matricula: new Date().toISOString().split("T")[0],
     responsavel_id: "",
+    turma_ids: [] as number[],
   });
 
   useEffect(() => {
     loadAlunos();
     loadResponsaveis();
+    loadTurmas();
   }, []);
 
   const loadAlunos = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5001/api/alunos");
+      const response = await fetch(`${apiBase}/api/alunos`);
       const data = await response.json();
       console.log("Alunos carregados:", data);
       setAlunos(Array.isArray(data) ? data : []);
@@ -60,7 +69,7 @@ export default function AlunosPage() {
 
   const loadResponsaveis = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/responsaveis");
+      const response = await fetch(`${apiBase}/api/responsaveis`);
       const data = await response.json();
       console.log("Responsáveis carregados:", data);
       setResponsaveis(Array.isArray(data) ? data : []);
@@ -69,9 +78,48 @@ export default function AlunosPage() {
     }
   };
 
+  const loadTurmas = async () => {
+    try {
+      const response = await fetch(`${apiBase}/api/turmas`);
+      const data = await response.json();
+      console.log("Turmas carregadas:", data);
+      setTurmas(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Erro ao carregar turmas:", err);
+    }
+  };
+
+  const loadAlunoDetalhes = async (id: number) => {
+    try {
+      const response = await fetch(`${apiBase}/api/alunos/${id}`);
+      if (!response.ok) {
+        throw new Error("Erro ao carregar detalhes do aluno");
+      }
+      return await response.json();
+    } catch (err) {
+      console.error("Falha ao buscar detalhes do aluno:", err);
+      return null;
+    }
+  };
+
+  const formatDateValue = (value?: string | null) => {
+    if (!value) return "";
+    if (value.includes("T")) return value.split("T")[0];
+    if (value.includes(" ")) return value.split(" ")[0];
+    return value;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTurmaToggle = (id: number) => {
+    setFormData((prev) => {
+      const exists = prev.turma_ids.includes(id);
+      const turma_ids = exists ? prev.turma_ids.filter((turmaId) => turmaId !== id) : [...prev.turma_ids, id];
+      return { ...prev, turma_ids };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,14 +127,26 @@ export default function AlunosPage() {
     setLoading(true);
     setError(null);
 
+    if (!editingId && formData.turma_ids.length === 0) {
+      setError("Selecione ao menos uma turma ativa para matricular o aluno.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const payload = {
+      const payload: any = {
         ...formData,
         responsavel_id: formData.responsavel_id ? Number(formData.responsavel_id) : null,
         status: "ATIVO",
       };
 
-      const url = editingId ? `http://localhost:5001/api/alunos/${editingId}` : "http://localhost:5001/api/alunos";
+      if (!editingId) {
+        payload.turma_ids = formData.turma_ids;
+      } else if (formData.turma_ids.length > 0) {
+        payload.turma_ids = formData.turma_ids;
+      }
+
+      const url = editingId ? `${apiBase}/api/alunos/${editingId}` : `${apiBase}/api/alunos`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -122,20 +182,28 @@ export default function AlunosPage() {
       data_nascimento: "",
       data_matricula: new Date().toISOString().split("T")[0],
       responsavel_id: "",
+      turma_ids: [],
     });
     setShowForm(false);
     setEditingId(null);
   };
 
-  const handleEdit = (aluno: Aluno) => {
+  const handleEdit = async (aluno: Aluno) => {
+    const detalhes = await loadAlunoDetalhes(aluno.id);
+    if (!detalhes) {
+      setError("Não foi possível carregar os dados do aluno para edição.");
+      return;
+    }
+
     setFormData({
-      nome: aluno.nome || "",
-      cpf: aluno.cpf || "",
-      telefone: aluno.telefone || "",
-      email: aluno.email || "",
-      data_nascimento: aluno.data_nascimento || "",
-      data_matricula: aluno.data_matricula || "",
-      responsavel_id: aluno.responsavel_id?.toString() || "",
+      nome: detalhes.nome || "",
+      cpf: detalhes.cpf || "",
+      telefone: detalhes.telefone || "",
+      email: detalhes.email || "",
+      data_nascimento: detalhes.data_nascimento || "",
+      data_matricula: detalhes.data_matricula || "",
+      responsavel_id: detalhes.responsavel_id?.toString() || "",
+      turma_ids: Array.isArray(detalhes.turma_ids) ? detalhes.turma_ids : [],
     });
     setEditingId(aluno.id);
     setShowForm(true);
@@ -145,7 +213,7 @@ export default function AlunosPage() {
     if (!confirm("Deseja inativar este aluno?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/alunos/${id}`, {
+      const response = await fetch(`${apiBase}/api/alunos/${id}`, {
         method: "DELETE",
       });
 
@@ -219,7 +287,7 @@ export default function AlunosPage() {
                       <td className="px-4 py-4 font-medium">{aluno.nome}</td>
                       <td className="px-4 py-4">{aluno.cpf}</td>
                       <td className="px-4 py-4">{aluno.email}</td>
-                      <td className="px-4 py-4">{aluno.data_matricula || "-"}</td>
+                      <td className="px-4 py-4">{formatDateValue(aluno.data_matricula) || "-"}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
                           onClick={() => handleEdit(aluno)}
@@ -339,6 +407,30 @@ export default function AlunosPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] p-4">
+              <p className="text-sm font-medium text-[#1F2A5A] mb-3">Turmas *</p>
+              {turmas.length === 0 ? (
+                <p className="text-sm text-[#2B2B2B]/70">Nenhuma turma ativa disponível.</p>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {turmas.map((turma) => (
+                    <label
+                      key={turma.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 transition hover:border-[#6A4FBF]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.turma_ids.includes(turma.id)}
+                        onChange={() => handleTurmaToggle(turma.id)}
+                        className="h-4 w-4 rounded border-[#6A4FBF] text-[#6A4FBF] focus:ring-[#6A4FBF]"
+                      />
+                      <span className="text-sm text-[#2B2B2B]">{turma.nome}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">

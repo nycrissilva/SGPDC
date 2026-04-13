@@ -31,16 +31,26 @@ export default class AlunoController extends PessoaController {
                 status,
                 responsavel_id,
                 data_nascimento,
-                data_matricula
+                data_matricula,
+                turma_ids
             } = req.body;
 
             if (!nome || !cpf || !data_nascimento || !data_matricula) {
                 return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
+            if (!Array.isArray(turma_ids) || turma_ids.length === 0) {
+                return res.status(400).json({ error: "Selecione ao menos uma turma ativa" });
+            }
+
             const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
             if (pessoaExistente) {
                 return res.status(400).json({ error: "CPF já cadastrado" });
+            }
+
+            const turmaIds = turma_ids.map(Number).filter((id) => Number.isInteger(id) && id > 0);
+            if (turmaIds.length === 0) {
+                return res.status(400).json({ error: "Selecione ao menos uma turma válida" });
             }
 
             const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
@@ -54,6 +64,32 @@ export default class AlunoController extends PessoaController {
             if (!alunoCadastrado) {
                 await this.pessoaRepository.inativar(pessoa.id);
                 return res.status(500).json({ error: "Erro ao cadastrar aluno" });
+            }
+
+            let matriculaId = null;
+            try {
+                matriculaId = await this.alunoRepository.criarMatricula(pessoa.id, data_matricula, null, "ATIVA");
+                if (!matriculaId) {
+                    throw new Error("Erro ao criar matrícula");
+                }
+
+                for (const turmaId of turmaIds) {
+                    const existeAtiva = await this.alunoRepository.existeMatriculaAtiva(pessoa.id, turmaId);
+                    if (existeAtiva) {
+                        throw new Error(`Aluno já possui matrícula ativa na turma ${turmaId}`);
+                    }
+
+                    const vinculoCriado = await this.alunoRepository.criarMatriculaTurma(matriculaId, turmaId);
+                    if (!vinculoCriado) {
+                        throw new Error("Erro ao vincular aluno à turma");
+                    }
+                }
+            } catch (innerError) {
+                if (matriculaId) {
+                    await this.alunoRepository.deletarMatricula(matriculaId);
+                }
+                await this.pessoaRepository.inativar(pessoa.id);
+                return res.status(500).json({ error: innerError.message });
             }
 
             return res.status(201).json({ id: pessoa.id });

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -35,7 +36,7 @@ export default function ProfessoresPage() {
   const loadProfessores = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5001/api/professores");
+      const response = await fetch(`${apiBase}/api/professores`);
       const data = await response.json();
       console.log("Professores carregados:", data);
       setProfessores(Array.isArray(data) ? data : []);
@@ -62,7 +63,7 @@ export default function ProfessoresPage() {
         status: "ATIVO",
       };
 
-      const url = editingId ? `http://localhost:5001/api/professores/${editingId}` : "http://localhost:5001/api/professores";
+      const url = editingId ? `${apiBase}/api/professores/${editingId}` : `${apiBase}/api/professores`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -117,7 +118,7 @@ export default function ProfessoresPage() {
     if (!confirm("Deseja inativar este professor?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/professores/${id}`, {
+      const response = await fetch(`${apiBase}/api/professores/${id}`, {
         method: "DELETE",
       });
 

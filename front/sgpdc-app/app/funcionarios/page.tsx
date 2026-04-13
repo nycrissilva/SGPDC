@@ -47,6 +47,15 @@ export default function FuncionariosPage() {
           <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Funcionários</h2>
           <p className="mt-2 text-sm text-[#4B5563]">Adicione e atualize o cadastro de funcionários.</p>
         </Link>
+
+        <Link
+          href="/funcionarios/turmas"
+          className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]"
+        >
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Turmas</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Cadastre, edite e inative turmas com professores vinculados.</p>
+        </Link>
       </div>
     </div>
   );

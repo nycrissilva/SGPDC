@@ -1,5 +1,6 @@
 "use client";
 
+import { apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -35,7 +36,7 @@ export default function ResponsaveisPage() {
   const loadResponsaveis = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5001/api/responsaveis");
+      const response = await fetch(`${apiBase}/api/responsaveis`);
       const data = await response.json();
       console.log("Responsáveis carregados:", data);
       setResponsaveis(Array.isArray(data) ? data : []);
@@ -62,7 +63,7 @@ export default function ResponsaveisPage() {
         status: "ATIVO",
       };
 
-      const url = editingId ? `http://localhost:5001/api/responsaveis/${editingId}` : "http://localhost:5001/api/responsaveis";
+      const url = editingId ? `${apiBase}/api/responsaveis/${editingId}` : `${apiBase}/api/responsaveis`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -117,7 +118,7 @@ export default function ResponsaveisPage() {
     if (!confirm("Deseja inativar este responsável?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/responsaveis/${id}`, {
+      const response = await fetch(`${apiBase}/api/responsaveis/${id}`, {
         method: "DELETE",
       });
 

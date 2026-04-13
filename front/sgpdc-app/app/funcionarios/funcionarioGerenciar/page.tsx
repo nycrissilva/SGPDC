@@ -1,5 +1,6 @@
 "use client";
 
+import { apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 
 type Funcionario = {
@@ -34,7 +35,7 @@ export default function FuncionariosPage() {
   const loadFuncionarios = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5001/api/funcionario");
+      const response = await fetch(`${apiBase}/api/funcionario`);
       const data = await response.json();
       console.log("Funcionários carregados:", data);
       setFuncionarios(Array.isArray(data) ? data : []);
@@ -61,7 +62,7 @@ export default function FuncionariosPage() {
         status: "ATIVO",
       };
 
-      const url = editingId ? `http://localhost:5001/api/funcionario/${editingId}` : "http://localhost:5001/api/funcionario";
+      const url = editingId ? `${apiBase}/api/funcionario/${editingId}` : `${apiBase}/api/funcionario`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -116,7 +117,7 @@ export default function FuncionariosPage() {
     if (!confirm("Deseja inativar este funcionário?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/funcionario/${id}`, {
+      const response = await fetch(`${apiBase}/api/funcionario/${id}`, {
         method: "DELETE",
       });
 

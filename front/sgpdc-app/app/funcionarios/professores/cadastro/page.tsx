@@ -1,5 +1,6 @@
 "use client";
 
+import { apiBase } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -27,7 +28,7 @@ export default function CadastroProfessorPage() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:5001/api/professores", {
+      const response = await fetch(`${apiBase}/api/professores`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
