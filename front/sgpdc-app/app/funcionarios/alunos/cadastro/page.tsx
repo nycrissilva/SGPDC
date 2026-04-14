@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { apiBase } from "@/lib/api";
 
 type Responsavel = {
   id: number;

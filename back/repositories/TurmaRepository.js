@@ -6,7 +6,7 @@ export default class TurmaRepository extends Repository {
         super();
     }
 
-    async listar() {
+    async listar({ nivel, modalidade, professorId, sort } = {}) {
         let sql = `
             select
                 t.id,
@@ -18,15 +18,39 @@ export default class TurmaRepository extends Repository {
                 a.dia_semana,
                 a.horario_inicio,
                 a.horario_fim,
-                group_concat(distinct pt.professor_id) as professor_ids
+                group_concat(distinct pt.professor_id) as professor_ids,
+                group_concat(distinct p.nome) as professor_names
             from turma t
             left join agenda a on a.turma_id = t.id
             left join professor_turma pt on pt.turma_id = t.id
-            where t.status = 'ATIVA'
-            group by t.id
-            order by t.id desc`;
+            left join pessoa p on p.id = pt.professor_id
+            where t.status = 'ATIVA'`;
 
-        const rows = await this.banco.ExecutaComando(sql);
+        const values = [];
+        if (modalidade) {
+            sql += ` and upper(t.modalidade) = upper(?)`;
+            values.push(modalidade);
+        }
+        if (nivel) {
+            sql += ` and upper(t.nivel) like upper(?)`;
+            values.push(`%${nivel}%`);
+        }
+        if (professorId) {
+            sql += ` and pt.professor_id = ?`;
+            values.push(professorId);
+        }
+
+        sql += ` group by t.id`;
+
+        if (sort === "nivel") {
+            sql += ` order by t.nivel asc, t.nome asc`;
+        } else if (sort === "nome") {
+            sql += ` order by t.nome asc`;
+        } else {
+            sql += ` order by t.id desc`;
+        }
+
+        const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => TurmaEntity.toMap(row));
     }
 
@@ -42,10 +66,12 @@ export default class TurmaRepository extends Repository {
                 a.dia_semana,
                 a.horario_inicio,
                 a.horario_fim,
-                group_concat(distinct pt.professor_id) as professor_ids
+                group_concat(distinct pt.professor_id) as professor_ids,
+                group_concat(distinct p.nome) as professor_names
             from turma t
             left join agenda a on a.turma_id = t.id
             left join professor_turma pt on pt.turma_id = t.id
+            left join pessoa p on p.id = pt.professor_id
             where t.id = ?
             group by t.id`;
 

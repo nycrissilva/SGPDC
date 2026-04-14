@@ -221,12 +221,20 @@ export default function TurmasPage() {
             <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Turmas</p>
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Gestão de Turmas</h1>
           </div>
-          <Link
-            href="/funcionarios"
-            className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
-          >
-            Voltar
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/funcionarios/relatorios/turmas"
+              className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"
+            >
+              Ver relatório
+            </Link>
+            <Link
+              href="/funcionarios"
+              className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
+            >
+              Voltar
+            </Link>
+          </div>
         </div>
 
         {success && (

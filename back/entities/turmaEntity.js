@@ -10,6 +10,7 @@ export default class TurmaEntity {
     #horario_inicio;
     #horario_fim;
     #professor_ids;
+    #professor_names;
 
     get id() {
         return this.#id;
@@ -40,6 +41,9 @@ export default class TurmaEntity {
     }
     get professor_ids() {
         return this.#professor_ids;
+    }
+    get professor_names() {
+        return this.#professor_names;
     }
 
     set id(id) {
@@ -72,8 +76,11 @@ export default class TurmaEntity {
     set professor_ids(value) {
         this.#professor_ids = value;
     }
+    set professor_names(value) {
+        this.#professor_names = value;
+    }
 
-    constructor(id, nome, modalidade, nivel, descricao, status, dia_semana, horario_inicio, horario_fim, professor_ids = []) {
+    constructor(id, nome, modalidade, nivel, descricao, status, dia_semana, horario_inicio, horario_fim, professor_ids = [], professor_names = []) {
         this.#id = id;
         this.#nome = nome;
         this.#modalidade = modalidade;
@@ -84,6 +91,7 @@ export default class TurmaEntity {
         this.#horario_inicio = horario_inicio;
         this.#horario_fim = horario_fim;
         this.#professor_ids = professor_ids;
+        this.#professor_names = professor_names;
     }
 
     static toMap(row) {
@@ -98,6 +106,7 @@ export default class TurmaEntity {
             horario_inicio: row["horario_inicio"],
             horario_fim: row["horario_fim"],
             professor_ids: row["professor_ids"] ? String(row["professor_ids"]).split(",").map((id) => Number(id)) : [],
+            professor_names: row["professor_names"] ? String(row["professor_names"]).split(",") : [],
         };
     }
 }

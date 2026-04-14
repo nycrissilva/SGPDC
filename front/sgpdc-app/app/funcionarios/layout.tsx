@@ -16,6 +16,7 @@ export default function FuncionariosLayout({
     { href: "/funcionarios/responsaveis", label: "Responsáveis" },
     { href: "/funcionarios/professores", label: "Professores" },
     { href: "/funcionarios/turmas", label: "Turmas" },
+    { href: "/funcionarios/relatorios", label: "Relatórios" },
     { href: "/funcionarios/funcionarioGerenciar", label: "Funcionários" },
   ];
 
@@ -36,7 +37,7 @@ export default function FuncionariosLayout({
           </button>
         </div>
 
-        <div className="mt-8 lg:grid lg:grid-cols-[280px_1fr] lg:gap-8">
+        <div className="mt-8 lg:grid lg:gap-8" style={{ gridTemplateColumns: "280px 1fr" }}>
           <aside className={`${menuOpen ? "block" : "hidden"} rounded-[32px] border border-[#E5E7EB] bg-[#F2F2F2] p-6 shadow-sm lg:block`}>
             <div className="flex flex-col gap-6">
               <div>

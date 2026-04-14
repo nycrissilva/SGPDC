@@ -8,7 +8,14 @@ export default class TurmaController {
 
     async listar(req, res) {
         try {
-            const lista = await this.turmaRepository.listar();
+            const { nivel, modalidade, professorId, sort } = req.query;
+            const filters = {
+                nivel: nivel ? String(nivel) : undefined,
+                modalidade: modalidade ? String(modalidade) : undefined,
+                professorId: professorId ? Number(professorId) : undefined,
+                sort: sort ? String(sort) : undefined,
+            };
+            const lista = await this.turmaRepository.listar(filters);
             return res.json(lista);
         } catch (error) {
             return res.status(500).json({ error: error.message });
