@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 
 const MODALIDADES = [
   { value: "DANÇA_CLÁSSICA", label: "Dança Clássica" },
@@ -40,7 +40,7 @@ export default function RelatorioTurmasPage() {
 
   const loadProfessores = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/professores`);
+      const response = await apiFetch(`/api/professores`);
       const data = await response.json();
       setProfessores(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -75,7 +75,7 @@ export default function RelatorioTurmasPage() {
       if (activeFilters.professorId) params.set("professorId", activeFilters.professorId);
       if (activeFilters.sort) params.set("sort", activeFilters.sort);
       const query = params.toString() ? `?${params.toString()}` : "";
-      const response = await fetch(`${apiBase}/api/turmas${query}`);
+      const response = await apiFetch(`/api/turmas${query}`);
       if (!response.ok) {
         const result = await response.json();
         throw new Error(result.error || "Erro ao carregar relatório");

@@ -6,6 +6,7 @@ export default class UsuarioEntity {
     #email;
     #senha;
     #perfil;
+    #primeiro_acesso;
 
     get id() {
         return this.#id;
@@ -42,13 +43,20 @@ export default class UsuarioEntity {
         this.#perfil = value;
     }
 
-    constructor(id, pessoa_id, email, senha, perfil) {
-        super();
+    get primeiro_acesso() {
+        return this.#primeiro_acesso;
+    }
+    set primeiro_acesso(value) {
+        this.#primeiro_acesso = value;
+    }
+
+    constructor(id, pessoa_id, email, senha, perfil, primeiro_acesso = true) {
         this.#id = id;
         this.#pessoa_id = pessoa_id;
         this.#email = email;
         this.#senha = senha;
         this.#perfil = perfil;
+        this.#primeiro_acesso = primeiro_acesso;
     }
 
     validar() {
@@ -62,6 +70,7 @@ export default class UsuarioEntity {
             email: row["email"],
             senha: row["senha"],
             perfil: row["perfil"],
+            primeiro_acesso: row["primeiro_acesso"] === 1 || row["primeiro_acesso"] === true,
         };
     }
 }

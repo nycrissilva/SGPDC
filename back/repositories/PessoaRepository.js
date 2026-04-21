@@ -82,36 +82,110 @@ export default class PessoaRepository extends Repository {
     }
 
     async cadastrar(entidade) {
-        let sql = `insert into pessoa (nome, cpf, telefone, email, status)
-                   values (?, ?, ?, ?, ?)`;
-        let valores = [
-            entidade.nome,
-            entidade.cpf,
-            entidade.telefone,
-            entidade.email,
-            entidade.status || "ATIVO"
-        ];
+        let sql;
+        let valores;
 
-        let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
-        if (id > 0) {
-            entidade.id = id;
-            return true;
+        if (entidade.data_nascimento != null) {
+            sql = `insert into pessoa (nome, cpf, telefone, email, status, data_nascimento)
+                   values (?, ?, ?, ?, ?, ?)`;
+            valores = [
+                entidade.nome,
+                entidade.cpf,
+                entidade.telefone,
+                entidade.email,
+                entidade.status || "ATIVO",
+                entidade.data_nascimento
+            ];
+            try {
+                let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+                if (id > 0) {
+                    entidade.id = id;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                if (error && error.code === 'ER_BAD_FIELD_ERROR') {
+                    sql = `insert into pessoa (nome, cpf, telefone, email, status)
+                           values (?, ?, ?, ?, ?)`;
+                    valores = [
+                        entidade.nome,
+                        entidade.cpf,
+                        entidade.telefone,
+                        entidade.email,
+                        entidade.status || "ATIVO"
+                    ];
+                    let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+                    if (id > 0) {
+                        entidade.id = id;
+                        return true;
+                    }
+                    return false;
+                }
+                throw error;
+            }
+        } else {
+            sql = `insert into pessoa (nome, cpf, telefone, email, status)
+                   values (?, ?, ?, ?, ?)`;
+            valores = [
+                entidade.nome,
+                entidade.cpf,
+                entidade.telefone,
+                entidade.email,
+                entidade.status || "ATIVO"
+            ];
+            let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+            if (id > 0) {
+                entidade.id = id;
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     async alterar(entidade) {
-        let sql = `update pessoa set nome = ?, cpf = ?, telefone = ?, email = ?, status = ? where id = ?`;
-        let valores = [
-            entidade.nome,
-            entidade.cpf,
-            entidade.telefone,
-            entidade.email,
-            entidade.status,
-            entidade.id
-        ];
+        let sql;
+        let valores;
 
-        return await this.banco.ExecutaComandoNonQuery(sql, valores);
+        if (entidade.data_nascimento != null) {
+            sql = `update pessoa set nome = ?, cpf = ?, telefone = ?, email = ?, status = ?, data_nascimento = ? where id = ?`;
+            valores = [
+                entidade.nome,
+                entidade.cpf,
+                entidade.telefone,
+                entidade.email,
+                entidade.status,
+                entidade.data_nascimento,
+                entidade.id
+            ];
+            try {
+                return await this.banco.ExecutaComandoNonQuery(sql, valores);
+            } catch (error) {
+                if (error && error.code === 'ER_BAD_FIELD_ERROR') {
+                    sql = `update pessoa set nome = ?, cpf = ?, telefone = ?, email = ?, status = ? where id = ?`;
+                    valores = [
+                        entidade.nome,
+                        entidade.cpf,
+                        entidade.telefone,
+                        entidade.email,
+                        entidade.status,
+                        entidade.id
+                    ];
+                    return await this.banco.ExecutaComandoNonQuery(sql, valores);
+                }
+                throw error;
+            }
+        } else {
+            sql = `update pessoa set nome = ?, cpf = ?, telefone = ?, email = ?, status = ? where id = ?`;
+            valores = [
+                entidade.nome,
+                entidade.cpf,
+                entidade.telefone,
+                entidade.email,
+                entidade.status,
+                entidade.id
+            ];
+            return await this.banco.ExecutaComandoNonQuery(sql, valores);
+        }
     }
 
     async inativar(id) {

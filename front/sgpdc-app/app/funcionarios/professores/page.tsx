@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -27,6 +27,7 @@ export default function ProfessoresPage() {
     telefone: "",
     email: "",
     modalidade: "",
+    data_nascimento: "",
   });
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function ProfessoresPage() {
   const loadProfessores = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/professores`);
+      const response = await apiFetch(`/api/professores`);
       const data = await response.json();
       console.log("Professores carregados:", data);
       setProfessores(Array.isArray(data) ? data : []);
@@ -63,12 +64,11 @@ export default function ProfessoresPage() {
         status: "ATIVO",
       };
 
-      const url = editingId ? `${apiBase}/api/professores/${editingId}` : `${apiBase}/api/professores`;
+      const path = editingId ? `/api/professores/${editingId}` : `/api/professores`;
       const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await apiFetch(path, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -97,6 +97,7 @@ export default function ProfessoresPage() {
       telefone: "",
       email: "",
       modalidade: "",
+      data_nascimento: "",
     });
     setShowForm(false);
     setEditingId(null);
@@ -109,6 +110,7 @@ export default function ProfessoresPage() {
       telefone: professor.telefone || "",
       email: professor.email || "",
       modalidade: professor.modalidade || "",
+      data_nascimento: "",
     });
     setEditingId(professor.id);
     setShowForm(true);
@@ -118,7 +120,7 @@ export default function ProfessoresPage() {
     if (!confirm("Deseja inativar este professor?")) return;
 
     try {
-      const response = await fetch(`${apiBase}/api/professores/${id}`, {
+      const response = await apiFetch(`/api/professores/${id}`, {
         method: "DELETE",
       });
 
@@ -288,6 +290,18 @@ export default function ProfessoresPage() {
                 <option value="HIP_HOP">Hip Hop</option>
                 <option value="CONTEMPORÂNEA">Contemporânea</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Data de nascimento *</label>
+              <input
+                type="date"
+                name="data_nascimento"
+                value={formData.data_nascimento}
+                onChange={handleChange}
+                required={!editingId}
+                className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+              />
             </div>
 
             <div className="flex gap-3">

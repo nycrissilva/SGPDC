@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 
 type Funcionario = {
@@ -26,6 +26,7 @@ export default function FuncionariosPage() {
     telefone: "",
     email: "",
     cargo: "",
+    data_nascimento: "",
   });
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function FuncionariosPage() {
   const loadFuncionarios = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/funcionario`);
+      const response = await apiFetch(`/api/funcionario`);
       const data = await response.json();
       console.log("Funcionários carregados:", data);
       setFuncionarios(Array.isArray(data) ? data : []);
@@ -62,10 +63,10 @@ export default function FuncionariosPage() {
         status: "ATIVO",
       };
 
-      const url = editingId ? `${apiBase}/api/funcionario/${editingId}` : `${apiBase}/api/funcionario`;
+      const url = editingId ? `/api/funcionario/${editingId}` : `/api/funcionario`;
       const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -76,7 +77,12 @@ export default function FuncionariosPage() {
         throw new Error(data.error || "Erro ao salvar funcionário");
       }
 
+      const data = await response.json();
+
       setSuccess(true);
+      if (!editingId && data.senhaInicial) {
+        alert(`Funcionário cadastrado com sucesso! Senha inicial: ${data.senhaInicial}`);
+      }
       resetForm();
       await loadFuncionarios();
       setTimeout(() => setSuccess(false), 3000);
@@ -96,6 +102,7 @@ export default function FuncionariosPage() {
       telefone: "",
       email: "",
       cargo: "",
+      data_nascimento: "",
     });
     setShowForm(false);
     setEditingId(null);
@@ -108,6 +115,7 @@ export default function FuncionariosPage() {
       telefone: funcionario.telefone || "",
       email: funcionario.email || "",
       cargo: funcionario.cargo || "",
+      data_nascimento: "",
     });
     setEditingId(funcionario.id);
     setShowForm(true);
@@ -117,7 +125,7 @@ export default function FuncionariosPage() {
     if (!confirm("Deseja inativar este funcionário?")) return;
 
     try {
-      const response = await fetch(`${apiBase}/api/funcionario/${id}`, {
+      const response = await apiFetch(`/api/funcionario/${id}`, {
         method: "DELETE",
       });
 
@@ -252,36 +260,30 @@ export default function FuncionariosPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                    placeholder="funcionario@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Cargo *</label>
-                  <select
-                    name="cargo"
-                    value={formData.cargo}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                  >
-                    <option value="">Selecionar cargo</option>
-                    <option value="DIRETOR">Diretor</option>
-                    <option value="ADMINISTRADOR">Administrador</option>
-                    <option value="RECEPCAO">Recepção</option>
-                    <option value="SECRETÁRIO">Secretário</option>
-                    <option value="LIMPEZA">Limpeza</option>
-                    <option value="MANUTENCAO">Manutenção</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Email *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                      placeholder="funcionario@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Data de nascimento *</label>
+                    <input
+                      type="date"
+                      name="data_nascimento"
+                      value={formData.data_nascimento}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3">

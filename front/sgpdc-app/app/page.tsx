@@ -1,74 +1,101 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { apiFetch, apiBase } from "@/lib/api";
 
 export default function Home() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await apiFetch(`/api/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, senha }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Email ou senha inválidos");
+        return;
+      }
+
+      if (data.user?.firstAccess) {
+        router.push("/auth/change-password");
+        return;
+      }
+
+      if (data.user?.perfil === "PROFESSOR") {
+        router.push("/professores");
+      } else if (data.user?.perfil === "FUNCIONARIO") {
+        router.push("/funcionarios");
+      } else {
+        router.push("/");
+      }
+    } catch (error) {
+      setError("Erro ao fazer login. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-[#2B2B2B] font-sans flex">
-   
+    <div className="min-h-screen bg-white text-[#2B2B2B] font-sans flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+      <main className="w-full max-w-4xl space-y-6">
+        <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
+          <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Projeto Dança Comunidade</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight">Fazer Login</h1>
+        </div>
 
-      {/* Main Content */}
-      <main className="flex-1 mx-auto max-w-4xl flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
-            <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Projeto Dança Comunidade</p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight">Fazer Login</h1>
-          </div>
-
-          <div className="space-y-4 rounded-[32px] bg-white p-6 shadow-sm">
+        <div className="rounded-[32px] bg-white p-6 shadow-sm">
+          <form className="space-y-4" onSubmit={handleLogin}>
             <div>
               <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Email</label>
               <input
-                type="text"
-                placeholder="Digite seu e-mail "
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                type="email"
+                placeholder="Digite seu e-mail"
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm text-[#2B2B2B] outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                required
               />
             </div>
             <div>
               <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Senha</label>
               <input
+                value={senha}
+                onChange={(event) => setSenha(event.target.value)}
                 type="password"
                 placeholder="Digite sua senha"
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm text-[#2B2B2B] outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                required
               />
             </div>
+            {error && <p className="text-sm text-[#E61E4D]">{error}</p>}
             <button
-              type="button"
-              className="w-full rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A]"
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Entrar
+              {loading ? "Entrando..." : "Entrar"}
             </button>
-            <p className="text-center text-sm text-[#6A4FBF]">Página de login visual apenas, sem autenticação.</p>
-          </div>
-
-          <div className="rounded-[32px] border border-[#E5E7EB] bg-[#FFFFFF] p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1F2A5A]">Acesso rápido</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Link 
-                href="/funcionarios/alunos"
-                className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#E61E4D] hover:bg-[#F04A6A]/10"
-              >
-                Alunos
-              </Link>
-              <Link 
-                href="/funcionarios/responsaveis"
-                className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#6A4FBF]/10"
-              >
-                Responsáveis
-              </Link>
-              <Link 
-                href="/professores"
-                className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#E61E4D] hover:bg-[#F04A6A]/10"
-              >
-                Professores
-              </Link>
-              <Link 
-                href="/funcionarios"
-                className="block rounded-3xl border border-[#E5E7EB] bg-[#F2F2F2] px-4 py-4 text-center text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:bg-[#6A4FBF]/10"
-              >
-                Funcionários
-              </Link>
-            </div>
-          </div>
+          </form>
         </div>
+
+ 
       </main>
     </div>
   );

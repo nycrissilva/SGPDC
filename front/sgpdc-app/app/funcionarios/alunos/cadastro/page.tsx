@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 
 type Responsavel = {
   id: number;
@@ -35,7 +35,7 @@ export default function CadastroAlunoPage() {
   useEffect(() => {
     async function loadResponsaveis() {
       try {
-        const response = await fetch(`${apiBase}/api/responsaveis`);
+        const response = await apiFetch(`/api/responsaveis`);
         if (response.ok) {
           const data = await response.json();
           setResponsaveis(data);
@@ -47,7 +47,7 @@ export default function CadastroAlunoPage() {
 
     async function loadTurmas() {
       try {
-        const response = await fetch(`${apiBase}/api/turmas`);
+        const response = await apiFetch(`/api/turmas`);
         if (response.ok) {
           const data = await response.json();
           setTurmas(data);
@@ -92,7 +92,7 @@ export default function CadastroAlunoPage() {
         turma_ids: formData.turma_ids,
       };
 
-      const response = await fetch(`${apiBase}/api/alunos`, {
+      const response = await apiFetch(`/api/alunos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

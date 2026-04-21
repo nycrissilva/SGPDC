@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -69,7 +69,7 @@ export default function TurmasPage() {
 
   const loadProfessores = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/professores`);
+      const response = await apiFetch(`/api/professores`);
       const data = await response.json();
       setProfessores(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -80,7 +80,7 @@ export default function TurmasPage() {
   const loadTurmas = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/turmas`);
+      const response = await apiFetch(`/api/turmas`);
       const data = await response.json();
       setTurmas(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -146,14 +146,13 @@ export default function TurmasPage() {
         status: formData.status,
       };
 
-      const url = editingId
-        ? `${apiBase}/api/turmas/${editingId}`
-        : `${apiBase}/api/turmas`;
+      const path = editingId
+        ? `/api/turmas/${editingId}`
+        : `/api/turmas`;
       const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await apiFetch(path, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -197,7 +196,7 @@ export default function TurmasPage() {
     if (!confirm("Deseja inativar esta turma?")) return;
 
     try {
-      const response = await fetch(`${apiBase}/api/turmas/${id}`, {
+      const response = await apiFetch(`/api/turmas/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -222,6 +221,12 @@ export default function TurmasPage() {
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Gestão de Turmas</h1>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Link
+              href="/funcionarios/presencas"
+              className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"
+            >
+              Registrar presença
+            </Link>
             <Link
               href="/funcionarios/relatorios/turmas"
               className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"

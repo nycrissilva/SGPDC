@@ -7,6 +7,7 @@ export default class PessoaEntity  {
     #telefone;
     #email;
     #status;
+    #data_nascimento;
 
     get id() {
         return this.#id;
@@ -50,13 +51,21 @@ export default class PessoaEntity  {
         this.#status = value;
     }
 
-    constructor(id, nome, cpf, telefone, email, status) {
+    get data_nascimento() {
+        return this.#data_nascimento;
+    }
+    set data_nascimento(value) {
+        this.#data_nascimento = value;
+    }
+
+    constructor(id, nome, cpf, telefone, email, status, data_nascimento = null) {
         this.#id = id;
         this.#nome = nome;
         this.#cpf = cpf;
         this.#telefone = telefone;
         this.#email = email;
         this.#status = status;
+        this.#data_nascimento = data_nascimento;
     }
 
     validar() {

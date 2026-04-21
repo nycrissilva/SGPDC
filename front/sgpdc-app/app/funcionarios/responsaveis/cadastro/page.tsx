@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -28,7 +28,7 @@ export default function CadastroResponsavelPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBase}/api/responsaveis`, {
+      const response = await apiFetch(`/api/responsaveis`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

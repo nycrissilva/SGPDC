@@ -1,5 +1,6 @@
 import UsuarioEntity from "../entities/usuarioEntity.js";
 import Repository from "./repository.js";
+import { comparePassword, hashPassword } from '../utils/passwordUtils.js';
 
 export default class UsuarioRepository extends Repository {
     constructor() {
@@ -44,33 +45,104 @@ export default class UsuarioRepository extends Repository {
     }
 
     async cadastrar(entidade) {
-        let sql = `insert into usuario (pessoa_id, email, senha, perfil)
-                   values (?, ?, ?, ?)`;
-        let valores = [
-            entidade.pessoa_id,
-            entidade.email,
-            entidade.senha,
-            entidade.perfil
-        ];
+        let sql;
+        let valores;
 
-        let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
-        if (id > 0) {
-            entidade.id = id;
-            return true;
+        if (entidade.primeiro_acesso != null) {
+            sql = `insert into usuario (pessoa_id, email, senha, perfil, primeiro_acesso)
+                   values (?, ?, ?, ?, ?)`;
+            valores = [
+                entidade.pessoa_id,
+                entidade.email,
+                entidade.senha,
+                entidade.perfil,
+                entidade.primeiro_acesso ? 1 : 0
+            ];
+            try {
+                let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+                if (id > 0) {
+                    entidade.id = id;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                if (error && error.code === 'ER_BAD_FIELD_ERROR') {
+                    sql = `insert into usuario (pessoa_id, email, senha, perfil)
+                           values (?, ?, ?, ?)`;
+                    valores = [
+                        entidade.pessoa_id,
+                        entidade.email,
+                        entidade.senha,
+                        entidade.perfil
+                    ];
+                    let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+                    if (id > 0) {
+                        entidade.id = id;
+                        return true;
+                    }
+                    return false;
+                }
+                throw error;
+            }
+        } else {
+            sql = `insert into usuario (pessoa_id, email, senha, perfil)
+                   values (?, ?, ?, ?)`;
+            valores = [
+                entidade.pessoa_id,
+                entidade.email,
+                entidade.senha,
+                entidade.perfil
+            ];
+            let id = await this.banco.ExecutaComandoLastInserted(sql, valores);
+            if (id > 0) {
+                entidade.id = id;
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     async alterar(entidade) {
-        let sql = `update usuario set pessoa_id = ?, email = ?, senha = ?, perfil = ? where id = ?`;
-        let valores = [
-            entidade.pessoa_id,
-            entidade.email,
-            entidade.senha,
-            entidade.perfil,
-            entidade.id
-        ];
-        return await this.banco.ExecutaComandoNonQuery(sql, valores);
+        let sql;
+        let valores;
+
+        if (entidade.primeiro_acesso != null) {
+            sql = `update usuario set pessoa_id = ?, email = ?, senha = ?, perfil = ?, primeiro_acesso = ? where id = ?`;
+            valores = [
+                entidade.pessoa_id,
+                entidade.email,
+                entidade.senha,
+                entidade.perfil,
+                entidade.primeiro_acesso ? 1 : 0,
+                entidade.id
+            ];
+            try {
+                return await this.banco.ExecutaComandoNonQuery(sql, valores);
+            } catch (error) {
+                if (error && error.code === 'ER_BAD_FIELD_ERROR') {
+                    sql = `update usuario set pessoa_id = ?, email = ?, senha = ?, perfil = ? where id = ?`;
+                    valores = [
+                        entidade.pessoa_id,
+                        entidade.email,
+                        entidade.senha,
+                        entidade.perfil,
+                        entidade.id
+                    ];
+                    return await this.banco.ExecutaComandoNonQuery(sql, valores);
+                }
+                throw error;
+            }
+        } else {
+            sql = `update usuario set pessoa_id = ?, email = ?, senha = ?, perfil = ? where id = ?`;
+            valores = [
+                entidade.pessoa_id,
+                entidade.email,
+                entidade.senha,
+                entidade.perfil,
+                entidade.id
+            ];
+            return await this.banco.ExecutaComandoNonQuery(sql, valores);
+        }
     }
 
     async deletar(id) {
@@ -80,11 +152,28 @@ export default class UsuarioRepository extends Repository {
     }
 
     async autenticar(email, senha) {
-        let sql = "select * from usuario where email = ? and senha = ?";
-        let valores = [email, senha];
-        let rows = await this.banco.ExecutaComando(sql, valores);
-        if (rows.length === 0)
+        const usuario = await this.obterPorEmail(email);
+        if (!usuario) {
             return null;
-        return UsuarioEntity.toMap(rows[0]);
+        }
+
+        const senhaArmazenada = usuario.senha || '';
+        let senhaValida = false;
+
+        if (/^\$2[aby]\$/.test(senhaArmazenada)) {
+            senhaValida = await comparePassword(senha, senhaArmazenada);
+        } else {
+            senhaValida = senha === senhaArmazenada;
+            if (senhaValida) {
+                usuario.senha = await hashPassword(senha);
+                await this.alterar(usuario);
+            }
+        }
+
+        if (!senhaValida) {
+            return null;
+        }
+
+        return usuario;
     }
 }

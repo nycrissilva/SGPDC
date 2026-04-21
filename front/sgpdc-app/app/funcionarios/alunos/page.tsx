@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -55,7 +55,7 @@ export default function AlunosPage() {
   const loadAlunos = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiBase}/api/alunos`);
+      const response = await apiFetch(`/api/alunos`);
       const data = await response.json();
       console.log("Alunos carregados:", data);
       setAlunos(Array.isArray(data) ? data : []);
@@ -69,7 +69,7 @@ export default function AlunosPage() {
 
   const loadResponsaveis = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/responsaveis`);
+      const response = await apiFetch(`/api/responsaveis`);
       const data = await response.json();
       console.log("Responsáveis carregados:", data);
       setResponsaveis(Array.isArray(data) ? data : []);
@@ -80,7 +80,7 @@ export default function AlunosPage() {
 
   const loadTurmas = async () => {
     try {
-      const response = await fetch(`${apiBase}/api/turmas`);
+      const response = await apiFetch(`/api/turmas`);
       const data = await response.json();
       console.log("Turmas carregadas:", data);
       setTurmas(Array.isArray(data) ? data : []);
@@ -91,7 +91,7 @@ export default function AlunosPage() {
 
   const loadAlunoDetalhes = async (id: number) => {
     try {
-      const response = await fetch(`${apiBase}/api/alunos/${id}`);
+      const response = await apiFetch(`/api/alunos/${id}`);
       if (!response.ok) {
         throw new Error("Erro ao carregar detalhes do aluno");
       }
@@ -146,12 +146,11 @@ export default function AlunosPage() {
         payload.turma_ids = formData.turma_ids;
       }
 
-      const url = editingId ? `${apiBase}/api/alunos/${editingId}` : `${apiBase}/api/alunos`;
+      const path = editingId ? `/api/alunos/${editingId}` : `/api/alunos`;
       const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await apiFetch(path, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -213,7 +212,7 @@ export default function AlunosPage() {
     if (!confirm("Deseja inativar este aluno?")) return;
 
     try {
-      const response = await fetch(`${apiBase}/api/alunos/${id}`, {
+      const response = await apiFetch(`/api/alunos/${id}`, {
         method: "DELETE",
       });
 

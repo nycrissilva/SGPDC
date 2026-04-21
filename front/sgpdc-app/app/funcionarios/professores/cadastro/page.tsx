@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ export default function CadastroProfessorPage() {
     email: "",
     modalidade: "",
     status: "ATIVO",
+    data_nascimento: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -28,7 +29,7 @@ export default function CadastroProfessorPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${apiBase}/api/professores`, {
+      const response = await apiFetch(`/api/professores`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -39,6 +40,7 @@ export default function CadastroProfessorPage() {
         throw new Error(data.error || "Erro ao cadastrar professor");
       }
 
+      const data = await response.json();
       setSuccess(true);
       setFormData({
         nome: "",
@@ -47,8 +49,9 @@ export default function CadastroProfessorPage() {
         email: "",
         modalidade: "",
         status: "ATIVO",
+        data_nascimento: "",
       });
-      setTimeout(() => setSuccess(false), 3000);
+      alert(`Professor cadastrado com sucesso! Senha inicial: ${data.senhaInicial}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
@@ -130,6 +133,17 @@ export default function CadastroProfessorPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Data de nascimento *</label>
+              <input
+                type="date"
+                name="data_nascimento"
+                value={formData.data_nascimento}
+                onChange={handleChange}
+                required
+                className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Modalidade *</label>
               <input
                 type="text"
@@ -141,6 +155,8 @@ export default function CadastroProfessorPage() {
                 placeholder="Ex: Ballet, Sapateado"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Status</label>
               <select

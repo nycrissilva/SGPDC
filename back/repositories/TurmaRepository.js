@@ -54,6 +54,33 @@ export default class TurmaRepository extends Repository {
         return rows.map((row) => TurmaEntity.toMap(row));
     }
 
+    async listarPorProfessor(professorId) {
+        const sql = `
+            select
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                group_concat(distinct pt.professor_id) as professor_ids,
+                group_concat(distinct p.nome) as professor_names
+            from turma t
+            left join agenda a on a.turma_id = t.id
+            join professor_turma pt on pt.turma_id = t.id
+            left join pessoa p on p.id = pt.professor_id
+            where t.status = 'ATIVA'
+              and pt.professor_id = ?
+            group by t.id
+            order by t.nome asc`;
+
+        const rows = await this.banco.ExecutaComando(sql, [professorId]);
+        return rows.map((row) => TurmaEntity.toMap(row));
+    }
+
     async obter(id) {
         let sql = `
             select

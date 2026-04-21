@@ -9,7 +9,8 @@ CREATE TABLE pessoa (
     cpf VARCHAR(20) UNIQUE,
     telefone VARCHAR(20),
     email VARCHAR(255),
-    status VARCHAR(50)
+    status VARCHAR(50),
+    data_nascimento DATE
 );
 
 CREATE TABLE responsavel (
@@ -45,8 +46,13 @@ CREATE TABLE usuario (
     email VARCHAR(255),
     senha VARCHAR(255),
     perfil VARCHAR(50),
+    primeiro_acesso BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (pessoa_id) REFERENCES pessoa(id)
 );
+
+-- Para bancos existentes, rode estas migrações se ainda não tiver as colunas:
+-- ALTER TABLE pessoa ADD COLUMN data_nascimento DATE;
+-- ALTER TABLE usuario ADD COLUMN primeiro_acesso BOOLEAN DEFAULT TRUE;
 
 -- =========================
 -- TURMAS

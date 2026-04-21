@@ -1,6 +1,6 @@
 "use client";
 
-import { apiBase } from "@/lib/api";
+import { apiFetch, apiBase } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -84,10 +84,9 @@ export default function AgendaProfessorPage() {
 
     try {
       const [professoresRes, turmasRes] = await Promise.all([
-        fetch(`${apiBase}/api/professores`),
-        fetch(`${apiBase}/api/turmas`),
+        apiFetch(`/api/professores`),
+        apiFetch(`/api/turmas`),
       ]);
-
       if (!professoresRes.ok || !turmasRes.ok) {
         throw new Error("Não foi possível carregar os dados da agenda.");
       }
@@ -163,12 +162,20 @@ export default function AgendaProfessorPage() {
               Veja suas aulas organizadas por dia da semana, horário e turma. Navegue entre semanas sem edição de horários.
             </p>
           </div>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
-          >
-            Voltar ao Início
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/professores/presencas"
+              className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"
+            >
+              Registrar presença
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
+            >
+              Voltar ao Início
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
