@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthGuard from "@/components/AuthGuard";
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function FuncionariosLayout({
   children,
@@ -19,8 +19,9 @@ export default function FuncionariosLayout({
     { href: "/funcionarios/alunos", label: "Alunos" },
     { href: "/funcionarios/responsaveis", label: "Responsáveis" },
     { href: "/funcionarios/professores", label: "Professores" },
+    { href: "/funcionarios/modalidades", label: "Modalidades" },
+    { href: "/funcionarios/locais", label: "Locais" },
     { href: "/funcionarios/turmas", label: "Turmas" },
-    { href: "/funcionarios/presencas", label: "Presença" },
     { href: "/funcionarios/relatorios", label: "Relatórios" },
     { href: "/funcionarios/funcionarioGerenciar", label: "Funcionários" },
   ];
@@ -102,4 +103,3 @@ export default function FuncionariosLayout({
     </AuthGuard>
   );
 }
-

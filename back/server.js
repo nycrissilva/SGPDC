@@ -9,6 +9,8 @@ import funcionarioRoutes from './routes/funcionarioRoutes.js'
 import turmaRoutes from './routes/turmaRoutes.js'
 import presencaRoutes from './routes/presencaRoutes.js'
 import authRoutes from './routes/authRoutes.js'
+import modalidadeRoutes from './routes/modalidadeRoutes.js'
+import localRoutes from './routes/localRoutes.js'
 import { requireAuth } from './middleware/authMiddleware.js'
 
 const app = express()
@@ -45,6 +47,8 @@ app.use('/api/professores', professorRoutes)
 app.use('/api/funcionario', funcionarioRoutes)
 app.use('/api/turmas', turmaRoutes)
 app.use('/api/presencas', presencaRoutes)
+app.use('/api/modalidades', modalidadeRoutes)
+app.use('/api/locais', localRoutes)
 
 app.listen(PORT, () => {
     console.log(`Servidor SGPDC rodando na porta http://localhost:5001`)

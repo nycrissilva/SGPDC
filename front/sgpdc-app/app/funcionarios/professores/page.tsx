@@ -288,7 +288,7 @@ export default function ProfessoresPage() {
                 <option value="DANÇA_MODERNA">Dança Moderna</option>
                 <option value="JAZZ">Jazz</option>
                 <option value="HIP_HOP">Hip Hop</option>
-                <option value="CONTEMPORÂNEA">Contemporânea</option>
+                <option value="CONTEMPORANEA">Contemporânea</option>
               </select>
             </div>
 

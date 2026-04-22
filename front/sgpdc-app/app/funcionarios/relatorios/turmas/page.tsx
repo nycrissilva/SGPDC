@@ -9,7 +9,7 @@ const MODALIDADES = [
   { value: "DANÇA_MODERNA", label: "Dança Moderna" },
   { value: "JAZZ", label: "Jazz" },
   { value: "HIP_HOP", label: "Hip Hop" },
-  { value: "CONTEMPORÂNEA", label: "Contemporânea" },
+  { value: "CONTEMPORANEA", label: "Contemporânea" },
 ];
 
 export default function RelatorioTurmasPage() {

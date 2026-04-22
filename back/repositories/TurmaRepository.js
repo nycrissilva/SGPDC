@@ -2,25 +2,27 @@ import Repository from "./repository.js";
 import TurmaEntity from "../entities/turmaEntity.js";
 
 export default class TurmaRepository extends Repository {
-    constructor() {
-        super();
-    }
-
     async listar({ nivel, modalidade, professorId, sort } = {}) {
         let sql = `
             select
                 t.id,
                 t.nome,
                 t.modalidade,
+                t.modalidade_id,
+                m.nome as modalidade_nome,
                 t.nivel,
                 t.descricao,
                 t.status,
                 a.dia_semana,
                 a.horario_inicio,
                 a.horario_fim,
+                t.local_id,
+                l.nome as local_nome,
                 group_concat(distinct pt.professor_id) as professor_ids,
                 group_concat(distinct p.nome) as professor_names
             from turma t
+            left join modalidade m on m.id = t.modalidade_id
+            left join local_aula l on l.id = t.local_id
             left join agenda a on a.turma_id = t.id
             left join professor_turma pt on pt.turma_id = t.id
             left join pessoa p on p.id = pt.professor_id
@@ -28,7 +30,7 @@ export default class TurmaRepository extends Repository {
 
         const values = [];
         if (modalidade) {
-            sql += ` and upper(t.modalidade) = upper(?)`;
+            sql += ` and upper(coalesce(m.nome, t.modalidade)) = upper(?)`;
             values.push(modalidade);
         }
         if (nivel) {
@@ -60,15 +62,21 @@ export default class TurmaRepository extends Repository {
                 t.id,
                 t.nome,
                 t.modalidade,
+                t.modalidade_id,
+                m.nome as modalidade_nome,
                 t.nivel,
                 t.descricao,
                 t.status,
                 a.dia_semana,
                 a.horario_inicio,
                 a.horario_fim,
+                t.local_id,
+                l.nome as local_nome,
                 group_concat(distinct pt.professor_id) as professor_ids,
                 group_concat(distinct p.nome) as professor_names
             from turma t
+            left join modalidade m on m.id = t.modalidade_id
+            left join local_aula l on l.id = t.local_id
             left join agenda a on a.turma_id = t.id
             join professor_turma pt on pt.turma_id = t.id
             left join pessoa p on p.id = pt.professor_id
@@ -82,20 +90,26 @@ export default class TurmaRepository extends Repository {
     }
 
     async obter(id) {
-        let sql = `
+        const sql = `
             select
                 t.id,
                 t.nome,
                 t.modalidade,
+                t.modalidade_id,
+                m.nome as modalidade_nome,
                 t.nivel,
                 t.descricao,
                 t.status,
                 a.dia_semana,
                 a.horario_inicio,
                 a.horario_fim,
+                t.local_id,
+                l.nome as local_nome,
                 group_concat(distinct pt.professor_id) as professor_ids,
                 group_concat(distinct p.nome) as professor_names
             from turma t
+            left join modalidade m on m.id = t.modalidade_id
+            left join local_aula l on l.id = t.local_id
             left join agenda a on a.turma_id = t.id
             left join professor_turma pt on pt.turma_id = t.id
             left join pessoa p on p.id = pt.professor_id
@@ -108,8 +122,18 @@ export default class TurmaRepository extends Repository {
     }
 
     async cadastrar(entidade, professorIds) {
-        const sql = `insert into turma (nome, modalidade, nivel, descricao, status) values (?, ?, ?, ?, ?)`;
-        const values = [entidade.nome, entidade.modalidade, entidade.nivel, entidade.descricao, entidade.status];
+        const sql = `
+            insert into turma (nome, modalidade, modalidade_id, local_id, nivel, descricao, status)
+            values (?, ?, ?, ?, ?, ?, ?)`;
+        const values = [
+            entidade.nome,
+            entidade.modalidade,
+            entidade.modalidade_id,
+            entidade.local_id,
+            entidade.nivel,
+            entidade.descricao,
+            entidade.status,
+        ];
         const insertedId = await this.banco.ExecutaComandoLastInserted(sql, values);
         if (!insertedId) return null;
 
@@ -117,7 +141,7 @@ export default class TurmaRepository extends Repository {
         await this.banco.ExecutaComandoNonQuery(agendaSql, [insertedId, entidade.dia_semana, entidade.horario_inicio, entidade.horario_fim]);
 
         for (const professorId of professorIds) {
-            const professorSql = `insert into professor_turma (professor_id, turma_id, funcao_prof, data_inicio) values (?, ?, ?,?)`;
+            const professorSql = `insert into professor_turma (professor_id, turma_id, funcao_prof, data_inicio) values (?, ?, ?, ?)`;
             await this.banco.ExecutaComandoNonQuery(professorSql, [professorId, insertedId, null, null]);
         }
 
@@ -125,8 +149,20 @@ export default class TurmaRepository extends Repository {
     }
 
     async alterar(entidade, professorIds) {
-        const sql = `update turma set nome = ?, modalidade = ?, nivel = ?, descricao = ?, status = ? where id = ?`;
-        const values = [entidade.nome, entidade.modalidade, entidade.nivel, entidade.descricao, entidade.status, entidade.id];
+        const sql = `
+            update turma
+            set nome = ?, modalidade = ?, modalidade_id = ?, local_id = ?, nivel = ?, descricao = ?, status = ?
+            where id = ?`;
+        const values = [
+            entidade.nome,
+            entidade.modalidade,
+            entidade.modalidade_id,
+            entidade.local_id,
+            entidade.nivel,
+            entidade.descricao,
+            entidade.status,
+            entidade.id,
+        ];
         const updated = await this.banco.ExecutaComandoNonQuery(sql, values);
         if (!updated) return false;
 
@@ -154,12 +190,33 @@ export default class TurmaRepository extends Repository {
             select count(*) as total
             from professor_turma pt
             join agenda a on a.turma_id = pt.turma_id
+            join turma t on t.id = pt.turma_id
             where pt.professor_id = ?
+              and t.status = 'ATIVA'
               and a.dia_semana = ?
               and not (a.horario_fim <= ? or a.horario_inicio >= ?)`;
         const values = [professorId, diaSemana, inicio, fim];
         if (turmaId) {
             sql += ` and pt.turma_id <> ?`;
+            values.push(turmaId);
+        }
+
+        const rows = await this.banco.ExecutaComando(sql, values);
+        return rows[0]?.total > 0;
+    }
+
+    async existeConflitoLocal(localId, diaSemana, inicio, fim, turmaId = null) {
+        let sql = `
+            select count(*) as total
+            from turma t
+            join agenda a on a.turma_id = t.id
+            where t.local_id = ?
+              and t.status = 'ATIVA'
+              and a.dia_semana = ?
+              and not (a.horario_fim <= ? or a.horario_inicio >= ?)`;
+        const values = [localId, diaSemana, inicio, fim];
+        if (turmaId) {
+            sql += ` and t.id <> ?`;
             values.push(turmaId);
         }
 

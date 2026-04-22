@@ -1,16 +1,8 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
-const MODALIDADES = [
-  { value: "DANÇA_CLÁSSICA", label: "Dança Clássica" },
-  { value: "DANÇA_MODERNA", label: "Dança Moderna" },
-  { value: "JAZZ", label: "Jazz" },
-  { value: "HIP_HOP", label: "Hip Hop" },
-  { value: "CONTEMPORÂNEA", label: "Contemporânea" },
-];
 
 const DIAS_DA_SEMANA = [
   "Segunda-feira",
@@ -25,86 +17,116 @@ const DIAS_DA_SEMANA = [
 type Professor = {
   id: number;
   nome: string;
-  cpf?: string;
-  email?: string;
-  telefone?: string;
-  status?: string;
+};
+
+type Modalidade = {
+  id: number;
+  nome: string;
+  status: "ATIVA" | "INATIVA";
+};
+
+type Local = {
+  id: number;
+  nome: string;
+  status: "ATIVO" | "INATIVO";
+  cidade: string;
 };
 
 type Turma = {
   id: number;
   nome: string;
   modalidade: string;
+  modalidade_id: number | null;
   nivel: string;
   dia_semana: string;
   horario_inicio: string;
   horario_fim: string;
   status: string;
+  local_id: number | null;
+  local_nome: string | null;
   professor_ids: number[];
+  professor_names?: string[];
+};
+
+const initialForm = {
+  nome: "",
+  modalidade_id: "",
+  local_id: "",
+  nivel: "",
+  dia_semana: "",
+  horario_inicio: "",
+  horario_fim: "",
+  professor_ids: [] as number[],
+  status: "ATIVA",
 };
 
 export default function TurmasPage() {
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [professores, setProfessores] = useState<Professor[]>([]);
+  const [modalidades, setModalidades] = useState<Modalidade[]>([]);
+  const [locais, setLocais] = useState<Local[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
-    nome: "",
-    modalidade: "",
-    nivel: "",
-    dia_semana: "",
-    horario_inicio: "",
-    horario_fim: "",
-    professor_ids: [] as number[],
-    status: "ATIVA",
-  });
+  const [formData, setFormData] = useState(initialForm);
 
   useEffect(() => {
-    loadProfessores();
-    loadTurmas();
+    void (async () => {
+      try {
+        setLoading(true);
+        await Promise.all([loadProfessores(), loadTurmas(), loadModalidades(), loadLocais()]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao carregar dados da turma");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   const loadProfessores = async () => {
-    try {
-      const response = await apiFetch(`/api/professores`);
-      const data = await response.json();
-      setProfessores(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Erro ao carregar professores:", err);
+    const response = await apiFetch(`/api/professores`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Erro ao carregar professores");
     }
+    setProfessores(Array.isArray(data) ? data : []);
   };
 
   const loadTurmas = async () => {
-    try {
-      setLoading(true);
-      const response = await apiFetch(`/api/turmas`);
-      const data = await response.json();
-      setTurmas(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Erro ao carregar turmas:", err);
-    } finally {
-      setLoading(false);
+    const response = await apiFetch(`/api/turmas`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Erro ao carregar turmas");
     }
+    setTurmas(Array.isArray(data) ? data : []);
+  };
+
+  const loadModalidades = async () => {
+    const response = await apiFetch(`/api/modalidades`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Erro ao carregar modalidades");
+    }
+    setModalidades(Array.isArray(data) ? data : []);
+  };
+
+  const loadLocais = async () => {
+    const response = await apiFetch(`/api/locais`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Erro ao carregar locais");
+    }
+    setLocais(Array.isArray(data) ? data : []);
   };
 
   const resetForm = () => {
-    setFormData({
-      nome: "",
-      modalidade: "",
-      nivel: "",
-      dia_semana: "",
-      horario_inicio: "",
-      horario_fim: "",
-      professor_ids: [],
-      status: "ATIVA",
-    });
+    setFormData(initialForm);
     setEditingId(null);
     setShowForm(false);
     setError(null);
-    setSuccess(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -115,29 +137,32 @@ export default function TurmasPage() {
   const handleProfessorToggle = (id: number) => {
     setFormData((prev) => {
       const exists = prev.professor_ids.includes(id);
-      const updated = exists
-        ? prev.professor_ids.filter((professorId) => professorId !== id)
-        : [...prev.professor_ids, id];
-      return { ...prev, professor_ids: updated };
+      return {
+        ...prev,
+        professor_ids: exists
+          ? prev.professor_ids.filter((professorId) => professorId !== id)
+          : [...prev.professor_ids, id],
+      };
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
     setError(null);
     setSuccess(null);
 
     if (formData.professor_ids.length === 0) {
       setError("Selecione ao menos um professor.");
-      setLoading(false);
+      setSaving(false);
       return;
     }
 
     try {
       const payload = {
         nome: formData.nome,
-        modalidade: formData.modalidade,
+        modalidade_id: Number(formData.modalidade_id),
+        local_id: Number(formData.local_id),
         nivel: formData.nivel,
         dia_semana: formData.dia_semana,
         horario_inicio: formData.horario_inicio,
@@ -146,9 +171,7 @@ export default function TurmasPage() {
         status: formData.status,
       };
 
-      const path = editingId
-        ? `/api/turmas/${editingId}`
-        : `/api/turmas`;
+      const path = editingId ? `/api/turmas/${editingId}` : `/api/turmas`;
       const method = editingId ? "PUT" : "POST";
 
       const response = await apiFetch(path, {
@@ -164,21 +187,19 @@ export default function TurmasPage() {
       setSuccess(editingId ? "Turma atualizada com sucesso." : "Turma cadastrada com sucesso.");
       resetForm();
       await loadTurmas();
-      setShowForm(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro desconhecido";
-      setError(message);
-      console.error("Erro ao salvar turma:", err);
+      setError(err instanceof Error ? err.message : "Erro ao salvar turma");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const handleEdit = (turma: Turma) => {
     setFormData({
       nome: turma.nome,
-      modalidade: turma.modalidade,
+      modalidade_id: turma.modalidade_id ? String(turma.modalidade_id) : "",
+      local_id: turma.local_id ? String(turma.local_id) : "",
       nivel: turma.nivel,
       dia_semana: turma.dia_semana,
       horario_inicio: turma.horario_inicio,
@@ -199,18 +220,31 @@ export default function TurmasPage() {
       const response = await apiFetch(`/api/turmas/${id}`, {
         method: "DELETE",
       });
+      const result = await response.json();
       if (!response.ok) {
-        const result = await response.json();
         throw new Error(result.error || "Erro ao inativar turma");
       }
+
       setSuccess("Turma inativada com sucesso.");
       await loadTurmas();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro desconhecido";
-      setError(message);
-      console.error("Erro ao inativar turma:", err);
+      setError(err instanceof Error ? err.message : "Erro ao inativar turma");
     }
   };
+
+  const modalidadeAtual = editingId && formData.modalidade_id
+    ? modalidades.find((item) => item.id === Number(formData.modalidade_id))
+    : null;
+  const localAtual = editingId && formData.local_id
+    ? locais.find((item) => item.id === Number(formData.local_id))
+    : null;
+
+  const modalidadesDisponiveis = modalidades.filter(
+    (item) => item.status === "ATIVA" || item.id === modalidadeAtual?.id
+  );
+  const locaisDisponiveis = locais.filter(
+    (item) => item.status === "ATIVO" || item.id === localAtual?.id
+  );
 
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
@@ -222,16 +256,16 @@ export default function TurmasPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/funcionarios/presencas"
+              href="/funcionarios/modalidades"
               className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"
             >
-              Registrar presença
+              Modalidades
             </Link>
             <Link
-              href="/funcionarios/relatorios/turmas"
+              href="/funcionarios/locais"
               className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]"
             >
-              Ver relatório
+              Locais
             </Link>
             <Link
               href="/funcionarios"
@@ -242,18 +276,14 @@ export default function TurmasPage() {
           </div>
         </div>
 
-        {success && (
-          <div className="mb-6 rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">{success}</div>
-        )}
-        {error && (
-          <div className="mb-6 rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>
-        )}
+        {success && <div className="mb-6 rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">{success}</div>}
+        {error && <div className="mb-6 rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
 
         <div className="mb-8 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
-          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Lista</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Turmas Cadastradas ({turmas.length})</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Turmas cadastradas ({turmas.length})</h2>
             </div>
             <button
               onClick={() => {
@@ -272,7 +302,7 @@ export default function TurmasPage() {
             </button>
           </div>
 
-          {loading && turmas.length === 0 ? (
+          {loading ? (
             <p className="text-sm text-[#2B2B2B]/70">Carregando turmas...</p>
           ) : turmas.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Nenhuma turma cadastrada.</p>
@@ -283,6 +313,7 @@ export default function TurmasPage() {
                   <tr className="bg-[#F9FAFB]">
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Turma</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Modalidade</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Local</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Nível</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Dia / Horário</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Professores</th>
@@ -294,21 +325,26 @@ export default function TurmasPage() {
                     <tr key={turma.id} className="bg-white hover:bg-[#F2F2F2]">
                       <td className="px-4 py-4 font-medium">{turma.nome}</td>
                       <td className="px-4 py-4">{turma.modalidade}</td>
+                      <td className="px-4 py-4">{turma.local_nome || "-"}</td>
                       <td className="px-4 py-4">{turma.nivel}</td>
                       <td className="px-4 py-4">
-                        {turma.dia_semana} <br /> {turma.horario_inicio} - {turma.horario_fim}
+                        {turma.dia_semana}
+                        <br />
+                        {turma.horario_inicio} - {turma.horario_fim}
                       </td>
-                      <td className="px-4 py-4">{turma.professor_ids?.length || 0}</td>
-                      <td className="px-4 py-4 flex gap-2">
+                      <td className="px-4 py-4">
+                        {turma.professor_names?.length ? turma.professor_names.join(", ") : turma.professor_ids.length}
+                      </td>
+                      <td className="flex gap-2 px-4 py-4">
                         <button
                           onClick={() => handleEdit(turma)}
-                          className="text-xs rounded-full bg-[#6A4FBF]/10 px-3 py-1 text-[#6A4FBF] hover:bg-[#6A4FBF]/20 transition"
+                          className="rounded-full bg-[#6A4FBF]/10 px-3 py-1 text-xs text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => handleDelete(turma.id)}
-                          className="text-xs rounded-full bg-[#E61E4D]/10 px-3 py-1 text-[#E61E4D] hover:bg-[#E61E4D]/20 transition"
+                          className="rounded-full bg-[#E61E4D]/10 px-3 py-1 text-xs text-[#E61E4D] transition hover:bg-[#E61E4D]/20"
                         >
                           Inativar
                         </button>
@@ -322,11 +358,11 @@ export default function TurmasPage() {
         </div>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm">
             <h3 className="text-lg font-semibold text-[#1F2A5A]">{editingId ? "Editar Turma" : "Cadastrar Turma"}</h3>
 
             <div>
-              <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Nome da turma *</label>
+              <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Nome da turma *</label>
               <input
                 name="nome"
                 value={formData.nome}
@@ -337,27 +373,45 @@ export default function TurmasPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Modalidade *</label>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Modalidade *</label>
                 <select
-                  name="modalidade"
-                  value={formData.modalidade}
+                  name="modalidade_id"
+                  value={formData.modalidade_id}
                   onChange={handleChange}
                   required
                   className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
                 >
                   <option value="">Selecionar modalidade</option>
-                  {MODALIDADES.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
+                  {modalidadesDisponiveis.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nome}{item.status === "INATIVA" ? " (Inativa)" : ""}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Nível *</label>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Local *</label>
+                <select
+                  name="local_id"
+                  value={formData.local_id}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                >
+                  <option value="">Selecionar local</option>
+                  {locaisDisponiveis.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.nome} - {item.cidade}{item.status === "INATIVO" ? " (Inativo)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Nível *</label>
                 <input
                   name="nivel"
                   value={formData.nivel}
@@ -371,7 +425,7 @@ export default function TurmasPage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Dia da semana *</label>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Dia da semana *</label>
                 <select
                   name="dia_semana"
                   value={formData.dia_semana}
@@ -389,7 +443,7 @@ export default function TurmasPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Horário de início *</label>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Horário de início *</label>
                 <input
                   type="time"
                   name="horario_inicio"
@@ -401,7 +455,7 @@ export default function TurmasPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Horário de fim *</label>
+                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Horário de fim *</label>
                 <input
                   type="time"
                   name="horario_fim"
@@ -414,7 +468,7 @@ export default function TurmasPage() {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-[#1F2A5A] mb-3">Professores *</p>
+              <p className="mb-3 text-sm font-medium text-[#1F2A5A]">Professores *</p>
               <div className="grid gap-3 md:grid-cols-2">
                 {professores.length === 0 ? (
                   <p className="text-sm text-[#2B2B2B]/70">Nenhum professor disponível.</p>
@@ -440,10 +494,10 @@ export default function TurmasPage() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={saving}
                 className="flex-1 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {loading ? "Salvando..." : editingId ? "Atualizar Turma" : "Cadastrar Turma"}
+                {saving ? "Salvando..." : editingId ? "Atualizar Turma" : "Cadastrar Turma"}
               </button>
               {editingId && (
                 <button

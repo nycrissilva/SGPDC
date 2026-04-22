@@ -282,7 +282,7 @@ export default function ResponsaveisPage() {
               >
                 <option value="">Selecionar parentesco</option>
                 <option value="PAI">Pai</option>
-                <option value="MÃE">Mãe</option>
+                <option value="MAE">Mãe</option>
                 <option value="AVÓPATERNA">Avó Paterna</option>
                 <option value="AVÔPATERNO">Avô Paterno</option>
                 <option value="AVÓMATERNA">Avó Materna</option>
