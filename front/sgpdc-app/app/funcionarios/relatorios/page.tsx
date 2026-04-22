@@ -1,10 +1,12 @@
+﻿"use client";
+
 import Link from "next/link";
 
 export default function RelatoriosPage() {
   return (
     <div className="space-y-8">
       <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
-        <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">RelatÃ³rios</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Relatórios</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight">Módulo de Relatórios</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-[#F8FAFC]/90">
           Emita relatórios de turmas e de presença com filtros para apoiar a análise pedagógica e administrativa.
