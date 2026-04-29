@@ -118,7 +118,7 @@ export default function RelatorioPresencasPage() {
       const data = await parseJsonSafe(response);
 
       if (!response.ok) {
-        throw new Error(data?.error || "Erro ao gerar relatÃ³rio");
+        throw new Error(data?.error || "Erro ao gerar relatório");
       }
 
       setRegistros(Array.isArray(data?.registros) ? data.registros : []);
@@ -315,7 +315,7 @@ export default function RelatorioPresencasPage() {
                 disabled={loading}
                 className="inline-flex items-center justify-center rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-60"
               >
-                {loading ? "Gerando..." : "Gerar relatÃ³rio"}
+                {loading ? "Gerando..." : "Gerar relatório"}
               </button>
               <button
                 type="button"

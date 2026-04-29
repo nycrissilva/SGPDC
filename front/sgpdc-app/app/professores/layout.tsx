@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthGuard from "@/components/AuthGuard";
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function ProfessoresLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

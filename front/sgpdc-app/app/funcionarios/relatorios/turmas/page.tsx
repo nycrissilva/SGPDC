@@ -1,8 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+
+type Turma = {
+  id: number;
+  nome: string;
+  modalidade: string;
+  nivel: string;
+  professor_names?: string[];
+  dia_semana?: string;
+  horario_inicio?: string;
+  horario_fim?: string;
+};
+
+type Professor = {
+  id: number;
+  nome: string;
+};
+
+type Filtros = {
+  nivel: string;
+  modalidade: string;
+  professorId: string;
+  sort: string;
+};
+
+const DEFAULT_FILTROS: Filtros = {
+  nivel: "",
+  modalidade: "",
+  professorId: "",
+  sort: "nome",
+};
 
 const MODALIDADES = [
   { value: "DANÇA_CLÁSSICA", label: "Dança Clássica" },
@@ -12,33 +42,23 @@ const MODALIDADES = [
   { value: "CONTEMPORANEA", label: "Contemporânea" },
 ];
 
+const buildQuery = (activeFilters: Filtros) => {
+  const params = new URLSearchParams();
+  if (activeFilters.modalidade) params.set("modalidade", activeFilters.modalidade);
+  if (activeFilters.nivel) params.set("nivel", activeFilters.nivel);
+  if (activeFilters.professorId) params.set("professorId", activeFilters.professorId);
+  if (activeFilters.sort) params.set("sort", activeFilters.sort);
+  return params.toString() ? `?${params.toString()}` : "";
+};
+
 export default function RelatorioTurmasPage() {
-  const [turmas, setTurmas] = useState<any[]>([]);
-  const [professores, setProfessores] = useState<any[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
+  const [professores, setProfessores] = useState<Professor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filtros, setFiltros] = useState({
-    nivel: "",
-    modalidade: "",
-    professorId: "",
-    sort: "nome",
-  });
+  const [filtros, setFiltros] = useState<Filtros>(DEFAULT_FILTROS);
 
-  useEffect(() => {
-    loadProfessores();
-    loadRelatorio();
-  }, []);
-
-  const buildQuery = () => {
-    const params = new URLSearchParams();
-    if (filtros.modalidade) params.set("modalidade", filtros.modalidade);
-    if (filtros.nivel) params.set("nivel", filtros.nivel);
-    if (filtros.professorId) params.set("professorId", filtros.professorId);
-    if (filtros.sort) params.set("sort", filtros.sort);
-    return params.toString() ? `?${params.toString()}` : "";
-  };
-
-  const loadProfessores = async () => {
+  const loadProfessores = useCallback(async () => {
     try {
       const response = await apiFetch(`/api/professores`);
       const data = await response.json();
@@ -46,35 +66,13 @@ export default function RelatorioTurmasPage() {
     } catch (err) {
       console.error("Erro ao carregar professores:", err);
     }
-  };
+  }, []);
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFiltros((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await loadRelatorio();
-  };
-
-  const handleClear = async () => {
-    const newState = { nivel: "", modalidade: "", professorId: "", sort: "nome" };
-    setFiltros(newState);
-    await loadRelatorio(newState);
-  };
-
-  const loadRelatorio = async (overrideFilters?: typeof filtros) => {
+  const loadRelatorio = useCallback(async (activeFilters: Filtros) => {
     try {
       setLoading(true);
       setError(null);
-      const activeFilters = overrideFilters ?? filtros;
-      const params = new URLSearchParams();
-      if (activeFilters.modalidade) params.set("modalidade", activeFilters.modalidade);
-      if (activeFilters.nivel) params.set("nivel", activeFilters.nivel);
-      if (activeFilters.professorId) params.set("professorId", activeFilters.professorId);
-      if (activeFilters.sort) params.set("sort", activeFilters.sort);
-      const query = params.toString() ? `?${params.toString()}` : "";
+      const query = buildQuery(activeFilters);
       const response = await apiFetch(`/api/turmas${query}`);
       if (!response.ok) {
         const result = await response.json();
@@ -89,6 +87,26 @@ export default function RelatorioTurmasPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadProfessores();
+    loadRelatorio(DEFAULT_FILTROS);
+  }, [loadProfessores, loadRelatorio]);
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFiltros((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await loadRelatorio(filtros);
+  };
+
+  const handleClear = async () => {
+    setFiltros(DEFAULT_FILTROS);
+    await loadRelatorio(DEFAULT_FILTROS);
   };
 
   const turmaCount = useMemo(() => turmas.length, [turmas]);
@@ -242,13 +260,13 @@ export default function RelatorioTurmasPage() {
                       <td className="px-4 py-4">{turma.modalidade}</td>
                       <td className="px-4 py-4">{turma.nivel}</td>
                       <td className="px-4 py-4">
-                        {turma.professor_names?.length > 0 ? turma.professor_names.join(", ") : "—"}
+                        {turma.professor_names?.length ? turma.professor_names.join(", ") : "-"}
                       </td>
-                      <td className="px-4 py-4">{turma.dia_semana || "—"}</td>
+                      <td className="px-4 py-4">{turma.dia_semana || "-"}</td>
                       <td className="px-4 py-4">
                         {turma.horario_inicio && turma.horario_fim
                           ? `${turma.horario_inicio} - ${turma.horario_fim}`
-                          : "—"}
+                          : "-"}
                       </td>
                     </tr>
                   ))}

@@ -122,7 +122,8 @@ CREATE TABLE `conta_receber` (
   PRIMARY KEY (`id`),
   KEY `idx_conta_receber_grupo_financeiro` (`grupo_financeiro_id`),
   KEY `matricula_id` (`matricula_id`),
-  CONSTRAINT `conta_receber_ibfk_1` FOREIGN KEY (`matricula_id`) REFERENCES `matricula` (`id`)
+  CONSTRAINT `conta_receber_ibfk_1` FOREIGN KEY (`matricula_id`) REFERENCES `matricula` (`id`),
+  CONSTRAINT `fk_conta_receber_grupo_financeiro` FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -133,33 +134,6 @@ CREATE TABLE `conta_receber` (
 LOCK TABLES `conta_receber` WRITE;
 /*!40000 ALTER TABLE `conta_receber` DISABLE KEYS */;
 /*!40000 ALTER TABLE `conta_receber` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `configuracao_financeira`
---
-
-DROP TABLE IF EXISTS `configuracao_financeira`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `configuracao_financeira` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `valor_multa_mensalidade` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
-  `data_atualizacao` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_configuracao_financeira_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `configuracao_financeira`
---
-
-LOCK TABLES `configuracao_financeira` WRITE;
-/*!40000 ALTER TABLE `configuracao_financeira` DISABLE KEYS */;
-INSERT INTO `configuracao_financeira` (`valor_multa_mensalidade`, `status`) VALUES (0.00, 'ATIVO');
-/*!40000 ALTER TABLE `configuracao_financeira` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -298,6 +272,97 @@ LOCK TABLES `fantasia` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `grupo_financeiro`
+--
+
+DROP TABLE IF EXISTS `grupo_financeiro`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grupo_financeiro` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `responsavel_id` int(11) NOT NULL,
+  `plano_mensalidade_id` int(11) NOT NULL,
+  `tipo_grupo` enum('INDIVIDUAL','FAMILIAR') NOT NULL,
+  `data_inicio` date NOT NULL,
+  `data_fim` date DEFAULT NULL,
+  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`),
+  KEY `idx_grupo_financeiro_responsavel` (`responsavel_id`),
+  KEY `idx_grupo_financeiro_plano` (`plano_mensalidade_id`),
+  KEY `idx_grupo_financeiro_status` (`status`),
+  CONSTRAINT `grupo_financeiro_ibfk_1` FOREIGN KEY (`responsavel_id`) REFERENCES `pessoa` (`id`),
+  CONSTRAINT `grupo_financeiro_ibfk_2` FOREIGN KEY (`plano_mensalidade_id`) REFERENCES `plano_mensalidade` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `grupo_financeiro`
+--
+
+LOCK TABLES `grupo_financeiro` WRITE;
+/*!40000 ALTER TABLE `grupo_financeiro` DISABLE KEYS */;
+/*!40000 ALTER TABLE `grupo_financeiro` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `grupo_financeiro_aluno`
+--
+
+DROP TABLE IF EXISTS `grupo_financeiro_aluno`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grupo_financeiro_aluno` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `grupo_financeiro_id` int(11) NOT NULL,
+  `aluno_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_grupo_financeiro_aluno` (`grupo_financeiro_id`,`aluno_id`),
+  KEY `idx_grupo_financeiro_aluno_aluno` (`aluno_id`),
+  CONSTRAINT `grupo_financeiro_aluno_ibfk_1` FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`),
+  CONSTRAINT `grupo_financeiro_aluno_ibfk_2` FOREIGN KEY (`aluno_id`) REFERENCES `aluno` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `grupo_financeiro_aluno`
+--
+
+LOCK TABLES `grupo_financeiro_aluno` WRITE;
+/*!40000 ALTER TABLE `grupo_financeiro_aluno` DISABLE KEYS */;
+/*!40000 ALTER TABLE `grupo_financeiro_aluno` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `local_aula`
+--
+
+DROP TABLE IF EXISTS `local_aula`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `local_aula` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(150) NOT NULL,
+  `cep` varchar(20) NOT NULL,
+  `rua` varchar(150) NOT NULL,
+  `numero` varchar(20) NOT NULL,
+  `bairro` varchar(100) NOT NULL,
+  `cidade` varchar(100) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `local_aula`
+--
+
+LOCK TABLES `local_aula` WRITE;
+/*!40000 ALTER TABLE `local_aula` DISABLE KEYS */;
+INSERT INTO `local_aula` VALUES (1,'Local nao informado','00000-000','A definir','S/N','A definir','A definir','ATIVO'),(2,'Unidade Ana jacinta - Centro Comunitáio','19064-778','av ana jacinta','12','ana jacinta','Presidente Prudente','ATIVO');
+/*!40000 ALTER TABLE `local_aula` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `matricula`
 --
 
@@ -353,6 +418,32 @@ LOCK TABLES `matricula_turma` WRITE;
 /*!40000 ALTER TABLE `matricula_turma` DISABLE KEYS */;
 INSERT INTO `matricula_turma` VALUES (1,1,1);
 /*!40000 ALTER TABLE `matricula_turma` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `modalidade`
+--
+
+DROP TABLE IF EXISTS `modalidade`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `modalidade` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'ATIVA',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_modalidade_nome` (`nome`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `modalidade`
+--
+
+LOCK TABLES `modalidade` WRITE;
+/*!40000 ALTER TABLE `modalidade` DISABLE KEYS */;
+INSERT INTO `modalidade` VALUES (1,'DANÇA_CLÁSSICA','ATIVA'),(2,'JAZZ','ATIVA'),(4,'Ballet','ATIVA'),(5,'DANÃ‡A_CLÃSSICA','ATIVA');
+/*!40000 ALTER TABLE `modalidade` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -443,30 +534,6 @@ INSERT INTO `pessoa` VALUES (1,'Nycolle Cristina B. Da Silva','451.607.048-09','
 UNLOCK TABLES;
 
 --
--- Table structure for table `plano_pagamento`
---
-
-DROP TABLE IF EXISTS `plano_pagamento`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `plano_pagamento` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `descricao` varchar(255) DEFAULT NULL,
-  `valor_base` decimal(10,2) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `plano_pagamento`
---
-
-LOCK TABLES `plano_pagamento` WRITE;
-/*!40000 ALTER TABLE `plano_pagamento` DISABLE KEYS */;
-/*!40000 ALTER TABLE `plano_pagamento` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `plano_mensalidade`
 --
 
@@ -498,64 +565,27 @@ LOCK TABLES `plano_mensalidade` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `grupo_financeiro`
+-- Table structure for table `plano_pagamento`
 --
 
-DROP TABLE IF EXISTS `grupo_financeiro`;
+DROP TABLE IF EXISTS `plano_pagamento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `grupo_financeiro` (
+CREATE TABLE `plano_pagamento` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `responsavel_id` int(11) NOT NULL,
-  `plano_mensalidade_id` int(11) NOT NULL,
-  `tipo_grupo` enum('INDIVIDUAL','FAMILIAR') NOT NULL,
-  `data_inicio` date NOT NULL,
-  `data_fim` date DEFAULT NULL,
-  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
-  PRIMARY KEY (`id`),
-  KEY `idx_grupo_financeiro_responsavel` (`responsavel_id`),
-  KEY `idx_grupo_financeiro_plano` (`plano_mensalidade_id`),
-  KEY `idx_grupo_financeiro_status` (`status`),
-  CONSTRAINT `grupo_financeiro_ibfk_1` FOREIGN KEY (`responsavel_id`) REFERENCES `pessoa` (`id`),
-  CONSTRAINT `grupo_financeiro_ibfk_2` FOREIGN KEY (`plano_mensalidade_id`) REFERENCES `plano_mensalidade` (`id`)
+  `descricao` varchar(255) DEFAULT NULL,
+  `valor_base` decimal(10,2) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `grupo_financeiro`
+-- Dumping data for table `plano_pagamento`
 --
 
-LOCK TABLES `grupo_financeiro` WRITE;
-/*!40000 ALTER TABLE `grupo_financeiro` DISABLE KEYS */;
-/*!40000 ALTER TABLE `grupo_financeiro` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `grupo_financeiro_aluno`
---
-
-DROP TABLE IF EXISTS `grupo_financeiro_aluno`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `grupo_financeiro_aluno` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `grupo_financeiro_id` int(11) NOT NULL,
-  `aluno_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_grupo_financeiro_aluno` (`grupo_financeiro_id`,`aluno_id`),
-  KEY `idx_grupo_financeiro_aluno_aluno` (`aluno_id`),
-  CONSTRAINT `grupo_financeiro_aluno_ibfk_1` FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`),
-  CONSTRAINT `grupo_financeiro_aluno_ibfk_2` FOREIGN KEY (`aluno_id`) REFERENCES `aluno` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `grupo_financeiro_aluno`
---
-
-LOCK TABLES `grupo_financeiro_aluno` WRITE;
-/*!40000 ALTER TABLE `grupo_financeiro_aluno` DISABLE KEYS */;
-/*!40000 ALTER TABLE `grupo_financeiro_aluno` ENABLE KEYS */;
+LOCK TABLES `plano_pagamento` WRITE;
+/*!40000 ALTER TABLE `plano_pagamento` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plano_pagamento` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -731,7 +761,13 @@ CREATE TABLE `turma` (
   `descricao` varchar(255) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `nivel` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `modalidade_id` int(11) DEFAULT NULL,
+  `local_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_turma_modalidade_id` (`modalidade_id`),
+  KEY `idx_turma_local_id` (`local_id`),
+  CONSTRAINT `fk_turma_local` FOREIGN KEY (`local_id`) REFERENCES `local_aula` (`id`),
+  CONSTRAINT `fk_turma_modalidade` FOREIGN KEY (`modalidade_id`) REFERENCES `modalidade` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -741,7 +777,7 @@ CREATE TABLE `turma` (
 
 LOCK TABLES `turma` WRITE;
 /*!40000 ALTER TABLE `turma` DISABLE KEYS */;
-INSERT INTO `turma` VALUES (1,'Ballet Infantil Ana Jacinta ','DANÃ‡A_CLÃSSICA',NULL,'ATIVA','Iniciante'),(2,'Jazz dos 12 aos 16','JAZZ',NULL,'ATIVA','intermediÃ¡rio'),(3,'ballet teste','DANÃ‡A_CLÃSSICA',NULL,'ATIVA','Iniciante');
+INSERT INTO `turma` VALUES (1,'Ballet Infantil Ana Jacinta ','DANÃ‡A_CLÃSSICA',NULL,'ATIVA','Iniciante',5,1),(2,'Jazz dos 12 aos 16','JAZZ',NULL,'ATIVA','intermediÃ¡rio',2,1),(3,'ballet teste','DANÃ‡A_CLÃSSICA',NULL,'ATIVA','Iniciante',5,1);
 /*!40000 ALTER TABLE `turma` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -841,244 +877,7 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-21 20:41:51
-
--- ------------------------------------------------------
--- Migration support - stories 7 and 8
--- ------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS `modalidade` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(100) NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'ATIVA',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_modalidade_nome` (`nome`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `local_aula` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(150) NOT NULL,
-  `cep` varchar(20) NOT NULL,
-  `rua` varchar(150) NOT NULL,
-  `numero` varchar(20) NOT NULL,
-  `bairro` varchar(100) NOT NULL,
-  `cidade` varchar(100) NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'ATIVO',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-INSERT INTO `modalidade` (`nome`, `status`)
-SELECT DISTINCT TRIM(`modalidade`), 'ATIVA'
-FROM `turma`
-WHERE `modalidade` IS NOT NULL
-  AND TRIM(`modalidade`) <> ''
-  AND NOT EXISTS (
-    SELECT 1
-    FROM `modalidade` m
-    WHERE UPPER(m.`nome`) = UPPER(TRIM(`turma`.`modalidade`))
-  );
-
-INSERT INTO `local_aula` (`nome`, `cep`, `rua`, `numero`, `bairro`, `cidade`, `status`)
-SELECT 'Local nao informado', '00000-000', 'A definir', 'S/N', 'A definir', 'A definir', 'ATIVO'
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM `local_aula`
-  WHERE `nome` = 'Local nao informado'
-);
-
-ALTER TABLE `turma`
-  ADD COLUMN IF NOT EXISTS `modalidade_id` int(11) NULL,
-  ADD COLUMN IF NOT EXISTS `local_id` int(11) NULL;
-
-UPDATE `turma` t
-JOIN `modalidade` m ON UPPER(m.`nome`) = UPPER(TRIM(t.`modalidade`))
-SET t.`modalidade_id` = m.`id`
-WHERE t.`modalidade_id` IS NULL;
-
-UPDATE `turma`
-SET `local_id` = (
-  SELECT `id`
-  FROM `local_aula`
-  WHERE `nome` = 'Local nao informado'
-  LIMIT 1
-)
-WHERE `local_id` IS NULL;
-
-ALTER TABLE `turma`
-  ADD INDEX IF NOT EXISTS `idx_turma_modalidade_id` (`modalidade_id`),
-  ADD INDEX IF NOT EXISTS `idx_turma_local_id` (`local_id`);
-
-ALTER TABLE `turma`
-  ADD CONSTRAINT `fk_turma_modalidade`
-    FOREIGN KEY (`modalidade_id`) REFERENCES `modalidade` (`id`);
-
-ALTER TABLE `turma`
-  ADD CONSTRAINT `fk_turma_local`
-    FOREIGN KEY (`local_id`) REFERENCES `local_aula` (`id`);
-
--- ------------------------------------------------------
-
--- ------------------------------------------------------
--- Migration support - planos e grupos financeiros
--- ------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS `plano_mensalidade` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(150) NOT NULL,
-  `tipo_plano` enum('INDIVIDUAL','COMBINADO','FAMILIAR') NOT NULL,
-  `qtd_alunas` int(11) NOT NULL DEFAULT 1,
-  `qtd_cursos` int(11) NOT NULL DEFAULT 1,
-  `valor_cartao_pix` decimal(10,2) NOT NULL,
-  `valor_dinheiro` decimal(10,2) NOT NULL,
-  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
-  PRIMARY KEY (`id`),
-  KEY `idx_plano_mensalidade_status` (`status`),
-  KEY `idx_plano_mensalidade_tipo` (`tipo_plano`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `grupo_financeiro` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `responsavel_id` int(11) NOT NULL,
-  `plano_mensalidade_id` int(11) NOT NULL,
-  `tipo_grupo` enum('INDIVIDUAL','FAMILIAR') NOT NULL,
-  `data_inicio` date NOT NULL,
-  `data_fim` date DEFAULT NULL,
-  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
-  PRIMARY KEY (`id`),
-  KEY `idx_grupo_financeiro_responsavel` (`responsavel_id`),
-  KEY `idx_grupo_financeiro_plano` (`plano_mensalidade_id`),
-  KEY `idx_grupo_financeiro_status` (`status`),
-  CONSTRAINT `fk_grupo_financeiro_responsavel`
-    FOREIGN KEY (`responsavel_id`) REFERENCES `pessoa` (`id`),
-  CONSTRAINT `fk_grupo_financeiro_plano`
-    FOREIGN KEY (`plano_mensalidade_id`) REFERENCES `plano_mensalidade` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `grupo_financeiro_aluno` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `grupo_financeiro_id` int(11) NOT NULL,
-  `aluno_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_grupo_financeiro_aluno` (`grupo_financeiro_id`,`aluno_id`),
-  KEY `idx_grupo_financeiro_aluno_aluno` (`aluno_id`),
-  CONSTRAINT `fk_grupo_financeiro_aluno_grupo`
-    FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`),
-  CONSTRAINT `fk_grupo_financeiro_aluno_aluno`
-    FOREIGN KEY (`aluno_id`) REFERENCES `aluno` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `configuracao_financeira` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `valor_multa_mensalidade` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `status` enum('ATIVO','INATIVO') NOT NULL DEFAULT 'ATIVO',
-  `data_atualizacao` datetime NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_configuracao_financeira_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-INSERT INTO `configuracao_financeira` (`valor_multa_mensalidade`, `status`)
-SELECT 0.00, 'ATIVO'
-WHERE NOT EXISTS (
-  SELECT 1
-  FROM `configuracao_financeira`
-  WHERE `status` = 'ATIVO'
-);
-
-ALTER TABLE `matricula`
-  DROP FOREIGN KEY IF EXISTS `matricula_ibfk_2`;
-
-ALTER TABLE `matricula`
-  DROP INDEX IF EXISTS `plano_pagamento_id`,
-  DROP COLUMN IF EXISTS `plano_pagamento_id`;
-
-ALTER TABLE `conta_receber`
-  ADD COLUMN IF NOT EXISTS `grupo_financeiro_id` int(11) NULL AFTER `id`,
-  ADD COLUMN IF NOT EXISTS `tipo_receita` enum('MENSALIDADE','FANTASIA','VENDA') NOT NULL DEFAULT 'MENSALIDADE' AFTER `matricula_id`,
-  ADD COLUMN IF NOT EXISTS `ano_referencia` smallint(4) NULL AFTER `mes_referencia`,
-  ADD COLUMN IF NOT EXISTS `valor_base` decimal(10,2) NULL AFTER `ano_referencia`,
-  ADD COLUMN IF NOT EXISTS `valor_final` decimal(10,2) NULL AFTER `valor_base`,
-  ADD COLUMN IF NOT EXISTS `multa` decimal(10,2) NOT NULL DEFAULT 0.00 AFTER `valor_final`;
-
-UPDATE `conta_receber`
-SET `status` = 'PENDENTE'
-WHERE `status` IS NULL;
-
-ALTER TABLE `conta_receber`
-  MODIFY COLUMN `mes_referencia` tinyint(2) NULL,
-  MODIFY COLUMN `status` varchar(50) NOT NULL DEFAULT 'PENDENTE';
-
-UPDATE `conta_receber`
-SET `valor_base` = COALESCE(`valor_base`, `valor`),
-    `valor_final` = COALESCE(`valor_final`, `valor`)
-WHERE `valor` IS NOT NULL;
-
-ALTER TABLE `conta_receber`
-  ADD INDEX IF NOT EXISTS `idx_conta_receber_grupo_financeiro` (`grupo_financeiro_id`);
-
-ALTER TABLE `conta_receber`
-  ADD CONSTRAINT `fk_conta_receber_grupo_financeiro`
-    FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`);
-
-DROP TRIGGER IF EXISTS `trg_grupo_financeiro_aluno_bi`;
-DROP TRIGGER IF EXISTS `trg_grupo_financeiro_aluno_bu`;
-DROP TRIGGER IF EXISTS `trg_grupo_financeiro_bu`;
-
-DELIMITER ;;
-CREATE TRIGGER `trg_grupo_financeiro_aluno_bi`
-BEFORE INSERT ON `grupo_financeiro_aluno`
-FOR EACH ROW
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM `grupo_financeiro_aluno` gfa
-    JOIN `grupo_financeiro` gf ON gf.`id` = gfa.`grupo_financeiro_id`
-    JOIN `grupo_financeiro` novo_gf ON novo_gf.`id` = NEW.`grupo_financeiro_id`
-    WHERE gfa.`aluno_id` = NEW.`aluno_id`
-      AND gf.`status` = 'ATIVO'
-      AND novo_gf.`status` = 'ATIVO'
-  ) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Aluno ja possui grupo financeiro ativo';
-  END IF;
-END;;
-
-CREATE TRIGGER `trg_grupo_financeiro_aluno_bu`
-BEFORE UPDATE ON `grupo_financeiro_aluno`
-FOR EACH ROW
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM `grupo_financeiro_aluno` gfa
-    JOIN `grupo_financeiro` gf ON gf.`id` = gfa.`grupo_financeiro_id`
-    JOIN `grupo_financeiro` novo_gf ON novo_gf.`id` = NEW.`grupo_financeiro_id`
-    WHERE gfa.`aluno_id` = NEW.`aluno_id`
-      AND gfa.`id` <> OLD.`id`
-      AND gf.`status` = 'ATIVO'
-      AND novo_gf.`status` = 'ATIVO'
-  ) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Aluno ja possui grupo financeiro ativo';
-  END IF;
-END;;
-
-CREATE TRIGGER `trg_grupo_financeiro_bu`
-BEFORE UPDATE ON `grupo_financeiro`
-FOR EACH ROW
-BEGIN
-  IF NEW.`status` = 'ATIVO' AND OLD.`status` <> 'ATIVO' AND EXISTS (
-    SELECT 1
-    FROM `grupo_financeiro_aluno` alvo
-    JOIN `grupo_financeiro_aluno` outro_aluno ON outro_aluno.`aluno_id` = alvo.`aluno_id`
-    JOIN `grupo_financeiro` outro_grupo ON outro_grupo.`id` = outro_aluno.`grupo_financeiro_id`
-    WHERE alvo.`grupo_financeiro_id` = NEW.`id`
-      AND outro_grupo.`id` <> NEW.`id`
-      AND outro_grupo.`status` = 'ATIVO'
-  ) THEN
-    SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Aluno ja possui grupo financeiro ativo';
-  END IF;
-END;;
-DELIMITER ;
+-- Dump completed on 2026-04-27 13:48:04
 
 CREATE TABLE IF NOT EXISTS `periodo_letivo` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

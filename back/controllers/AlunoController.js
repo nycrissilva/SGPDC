@@ -2,11 +2,13 @@ import PessoaController from "./PessoaController.js";
 import PessoaEntity from "../entities/pessoaEntity.js";
 import AlunoEntity from "../entities/alunoEntity.js";
 import AlunoRepository from "../repositories/AlunoRepository.js";
+import PlanoFinanceiroRepository from "../repositories/PlanoFinanceiroRepository.js";
 
 export default class AlunoController extends PessoaController {
     constructor() {
         super();
         this.alunoRepository = new AlunoRepository();
+        this.planoFinanceiroRepository = new PlanoFinanceiroRepository();
     }
 
     obterTipoFiltro() {
@@ -32,7 +34,8 @@ export default class AlunoController extends PessoaController {
                 responsavel_id,
                 data_nascimento,
                 data_matricula,
-                turma_ids
+                turma_ids,
+                plano_financeiro
             } = req.body;
 
             if (!nome || !cpf || !data_nascimento || !data_matricula) {
@@ -53,6 +56,11 @@ export default class AlunoController extends PessoaController {
                 return res.status(400).json({ error: "Selecione ao menos uma turma válida" });
             }
 
+            const erroPlanoFinanceiro = await this.validarDadosPlanoFinanceiro(plano_financeiro);
+            if (erroPlanoFinanceiro) {
+                return res.status(400).json({ error: erroPlanoFinanceiro });
+            }
+
             const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
             const pessoaCadastrada = await this.pessoaRepository.cadastrar(pessoa);
             if (!pessoaCadastrada) {
@@ -68,7 +76,7 @@ export default class AlunoController extends PessoaController {
 
             let matriculaId = null;
             try {
-                matriculaId = await this.alunoRepository.criarMatricula(pessoa.id, data_matricula, null, "ATIVA");
+                matriculaId = await this.alunoRepository.criarMatricula(pessoa.id, data_matricula, "ATIVA");
                 if (!matriculaId) {
                     throw new Error("Erro ao criar matrícula");
                 }
@@ -84,8 +92,11 @@ export default class AlunoController extends PessoaController {
                         throw new Error("Erro ao vincular aluno à turma");
                     }
                 }
+
+                await this.salvarPlanoFinanceiro(pessoa.id, plano_financeiro);
             } catch (innerError) {
                 if (matriculaId) {
+                    await this.alunoRepository.deletarMatriculaTurmas(matriculaId);
                     await this.alunoRepository.deletarMatricula(matriculaId);
                 }
                 await this.pessoaRepository.inativar(pessoa.id);
@@ -96,6 +107,179 @@ export default class AlunoController extends PessoaController {
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
+    }
+
+    async validarDadosPlanoFinanceiro(planoFinanceiro) {
+        if (!planoFinanceiro) return "Plano financeiro e obrigatorio";
+
+        const responsavelFinanceiroId = Number(planoFinanceiro.responsavel_financeiro_id);
+        const planoMensalidadeId = Number(planoFinanceiro.plano_mensalidade_id);
+        const tipoCobranca = String(planoFinanceiro.tipo_cobranca || '').toUpperCase();
+        const dataInicio = planoFinanceiro.data_inicio;
+        const acao = String(planoFinanceiro.acao || 'CRIAR').toUpperCase();
+
+        if (!Number.isInteger(responsavelFinanceiroId) || responsavelFinanceiroId <= 0) {
+            return "Responsavel financeiro e obrigatorio";
+        }
+
+        if (!['INDIVIDUAL', 'FAMILIAR'].includes(tipoCobranca)) {
+            return "Tipo de cobranca invalido";
+        }
+
+        if (!Number.isInteger(planoMensalidadeId) || planoMensalidadeId <= 0) {
+            return "Plano de mensalidade e obrigatorio";
+        }
+
+        if (!dataInicio) {
+            return "Data de inicio da cobranca e obrigatoria";
+        }
+
+        const plano = await this.planoFinanceiroRepository.obterPlanoMensalidadeAtivo(planoMensalidadeId);
+        if (!plano) {
+            return "Plano de mensalidade inativo ou inexistente";
+        }
+
+        if (tipoCobranca === 'FAMILIAR' && plano.tipo_plano !== 'FAMILIAR') {
+            return "Selecione um plano de mensalidade familiar";
+        }
+
+        if (tipoCobranca === 'INDIVIDUAL' && plano.tipo_plano === 'FAMILIAR') {
+            return "Selecione um plano de mensalidade individual";
+        }
+
+        if (!['CRIAR', 'VINCULAR', 'SUBSTITUIR'].includes(acao)) {
+            return "Acao do plano financeiro invalida";
+        }
+
+        const alunaIds = Array.isArray(planoFinanceiro.aluna_ids) ? planoFinanceiro.aluna_ids : [];
+        if (tipoCobranca === 'INDIVIDUAL' && alunaIds.length > 0) {
+            return "Plano financeiro individual permite apenas a aluna matriculada";
+        }
+
+        if (acao === 'VINCULAR' || acao === 'SUBSTITUIR') {
+            const grupoId = Number(planoFinanceiro.grupo_financeiro_id);
+            if (!Number.isInteger(grupoId) || grupoId <= 0) {
+                return "Selecione o plano financeiro existente";
+            }
+
+            const grupo = await this.planoFinanceiroRepository.obter(grupoId);
+            if (!grupo || grupo.status !== 'ATIVO') {
+                return "Plano financeiro existente inativo ou inexistente";
+            }
+
+            if (Number(grupo.responsavel_id) !== responsavelFinanceiroId) {
+                return "Plano financeiro existente nao pertence ao responsavel informado";
+            }
+
+            if (acao === 'VINCULAR' && grupo.tipo_grupo !== tipoCobranca) {
+                return "Tipo de cobranca diferente do plano financeiro existente";
+            }
+
+            if (acao === 'VINCULAR' && grupo.tipo_grupo === 'INDIVIDUAL') {
+                return "Plano financeiro individual nao permite vincular outra aluna";
+            }
+
+            if (acao === 'SUBSTITUIR' && (grupo.tipo_grupo !== 'INDIVIDUAL' || tipoCobranca !== 'FAMILIAR')) {
+                return "A substituicao deve transformar um plano individual em familiar";
+            }
+        }
+
+        for (const alunaIdBruto of alunaIds) {
+            const alunaId = Number(alunaIdBruto);
+            if (!Number.isInteger(alunaId) || alunaId <= 0) {
+                return "Aluna vinculada ao plano financeiro invalida";
+            }
+
+            const grupoAtivo = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(alunaId);
+            const grupoSelecionadoId = Number(planoFinanceiro.grupo_financeiro_id);
+            if (grupoAtivo && grupoAtivo.id !== grupoSelecionadoId) {
+                return "Uma das alunas selecionadas ja possui plano financeiro ativo";
+            }
+        }
+
+        return null;
+    }
+
+    async salvarPlanoFinanceiro(alunoId, planoFinanceiro) {
+        const responsavelFinanceiroId = Number(planoFinanceiro.responsavel_financeiro_id);
+        const planoMensalidadeId = Number(planoFinanceiro.plano_mensalidade_id);
+        const tipoCobranca = String(planoFinanceiro.tipo_cobranca || '').toUpperCase();
+        const acao = String(planoFinanceiro.acao || 'CRIAR').toUpperCase();
+        const dataInicio = planoFinanceiro.data_inicio;
+        let grupoId = Number(planoFinanceiro.grupo_financeiro_id);
+
+        const alunoJaPossuiPlano = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(alunoId);
+        if (alunoJaPossuiPlano) {
+            throw new Error("Aluna ja possui plano financeiro ativo");
+        }
+
+        const grupoAntigoId = grupoId;
+
+        if (acao === 'VINCULAR') {
+            await this.planoFinanceiroRepository.atualizarPlanoGrupo(grupoId, planoMensalidadeId);
+        } else {
+            if (acao === 'SUBSTITUIR') {
+                await this.planoFinanceiroRepository.inativarGrupo(grupoAntigoId, dataInicio);
+            }
+
+            grupoId = await this.planoFinanceiroRepository.criarGrupo({
+                responsavel_id: responsavelFinanceiroId,
+                plano_mensalidade_id: planoMensalidadeId,
+                tipo_grupo: tipoCobranca,
+                data_inicio: dataInicio,
+            });
+        }
+
+        const alunaIds = Array.isArray(planoFinanceiro.aluna_ids)
+            ? planoFinanceiro.aluna_ids.map(Number).filter((id) => Number.isInteger(id) && id > 0)
+            : [];
+        const idsParaVincular = Array.from(new Set([...alunaIds, alunoId]));
+
+        if (tipoCobranca === 'INDIVIDUAL' && idsParaVincular.length > 1) {
+            throw new Error("Plano financeiro individual permite apenas uma aluna");
+        }
+
+        for (const idParaVincular of idsParaVincular) {
+            const jaEstaNoGrupo = await this.planoFinanceiroRepository.alunoEstaNoGrupo(grupoId, idParaVincular);
+            if (jaEstaNoGrupo) continue;
+
+            const grupoAtivo = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(idParaVincular);
+            const estaNoPlanoSubstituido = acao === 'SUBSTITUIR' && grupoAtivo?.id === grupoAntigoId;
+            if (grupoAtivo && grupoAtivo.id !== grupoId && !estaNoPlanoSubstituido) {
+                throw new Error("Uma das alunas ja possui plano financeiro ativo");
+            }
+
+            await this.planoFinanceiroRepository.vincularAluno(grupoId, idParaVincular);
+        }
+
+        await this.gerarMensalidadeInicial(grupoId, planoMensalidadeId, dataInicio);
+
+        return grupoId;
+    }
+
+    async gerarMensalidadeInicial(grupoId, planoMensalidadeId, dataInicio) {
+        const plano = await this.planoFinanceiroRepository.obterPlanoMensalidade(planoMensalidadeId);
+        if (!plano) {
+            throw new Error("Plano de mensalidade nao encontrado para gerar cobranca");
+        }
+
+        const dataReferencia = new Date(`${dataInicio}T00:00:00`);
+        if (Number.isNaN(dataReferencia.getTime())) {
+            throw new Error("Data de inicio da cobranca invalida");
+        }
+
+        const mesReferencia = dataReferencia.getMonth() + 1;
+        const anoReferencia = dataReferencia.getFullYear();
+        const valorBase = Number(plano.valor_cartao_pix || plano.valor_dinheiro || 0);
+        const dataVencimento = `${anoReferencia}-${String(mesReferencia).padStart(2, '0')}-15`;
+
+        await this.planoFinanceiroRepository.criarMensalidadeInicial({
+            grupo_financeiro_id: grupoId,
+            mes_referencia: mesReferencia,
+            ano_referencia: anoReferencia,
+            valor_base: valorBase,
+            data_vencimento: dataVencimento,
+        });
     }
 
     async alterar(req, res) {

@@ -21,7 +21,10 @@ export default function FuncionariosLayout({
     { href: "/funcionarios/professores", label: "Professores" },
     { href: "/funcionarios/modalidades", label: "Modalidades" },
     { href: "/funcionarios/locais", label: "Locais" },
+    { href: "/funcionarios/planos-mensalidade", label: "Planos de Mensalidade" },
+    { href: "/funcionarios/mensalidades", label: "Mensalidades" },
     { href: "/funcionarios/turmas", label: "Turmas" },
+    { href: "/funcionarios/periodos-letivos", label: "Período Letivo" },
     { href: "/funcionarios/relatorios", label: "Relatórios" },
     { href: "/funcionarios/funcionarioGerenciar", label: "Funcionários" },
   ];

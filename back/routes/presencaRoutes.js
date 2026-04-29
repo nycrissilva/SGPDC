@@ -6,6 +6,7 @@ const router = express.Router();
 const presencaController = new PresencaController();
 
 router.get('/me/turmas', requireProfessor, (req, res) => presencaController.listarTurmasProfessor(req, res));
+router.get('/me/datas', requireProfessor, (req, res) => presencaController.listarDatasProfessor(req, res));
 router.get('/me', requireProfessor, (req, res) => presencaController.listarProfessor(req, res));
 router.post('/me', requireProfessor, (req, res) => presencaController.cadastrarProfessor(req, res));
 

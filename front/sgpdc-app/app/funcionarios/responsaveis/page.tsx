@@ -1,6 +1,6 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -199,6 +199,12 @@ export default function ResponsaveisPage() {
                         >
                           Editar
                         </button>
+                        <Link
+                          href={`/funcionarios/mensalidades?responsavel_id=${responsavel.id}`}
+                          className="text-xs rounded-full bg-[#1F2A5A]/10 px-3 py-1 text-[#1F2A5A] hover:bg-[#1F2A5A]/20 transition"
+                        >
+                          Mensalidades
+                        </Link>
                         <button
                           onClick={() => handleDelete(responsavel.id)}
                           className="text-xs rounded-full bg-[#E61E4D]/10 px-3 py-1 text-[#E61E4D] hover:bg-[#E61E4D]/20 transition"

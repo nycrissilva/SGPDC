@@ -75,9 +75,9 @@ export default class AlunoRepository extends Repository {
         return await this.inativar(id);
     }
 
-    async criarMatricula(alunoId, data_matricula, plano_pagamento_id = null, status = "ATIVA") {
-        const sql = `insert into matricula (aluno_id, data_matricula, status, data_cancelamento, plano_pagamento_id) values (?, ?, ?, null, ?)`;
-        const valores = [alunoId, data_matricula, status, plano_pagamento_id];
+    async criarMatricula(alunoId, data_matricula, status = "ATIVA") {
+        const sql = `insert into matricula (aluno_id, data_matricula, status, data_cancelamento) values (?, ?, ?, null)`;
+        const valores = [alunoId, data_matricula, status];
         return await this.banco.ExecutaComandoLastInserted(sql, valores);
     }
 
@@ -103,6 +103,12 @@ export default class AlunoRepository extends Repository {
     async deletarMatricula(matriculaId) {
         const sql = `delete from matricula where id = ?`;
         return await this.banco.ExecutaComandoNonQuery(sql, [matriculaId]);
+    }
+
+    async deletarMatriculaTurmas(matriculaId) {
+        const sql = `delete from matricula_turma where matricula_id = ?`;
+        await this.banco.ExecutaComando(sql, [matriculaId]);
+        return true;
     }
 
     async verificarMensalidadesPendentes(alunoId) {

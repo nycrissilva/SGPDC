@@ -11,6 +11,10 @@ import presencaRoutes from './routes/presencaRoutes.js'
 import authRoutes from './routes/authRoutes.js'
 import modalidadeRoutes from './routes/modalidadeRoutes.js'
 import localRoutes from './routes/localRoutes.js'
+import planoMensalidadeRoutes from './routes/planoMensalidadeRoutes.js'
+import planoFinanceiroRoutes from './routes/planoFinanceiroRoutes.js'
+import mensalidadeRoutes from './routes/mensalidadeRoutes.js'
+import periodoLetivoRoutes from './routes/periodoLetivoRoutes.js'
 import { requireAuth } from './middleware/authMiddleware.js'
 
 const app = express()
@@ -49,6 +53,10 @@ app.use('/api/turmas', turmaRoutes)
 app.use('/api/presencas', presencaRoutes)
 app.use('/api/modalidades', modalidadeRoutes)
 app.use('/api/locais', localRoutes)
+app.use('/api/planos-mensalidade', planoMensalidadeRoutes)
+app.use('/api/planos-financeiros', planoFinanceiroRoutes)
+app.use('/api/mensalidades', mensalidadeRoutes)
+app.use('/api/periodos-letivos', periodoLetivoRoutes)
 
 app.listen(PORT, () => {
     console.log(`Servidor SGPDC rodando na porta http://localhost:5001`)

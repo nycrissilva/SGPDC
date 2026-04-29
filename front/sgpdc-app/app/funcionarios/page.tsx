@@ -5,7 +5,7 @@ export default function FuncionariosPage() {
     <div className="space-y-8">
       <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
         <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Sistema</p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight">Painel de GestÃ£o</h1>
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight">Painel de Gestão</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-[#F8FAFC]/90">
           Bem-vindo ao painel administrativo. Use o menu para gerenciar alunos, responsáveis,
           professores, modalidades, locais e funcionários.
@@ -43,6 +43,18 @@ export default function FuncionariosPage() {
           <p className="mt-2 text-sm text-[#4B5563]">Cadastre os espaços de aula e organize melhor as turmas.</p>
         </Link>
 
+        <Link href="/funcionarios/planos-mensalidade" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Mensalidades</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Planos de Mensalidade</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Cadastre valores por tipo de plano, quantidade de alunas e cursos.</p>
+        </Link>
+
+        <Link href="/funcionarios/mensalidades" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Financeiro</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Mensalidades</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Consulte cobranças pagas, pendentes e em aberto por responsável ou aluna.</p>
+        </Link>
+
         <Link href="/funcionarios/funcionarioGerenciar" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
           <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
           <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Funcionários</h2>
@@ -53,6 +65,12 @@ export default function FuncionariosPage() {
           <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Gerenciar</p>
           <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Turmas</h2>
           <p className="mt-2 text-sm text-[#4B5563]">Cadastre, edite e inative turmas com professores vinculados.</p>
+        </Link>
+
+        <Link href="/funcionarios/periodos-letivos" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Calendário</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Período Letivo</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Defina o intervalo de aulas usado para gerar as datas de chamada.</p>
         </Link>
 
         <Link href="/funcionarios/relatorios" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">

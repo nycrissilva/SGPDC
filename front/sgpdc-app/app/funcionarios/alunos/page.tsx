@@ -1,6 +1,6 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -24,6 +24,18 @@ type Responsavel = {
 type Turma = {
   id: number;
   nome: string;
+};
+
+type AlunoPayload = {
+  nome: string;
+  cpf: string;
+  telefone: string;
+  email: string;
+  data_nascimento: string;
+  data_matricula: string;
+  responsavel_id: number | null;
+  status: string;
+  turma_ids?: number[];
 };
 
 export default function AlunosPage() {
@@ -134,7 +146,7 @@ export default function AlunosPage() {
     }
 
     try {
-      const payload: any = {
+      const payload: AlunoPayload = {
         ...formData,
         responsavel_id: formData.responsavel_id ? Number(formData.responsavel_id) : null,
         status: "ATIVO",
@@ -257,7 +269,7 @@ export default function AlunosPage() {
               <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Alunos Matriculados ({alunos.length})</h2>
             </div>
             <button
-              onClick={() => (showForm && !editingId ? resetForm() : setShowForm(!showForm))}
+              onClick={() => { window.location.href = "/funcionarios/alunos/cadastro"; }}
               className="inline-flex items-center rounded-full border border-[#E61E4D] bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A]"
             >
               {showForm ? "Fechar" : "+ Nova Matrícula"}
@@ -294,6 +306,12 @@ export default function AlunosPage() {
                         >
                           Editar
                         </button>
+                        <Link
+                          href={`/funcionarios/mensalidades?aluno_id=${aluno.id}`}
+                          className="text-xs rounded-full bg-[#1F2A5A]/10 px-3 py-1 text-[#1F2A5A] hover:bg-[#1F2A5A]/20 transition"
+                        >
+                          Mensalidades
+                        </Link>
                         <button
                           onClick={() => handleDelete(aluno.id)}
                           className="text-xs rounded-full bg-[#E61E4D]/10 px-3 py-1 text-[#E61E4D] hover:bg-[#E61E4D]/20 transition"

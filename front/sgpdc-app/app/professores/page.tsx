@@ -25,17 +25,42 @@ const WEEK_DAYS = [
   "Domingo",
 ];
 
+const fixBrokenText = (value: string) =>
+  String(value || "")
+    .replace(/\u00C3\u2021/g, "Ç")
+    .replace(/\u00C3\u00A7/g, "ç")
+    .replace(/\u00C3\u0081/g, "Á")
+    .replace(/\u00C3\u00A1/g, "á")
+    .replace(/\u00C3\u0089/g, "É")
+    .replace(/\u00C3\u00A9/g, "é")
+    .replace(/\u00C3\u008D/g, "Í")
+    .replace(/\u00C3\u00AD/g, "í")
+    .replace(/\u00C3\u201C/g, "Ó")
+    .replace(/\u00C3\u00B3/g, "ó")
+    .replace(/\u00C3\u0161/g, "Ú")
+    .replace(/\u00C3\u00BA/g, "ú")
+    .replace(/\u00C3\u00A3/g, "ã")
+    .replace(/\u00C3\u2022/g, "Õ")
+    .replace(/\u00C3\u00B5/g, "õ")
+    .replace(/\u00C3\u00A2/g, "â")
+    .replace(/\u00C3\u0160/g, "Ê")
+    .replace(/\u00C3\u00AA/g, "ê")
+    .replace(/\u00C3\u201D/g, "Ô")
+    .replace(/\u00C3\u00B4/g, "ô")
+    .replace(/\u00C2\u00BA/g, "º");
+
 const normalizeDayName = (value: string) => {
-  if (!value) return "";
-  const normalized = value.toLowerCase();
+  const fixedValue = fixBrokenText(value);
+  if (!fixedValue) return "";
+  const normalized = fixedValue.toLowerCase();
   if (normalized.includes("seg")) return "Segunda-feira";
   if (normalized.includes("ter")) return "Terça-feira";
   if (normalized.includes("qua")) return "Quarta-feira";
   if (normalized.includes("qui")) return "Quinta-feira";
   if (normalized.includes("sex")) return "Sexta-feira";
-  if (normalized.includes("sÃ¡b") || normalized.includes("sab")) return "Sábado";
+  if (normalized.includes("sáb") || normalized.includes("sab")) return "Sábado";
   if (normalized.includes("dom")) return "Domingo";
-  return value;
+  return fixedValue;
 };
 
 const getWeekLabel = (offset: number) => {
@@ -71,7 +96,7 @@ export default function AgendaProfessorPage() {
   const [weekOffset, setWeekOffset] = useState(0);
 
   useEffect(() => {
-    loadTurmas();
+    void loadTurmas();
   }, []);
 
   const loadTurmas = async () => {
@@ -83,14 +108,20 @@ export default function AgendaProfessorPage() {
       const data = await parseJsonSafe(response);
 
       if (!response.ok) {
-        throw new Error(data?.error || "NÃo foi possível carregar a agenda.");
+        throw new Error(data?.error || "Não foi possível carregar a agenda.");
       }
 
       const loadedTurmas = Array.isArray(data) ? data : [];
       setTurmas(
         loadedTurmas
           .filter((turma) => turma.status !== "INATIVO")
-          .map((turma) => ({ ...turma, dia_semana: normalizeDayName(turma.dia_semana) }))
+          .map((turma) => ({
+            ...turma,
+            nome: fixBrokenText(turma.nome),
+            modalidade: fixBrokenText(turma.modalidade),
+            nivel: fixBrokenText(turma.nivel),
+            dia_semana: normalizeDayName(turma.dia_semana),
+          }))
           .sort(sortByHorario)
       );
     } catch (err) {
@@ -129,7 +160,7 @@ export default function AgendaProfessorPage() {
             <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Agenda</p>
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Minha Agenda Semanal</h1>
             <p className="mt-2 max-w-xl text-sm text-[#4B5563]">
-              organizadas por dia da semana e horário.
+              Aulas organizadas por dia da semana e horário.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -137,7 +168,7 @@ export default function AgendaProfessorPage() {
               Registrar presenças
             </Link>
             <Link href="/" className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">
-              Voltar ao Iníio
+              Voltar ao Início
             </Link>
           </div>
         </div>

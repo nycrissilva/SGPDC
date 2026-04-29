@@ -6,7 +6,6 @@ export default class MatriculaEntity  {
     #data_matricula;
     #status;
     #data_cancelamento;
-    #plano_pagamento_id;
 
     get id() {
         return this.#id;
@@ -36,13 +35,6 @@ export default class MatriculaEntity  {
         this.#data_cancelamento = value;
     }
 
-    get plano_pagamento_id() {
-        return this.#plano_pagamento_id;
-    }
-    set plano_pagamento_id(value) {
-        this.#plano_pagamento_id = value;
-    }
-
     get status() {
         return this.#status;
     }
@@ -50,17 +42,16 @@ export default class MatriculaEntity  {
         this.#status = value;
     }
 
-    constructor(id, aluno_id, data_matricula, data_cancelamento, plano_pagamento_id, status) {
+    constructor(id, aluno_id, data_matricula, data_cancelamento, status) {
         this.#id = id;
         this.#aluno_id = aluno_id;
         this.#data_matricula = data_matricula;
         this.#data_cancelamento = data_cancelamento;
-        this.#plano_pagamento_id = plano_pagamento_id;
         this.#status = status;
     }
 
     validar() {
-        return this.#aluno_id && this.#data_matricula && this.#plano_pagamento_id;
+        return this.#aluno_id && this.#data_matricula;
     }
 
     static toMap(row) {
@@ -69,7 +60,6 @@ export default class MatriculaEntity  {
             aluno_id: row["aluno_id"],
             data_matricula: row["data_matricula"],
             data_cancelamento: row["data_cancelamento"],
-            plano_pagamento_id: row["plano_pagamento_id"],
             status: row["status"],
         };
     }
