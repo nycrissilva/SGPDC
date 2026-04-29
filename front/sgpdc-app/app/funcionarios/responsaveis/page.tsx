@@ -14,6 +14,48 @@ type Responsavel = {
   parentesco?: string;
 };
 
+const parentescoLabels: Record<string, string> = {
+  PAI: "Pai",
+  MAE: "Mãe",
+  AVO: "Avó/Avô",
+  AVO_PATERNA: "Avó Paterna",
+  AVO_PATERNO: "Avô Paterno",
+  AVO_MATERNA: "Avó Materna",
+  AVO_MATERNO: "Avô Materno",
+  TIO: "Tio",
+  TIA: "Tia",
+  TUTOR: "Tutor",
+};
+
+const normalizarParentesco = (value?: string) => {
+  if (!value) return "";
+  const aliases: Record<string, string> = {
+    ["M\u00C3\u0192E"]: "MAE",
+    ["M\u00C3E"]: "MAE",
+    ["AV\u00C3\u201CPATERNA"]: "AVO_PATERNA",
+    ["AV\u00C3\u201DPATERNO"]: "AVO_PATERNO",
+    ["AV\u00C3\u201CMATERNA"]: "AVO_MATERNA",
+    ["AV\u00C3\u201DMATERNO"]: "AVO_MATERNO",
+  };
+  if (aliases[value]) return aliases[value];
+
+  const key = value.trim().toUpperCase();
+  const compactKey = key.replace(/[\s_-]/g, "");
+
+  if (key === "M\u00C3E" || compactKey === "MAE") return "MAE";
+  if (compactKey === "AVÓPATERNA" || compactKey === "AVÃ“PATERNA" || compactKey === "AVOPATERNA") return "AVO_PATERNA";
+  if (compactKey === "AVÔPATERNO" || compactKey === "AVÃ”PATERNO" || compactKey === "AVOPATERNO") return "AVO_PATERNO";
+  if (compactKey === "AVÓMATERNA" || compactKey === "AVÃ“MATERNA" || compactKey === "AVOMATERNA") return "AVO_MATERNA";
+  if (compactKey === "AVÔMATERNO" || compactKey === "AVÃ”MATERNO" || compactKey === "AVOMATERNO") return "AVO_MATERNO";
+
+  return parentescoLabels[key] ? key : value;
+};
+
+const formatarParentesco = (value?: string) => {
+  const normalized = normalizarParentesco(value);
+  return parentescoLabels[normalized] || value || "-";
+};
+
 export default function ResponsaveisPage() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,7 +149,7 @@ export default function ResponsaveisPage() {
       cpf: responsavel.cpf || "",
       telefone: responsavel.telefone || "",
       email: responsavel.email || "",
-      parentesco: responsavel.parentesco || "",
+      parentesco: normalizarParentesco(responsavel.parentesco),
     });
     setEditingId(responsavel.id);
     setShowForm(true);
@@ -191,7 +233,7 @@ export default function ResponsaveisPage() {
                       <td className="px-4 py-4 font-medium">{responsavel.nome}</td>
                       <td className="px-4 py-4">{responsavel.cpf}</td>
                       <td className="px-4 py-4">{responsavel.email}</td>
-                      <td className="px-4 py-4">{responsavel.parentesco || "-"}</td>
+                      <td className="px-4 py-4">{formatarParentesco(responsavel.parentesco)}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
                           onClick={() => handleEdit(responsavel)}
@@ -289,10 +331,10 @@ export default function ResponsaveisPage() {
                 <option value="">Selecionar parentesco</option>
                 <option value="PAI">Pai</option>
                 <option value="MAE">Mãe</option>
-                <option value="AVÓPATERNA">Avó Paterna</option>
-                <option value="AVÔPATERNO">Avô Paterno</option>
-                <option value="AVÓMATERNA">Avó Materna</option>
-                <option value="AVÔMATERNO">Avô Materno</option>
+                <option value="AVO_PATERNA">Avó Paterna</option>
+                <option value="AVO_PATERNO">Avô Paterno</option>
+                <option value="AVO_MATERNA">Avó Materna</option>
+                <option value="AVO_MATERNO">Avô Materno</option>
                 <option value="TIO">Tio</option>
                 <option value="TIA">Tia</option>
                 <option value="TUTOR">Tutor</option>

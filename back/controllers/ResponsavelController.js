@@ -2,6 +2,7 @@ import PessoaController from "./PessoaController.js";
 import PessoaEntity from "../entities/pessoaEntity.js";
 import ResponsavelEntity from "../entities/responsavelEntity.js";
 import ResponsavelRepository from "../repositories/ResponsavelRepository.js";
+import { normalizarParentesco } from "../utils/parentesco.js";
 
 export default class ResponsavelController extends PessoaController {
     constructor() {
@@ -40,14 +41,24 @@ export default class ResponsavelController extends PessoaController {
                 return res.status(500).json({ error: "Erro ao cadastrar pessoa" });
             }
 
-            const responsavel = new ResponsavelEntity(pessoa.id, parentesco);
+            let pessoaId = Number(pessoa.id);
+            if (!Number.isInteger(pessoaId) || pessoaId <= 0) {
+                const pessoaCriada = await this.pessoaRepository.obterPorCpf(cpf);
+                pessoaId = Number(pessoaCriada?.id);
+            }
+
+            if (!Number.isInteger(pessoaId) || pessoaId <= 0) {
+                return res.status(500).json({ error: "Pessoa cadastrada sem id válido" });
+            }
+
+            const responsavel = new ResponsavelEntity(pessoaId, normalizarParentesco(parentesco));
             const responsavelCadastrado = await this.responsavelRepository.cadastrar(responsavel);
             if (!responsavelCadastrado) {
-                await this.pessoaRepository.inativar(pessoa.id);
+                await this.pessoaRepository.inativar(pessoaId);
                 return res.status(500).json({ error: "Erro ao cadastrar responsável" });
             }
 
-            return res.status(201).json({ id: pessoa.id });
+            return res.status(201).json({ id: pessoaId });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -75,7 +86,7 @@ export default class ResponsavelController extends PessoaController {
                 return res.status(500).json({ error: "Erro ao atualizar pessoa" });
             }
 
-            const responsavel = new ResponsavelEntity(id, parentesco || responsavelExistente.parentesco);
+            const responsavel = new ResponsavelEntity(id, normalizarParentesco(parentesco || responsavelExistente.parentesco));
             const responsavelAtualizado = await this.responsavelRepository.alterar(responsavel);
             if (!responsavelAtualizado) {
                 return res.status(500).json({ error: "Erro ao atualizar responsável" });

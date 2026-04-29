@@ -1,5 +1,7 @@
 
 
+import { normalizarParentesco } from "../utils/parentesco.js";
+
 export default class PessoaEntity  {
     #id;
     #nome;
@@ -81,7 +83,7 @@ export default class PessoaEntity  {
             email: row["email"],
             status: row["status"],
             cargo: row["cargo"],
-            parentesco: row["parentesco"],
+            parentesco: normalizarParentesco(row["parentesco"]),
             responsavel_id: row["responsavel_id"],
             data_nascimento: row["data_nascimento"],
             data_matricula: row["data_matricula"],

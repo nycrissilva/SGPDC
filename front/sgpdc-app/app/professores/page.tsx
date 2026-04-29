@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type Turma = {
@@ -25,29 +26,35 @@ const WEEK_DAYS = [
   "Domingo",
 ];
 
+const BROKEN_CHARS: Record<string, string> = {
+  "\u00C3\u2021": "Ç",
+  "\u00C3\u00A7": "ç",
+  "\u00C3\u0081": "Á",
+  "\u00C3\u00A1": "á",
+  "\u00C3\u0089": "É",
+  "\u00C3\u00A9": "é",
+  "\u00C3\u008D": "Í",
+  "\u00C3\u00AD": "í",
+  "\u00C3\u201C": "Ó",
+  "\u00C3\u00B3": "ó",
+  "\u00C3\u0161": "Ú",
+  "\u00C3\u00BA": "ú",
+  "\u00C3\u00A3": "ã",
+  "\u00C3\u2022": "Õ",
+  "\u00C3\u00B5": "õ",
+  "\u00C3\u00A2": "â",
+  "\u00C3\u0160": "Ê",
+  "\u00C3\u00AA": "ê",
+  "\u00C3\u201D": "Ô",
+  "\u00C3\u00B4": "ô",
+  "\u00C2\u00BA": "º",
+};
+
 const fixBrokenText = (value: string) =>
-  String(value || "")
-    .replace(/\u00C3\u2021/g, "Ç")
-    .replace(/\u00C3\u00A7/g, "ç")
-    .replace(/\u00C3\u0081/g, "Á")
-    .replace(/\u00C3\u00A1/g, "á")
-    .replace(/\u00C3\u0089/g, "É")
-    .replace(/\u00C3\u00A9/g, "é")
-    .replace(/\u00C3\u008D/g, "Í")
-    .replace(/\u00C3\u00AD/g, "í")
-    .replace(/\u00C3\u201C/g, "Ó")
-    .replace(/\u00C3\u00B3/g, "ó")
-    .replace(/\u00C3\u0161/g, "Ú")
-    .replace(/\u00C3\u00BA/g, "ú")
-    .replace(/\u00C3\u00A3/g, "ã")
-    .replace(/\u00C3\u2022/g, "Õ")
-    .replace(/\u00C3\u00B5/g, "õ")
-    .replace(/\u00C3\u00A2/g, "â")
-    .replace(/\u00C3\u0160/g, "Ê")
-    .replace(/\u00C3\u00AA/g, "ê")
-    .replace(/\u00C3\u201D/g, "Ô")
-    .replace(/\u00C3\u00B4/g, "ô")
-    .replace(/\u00C2\u00BA/g, "º");
+  Object.entries(BROKEN_CHARS).reduce(
+    (text, [broken, fixed]) => text.replaceAll(broken, fixed),
+    String(value || "")
+  );
 
 const normalizeDayName = (value: string) => {
   const fixedValue = fixBrokenText(value);
@@ -90,6 +97,7 @@ async function parseJsonSafe(response: Response) {
 }
 
 export default function AgendaProfessorPage() {
+  const router = useRouter();
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +140,14 @@ export default function AgendaProfessorPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await apiFetch(`/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    router.push("/");
+  };
+
   const agendaPorDia = useMemo(() => {
     const grouped: Record<string, Turma[]> = {};
 
@@ -167,9 +183,13 @@ export default function AgendaProfessorPage() {
             <Link href="/professores/presencas" className="inline-flex items-center rounded-full border border-[#6A4FBF] bg-white px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#F9FAFB]">
               Registrar presenças
             </Link>
-            <Link href="/" className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">
-              Voltar ao Início
-            </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A]"
+            >
+              Sair
+            </button>
           </div>
         </div>
 

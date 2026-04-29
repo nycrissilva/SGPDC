@@ -1,16 +1,9 @@
 
 import PessoaEntity from "./pessoaEntity.js";
+import { normalizarParentesco } from "../utils/parentesco.js";
 
 export default class ResponsavelEntity extends PessoaEntity {
-    #id;
     #parentesco;
-
-    get id() {
-        return this.#id;
-    }
-    set id(value) {
-        this.#id = value;
-    }
 
     get parentesco() {
         return this.#parentesco;
@@ -31,7 +24,7 @@ export default class ResponsavelEntity extends PessoaEntity {
     static toMap(row) {
         return {
             id: row["id"],
-            parentesco: row["parentesco"],
+            parentesco: normalizarParentesco(row["parentesco"]),
         };
     }
 }

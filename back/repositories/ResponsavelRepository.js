@@ -37,8 +37,12 @@ export default class ResponsavelRepository extends Repository {
     }
 
     async cadastrar(entidade) {
+        if (!Number.isInteger(Number(entidade.id)) || Number(entidade.id) <= 0) {
+            throw new Error("Id da pessoa inválido para cadastrar responsável");
+        }
+
         let sql = `insert into responsavel (id, parentesco) values (?, ?)`;
-        let valores = [entidade.id, entidade.parentesco];
+        let valores = [Number(entidade.id), entidade.parentesco];
         return await this.banco.ExecutaComandoNonQuery(sql, valores);
     }
 

@@ -15,6 +15,7 @@ export default class Database {
             user: 'root', 
             password: '', 
             port: 3306, 
+            charset: 'utf8mb4',
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0

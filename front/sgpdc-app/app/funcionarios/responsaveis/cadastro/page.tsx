@@ -1,6 +1,6 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -139,13 +139,15 @@ export default function CadastroResponsavelPage() {
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
               >
                 <option value="">Selecionar parentesco</option>
-                <option value="Pai">Pai</option>
-                <option value="Mãe">Mãe</option>
-                <option value="Avó">Avó</option>
-                <option value="Avô">Avô</option>
-                <option value="Tia">Tia</option>
-                <option value="Tio">Tio</option>
-                <option value="Outro">Outro</option>
+                <option value="PAI">Pai</option>
+                <option value="MAE">Mãe</option>
+                <option value="AVO_PATERNA">Avó Paterna</option>
+                <option value="AVO_PATERNO">Avô Paterno</option>
+                <option value="AVO_MATERNA">Avó Materna</option>
+                <option value="AVO_MATERNO">Avô Materno</option>
+                <option value="TIA">Tia</option>
+                <option value="TIO">Tio</option>
+                <option value="TUTOR">Tutor</option>
               </select>
             </div>
             <div>
