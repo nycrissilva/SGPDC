@@ -15,6 +15,7 @@ import planoMensalidadeRoutes from './routes/planoMensalidadeRoutes.js'
 import planoFinanceiroRoutes from './routes/planoFinanceiroRoutes.js'
 import mensalidadeRoutes from './routes/mensalidadeRoutes.js'
 import periodoLetivoRoutes from './routes/periodoLetivoRoutes.js'
+import vendaRoutes from './routes/vendaRoutes.js'
 import { requireAuth } from './middleware/authMiddleware.js'
 
 const app = express()
@@ -57,6 +58,7 @@ app.use('/api/planos-mensalidade', planoMensalidadeRoutes)
 app.use('/api/planos-financeiros', planoFinanceiroRoutes)
 app.use('/api/mensalidades', mensalidadeRoutes)
 app.use('/api/periodos-letivos', periodoLetivoRoutes)
+app.use('/api/vendas', vendaRoutes)
 
 app.listen(PORT, () => {
     console.log(`Servidor SGPDC rodando na porta http://localhost:5001`)

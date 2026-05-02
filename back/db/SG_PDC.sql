@@ -308,7 +308,7 @@ CREATE TABLE `matricula` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `aluno_id` int(11) DEFAULT NULL,
   `data_matricula` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'PENDENTE',
   `data_cancelamento` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `aluno_id` (`aluno_id`),
@@ -784,11 +784,13 @@ DROP TABLE IF EXISTS `venda`;
 CREATE TABLE `venda` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `matricula_id` int(11) NOT NULL,
+  `conta_receber_id` int(11) DEFAULT NULL,
   `data` date DEFAULT NULL,
   `valor_total` decimal(10,2) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `matricula_id` (`matricula_id`),
+  KEY `idx_venda_conta_receber` (`conta_receber_id`),
   CONSTRAINT `venda_ibfk_1` FOREIGN KEY (`matricula_id`) REFERENCES `matricula` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1018,6 +1020,21 @@ ALTER TABLE `conta_receber`
 ALTER TABLE `conta_receber`
   ADD CONSTRAINT `fk_conta_receber_grupo_financeiro`
     FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`);
+
+ALTER TABLE `venda`
+  ADD COLUMN IF NOT EXISTS `conta_receber_id` int(11) NULL AFTER `matricula_id`,
+  ADD INDEX IF NOT EXISTS `idx_venda_conta_receber` (`conta_receber_id`);
+
+ALTER TABLE `venda`
+  MODIFY COLUMN `status` varchar(50) DEFAULT 'PENDENTE';
+
+UPDATE `venda`
+SET `status` = CASE
+  WHEN `status` = 'CONFIRMADA' THEN 'PENDENTE'
+  WHEN `status` = 'PAGA' THEN 'PAGO'
+  WHEN `status` = 'CANCELADA' THEN 'CANCELADO'
+  ELSE COALESCE(`status`, 'PENDENTE')
+END;
 
 DROP TRIGGER IF EXISTS `trg_grupo_financeiro_aluno_bi`;
 DROP TRIGGER IF EXISTS `trg_grupo_financeiro_aluno_bu`;

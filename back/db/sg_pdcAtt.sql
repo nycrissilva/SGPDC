@@ -820,11 +820,13 @@ DROP TABLE IF EXISTS `venda`;
 CREATE TABLE `venda` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `matricula_id` int(11) NOT NULL,
+  `conta_receber_id` int(11) DEFAULT NULL,
   `data` date DEFAULT NULL,
   `valor_total` decimal(10,2) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'PENDENTE',
   PRIMARY KEY (`id`),
   KEY `matricula_id` (`matricula_id`),
+  KEY `idx_venda_conta_receber` (`conta_receber_id`),
   CONSTRAINT `venda_ibfk_1` FOREIGN KEY (`matricula_id`) REFERENCES `matricula` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -902,3 +904,18 @@ CREATE TABLE IF NOT EXISTS `chamada` (
   UNIQUE KEY `uq_chamada_turma_data` (`turma_id`,`data`),
   CONSTRAINT `fk_chamada_turma` FOREIGN KEY (`turma_id`) REFERENCES `turma` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `venda`
+  ADD COLUMN IF NOT EXISTS `conta_receber_id` int(11) NULL AFTER `matricula_id`,
+  ADD INDEX IF NOT EXISTS `idx_venda_conta_receber` (`conta_receber_id`);
+
+ALTER TABLE `venda`
+  MODIFY COLUMN `status` varchar(50) DEFAULT 'PENDENTE';
+
+UPDATE `venda`
+SET `status` = CASE
+  WHEN `status` = 'CONFIRMADA' THEN 'PENDENTE'
+  WHEN `status` = 'PAGA' THEN 'PAGO'
+  WHEN `status` = 'CANCELADA' THEN 'CANCELADO'
+  ELSE COALESCE(`status`, 'PENDENTE')
+END;

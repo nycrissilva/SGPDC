@@ -44,7 +44,7 @@ export default class MensalidadeRepository extends Repository {
             left join aluno aluno on aluno.id = gfa.aluno_id
             left join pessoa aluno_pessoa on aluno_pessoa.id = aluno.id
             left join pagamento pg on pg.conta_receber_id = cr.id
-            where 1 = 1`;
+            where cr.tipo_receita = 'MENSALIDADE'`;
 
         const values = [];
 
