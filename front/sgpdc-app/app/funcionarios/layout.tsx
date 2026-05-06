@@ -24,6 +24,7 @@ export default function FuncionariosLayout({
     { href: "/funcionarios/planos-mensalidade", label: "Planos de Mensalidade" },
     { href: "/funcionarios/mensalidades", label: "Mensalidades" },
     { href: "/funcionarios/vendas", label: "Vendas" },
+    { href: "/funcionarios/despesas", label: "Despesas" },
     { href: "/funcionarios/produtos", label: "Produtos" },
     { href: "/funcionarios/turmas", label: "Turmas" },
     { href: "/funcionarios/periodos-letivos", label: "Período Letivo" },

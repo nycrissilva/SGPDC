@@ -919,3 +919,59 @@ SET `status` = CASE
   WHEN `status` = 'CANCELADA' THEN 'CANCELADO'
   ELSE COALESCE(`status`, 'PENDENTE')
 END;
+
+ALTER TABLE `tipo_despesa`
+  ADD COLUMN IF NOT EXISTS `descricao` varchar(255) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `status` varchar(50) DEFAULT 'ATIVO',
+  ADD UNIQUE INDEX IF NOT EXISTS `uk_tipo_despesa_nome` (`nome`);
+
+INSERT IGNORE INTO `tipo_despesa` (`nome`, `descricao`, `status`) VALUES
+  ('Aluguel', 'Despesa fixa de aluguel', 'ATIVO'),
+  ('Salarios', 'Pagamentos da equipe', 'ATIVO'),
+  ('Materiais', 'Materiais de aula e administrativos', 'ATIVO'),
+  ('Servicos', 'Servicos recorrentes ou eventuais', 'ATIVO');
+
+ALTER TABLE `despesa`
+  ADD COLUMN IF NOT EXISTS `valor_total` decimal(10,2) DEFAULT NULL AFTER `descricao`,
+  ADD COLUMN IF NOT EXISTS `data_despesa` date DEFAULT NULL AFTER `valor_total`,
+  ADD COLUMN IF NOT EXISTS `forma_pagamento_prevista` varchar(50) DEFAULT NULL AFTER `data_despesa`,
+  ADD COLUMN IF NOT EXISTS `quantidade_parcelas` int(11) NOT NULL DEFAULT 1 AFTER `forma_pagamento_prevista`,
+  ADD COLUMN IF NOT EXISTS `data_primeiro_vencimento` date DEFAULT NULL AFTER `quantidade_parcelas`,
+  ADD COLUMN IF NOT EXISTS `status` varchar(50) DEFAULT 'PENDENTE' AFTER `data_primeiro_vencimento`,
+  ADD INDEX IF NOT EXISTS `idx_despesa_tipo` (`tipo_despesa_id`),
+  ADD INDEX IF NOT EXISTS `idx_despesa_status` (`status`);
+
+UPDATE `despesa`
+SET `valor_total` = COALESCE(`valor_total`, `valor`),
+    `data_despesa` = COALESCE(`data_despesa`, `data`),
+    `data_primeiro_vencimento` = COALESCE(`data_primeiro_vencimento`, `data`),
+    `status` = COALESCE(`status`, 'PENDENTE');
+
+ALTER TABLE `conta_pagar`
+  ADD COLUMN IF NOT EXISTS `despesa_id` int(11) DEFAULT NULL AFTER `id`,
+  ADD COLUMN IF NOT EXISTS `numero_parcela` int(11) NOT NULL DEFAULT 1 AFTER `despesa_id`,
+  ADD COLUMN IF NOT EXISTS `total_parcelas` int(11) NOT NULL DEFAULT 1 AFTER `numero_parcela`,
+  ADD COLUMN IF NOT EXISTS `valor` decimal(10,2) DEFAULT NULL AFTER `total_parcelas`,
+  ADD COLUMN IF NOT EXISTS `data_pagamento` date DEFAULT NULL AFTER `data_vencimento`,
+  ADD COLUMN IF NOT EXISTS `forma_pagamento` varchar(50) DEFAULT NULL AFTER `data_pagamento`,
+  ADD INDEX IF NOT EXISTS `idx_conta_pagar_despesa` (`despesa_id`),
+  ADD INDEX IF NOT EXISTS `idx_conta_pagar_status` (`status`),
+  ADD INDEX IF NOT EXISTS `idx_conta_pagar_vencimento` (`data_vencimento`);
+
+UPDATE `conta_pagar` cp
+JOIN `despesa` d ON d.`conta_pagar_id` = cp.`id`
+SET cp.`despesa_id` = COALESCE(cp.`despesa_id`, d.`id`),
+    cp.`valor` = COALESCE(cp.`valor`, cp.`valor_total`, d.`valor_total`),
+    cp.`data_vencimento` = COALESCE(cp.`data_vencimento`, d.`data_primeiro_vencimento`),
+    cp.`status` = COALESCE(cp.`status`, 'PENDENTE');
+
+CREATE TABLE IF NOT EXISTS `pagamento_despesa` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `conta_pagar_id` int(11) NOT NULL,
+  `data_pagamento` date NOT NULL,
+  `valor_pago` decimal(10,2) NOT NULL,
+  `forma_pagamento` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_pagamento_despesa_conta` (`conta_pagar_id`),
+  CONSTRAINT `pagamento_despesa_ibfk_1` FOREIGN KEY (`conta_pagar_id`) REFERENCES `conta_pagar` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
