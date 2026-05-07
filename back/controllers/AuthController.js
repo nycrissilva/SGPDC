@@ -46,7 +46,7 @@ export default class AuthController {
                 maxAge: 8 * 60 * 60 * 1000,
             });
 
-            return res.json({ success: true, user: payload });
+            return res.json({ success: true, user: payload, token });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
@@ -124,7 +124,7 @@ export default class AuthController {
                 maxAge: 8 * 60 * 60 * 1000,
             });
 
-            return res.json({ success: true, user: payload });
+            return res.json({ success: true, user: payload, token });
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }

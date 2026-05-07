@@ -28,8 +28,16 @@ app.use(cors({
         const allowed = [
             'http://localhost:5000',
             'https://localhost:5000',
+            'http://localhost:8081',
+            'http://localhost:8082',
+            'http://127.0.0.1:8081',
+            'http://127.0.0.1:8082',
         ]
-        if (allowed.includes(origin) || /https:\/\/.*\.ngrok\.(free\.app|io|free\.dev)$/.test(origin)) {
+        if (
+            allowed.includes(origin) ||
+            /^http:\/\/172\.17\.17\.188:\d+$/.test(origin) ||
+            /https:\/\/.*\.ngrok\.(free\.app|io|free\.dev)$/.test(origin)
+        ) {
             return callback(null, true)
         }
         callback(new Error('Origin not allowed by CORS'))
