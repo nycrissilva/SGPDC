@@ -110,6 +110,11 @@ CREATE TABLE `conta_receber` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `grupo_financeiro_id` int(11) DEFAULT NULL,
   `matricula_id` int(11) DEFAULT NULL,
+  `coreografia_id` int(11) DEFAULT NULL,
+  `espetaculo_id` int(11) DEFAULT NULL,
+  `espetaculo_coreografia_id` int(11) DEFAULT NULL,
+  `fantasia_id` int(11) DEFAULT NULL,
+  `participacao_coreografia_id` int(11) DEFAULT NULL,
   `tipo_receita` enum('MENSALIDADE','FANTASIA','VENDA') NOT NULL DEFAULT 'MENSALIDADE',
   `mes_referencia` tinyint(2) DEFAULT NULL,
   `ano_referencia` smallint(4) DEFAULT NULL,
@@ -122,6 +127,7 @@ CREATE TABLE `conta_receber` (
   PRIMARY KEY (`id`),
   KEY `idx_conta_receber_grupo_financeiro` (`grupo_financeiro_id`),
   KEY `matricula_id` (`matricula_id`),
+  KEY `idx_conta_receber_fantasia_origem` (`espetaculo_coreografia_id`,`coreografia_id`,`fantasia_id`,`participacao_coreografia_id`),
   CONSTRAINT `conta_receber_ibfk_1` FOREIGN KEY (`matricula_id`) REFERENCES `matricula` (`id`),
   CONSTRAINT `fk_conta_receber_grupo_financeiro` FOREIGN KEY (`grupo_financeiro_id`) REFERENCES `grupo_financeiro` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -148,6 +154,9 @@ CREATE TABLE `coreografia` (
   `evento_id` int(11) DEFAULT NULL,
   `nome` varchar(100) DEFAULT NULL,
   `tipo` varchar(50) DEFAULT NULL,
+  `descricao` varchar(255) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  `valor_fantasia_geral` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `evento_id` (`evento_id`),
   CONSTRAINT `coreografia_ibfk_1` FOREIGN KEY (`evento_id`) REFERENCES `evento` (`id`)
@@ -228,9 +237,10 @@ DROP TABLE IF EXISTS `evento`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `evento` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nome` varchar(150) DEFAULT NULL,
+  `nome` varchar(150) NOT NULL,
   `data` date DEFAULT NULL,
   `descricao` varchar(255) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -269,6 +279,56 @@ CREATE TABLE `fantasia` (
 LOCK TABLES `fantasia` WRITE;
 /*!40000 ALTER TABLE `fantasia` DISABLE KEYS */;
 /*!40000 ALTER TABLE `fantasia` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `espetaculo_coreografia`
+--
+
+DROP TABLE IF EXISTS `espetaculo_coreografia`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `espetaculo_coreografia` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `espetaculo_id` int(11) NOT NULL,
+  `coreografia_id` int(11) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_espetaculo_coreografia` (`espetaculo_id`,`coreografia_id`),
+  KEY `idx_espetaculo_coreografia_espetaculo` (`espetaculo_id`),
+  KEY `idx_espetaculo_coreografia_coreografia` (`coreografia_id`),
+  CONSTRAINT `fk_espetaculo_coreografia_espetaculo` FOREIGN KEY (`espetaculo_id`) REFERENCES `evento` (`id`),
+  CONSTRAINT `fk_espetaculo_coreografia_coreografia` FOREIGN KEY (`coreografia_id`) REFERENCES `coreografia` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `espetaculo_coreografia` WRITE;
+/*!40000 ALTER TABLE `espetaculo_coreografia` DISABLE KEYS */;
+/*!40000 ALTER TABLE `espetaculo_coreografia` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `coreografia_papel`
+--
+
+DROP TABLE IF EXISTS `coreografia_papel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `coreografia_papel` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `coreografia_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `valor_fantasia` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`),
+  KEY `idx_coreografia_papel_coreografia` (`coreografia_id`),
+  CONSTRAINT `fk_coreografia_papel_coreografia` FOREIGN KEY (`coreografia_id`) REFERENCES `coreografia` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `coreografia_papel` WRITE;
+/*!40000 ALTER TABLE `coreografia_papel` DISABLE KEYS */;
+/*!40000 ALTER TABLE `coreografia_papel` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -485,11 +545,15 @@ CREATE TABLE `participacao_coreografia` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `aluno_id` int(11) DEFAULT NULL,
   `coreografia_id` int(11) DEFAULT NULL,
+  `papel_id` int(11) DEFAULT NULL,
   `papel` varchar(50) DEFAULT NULL,
   `valor_fantasia` decimal(10,2) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
   PRIMARY KEY (`id`),
   KEY `aluno_id` (`aluno_id`),
   KEY `coreografia_id` (`coreografia_id`),
+  KEY `idx_participacao_papel` (`papel_id`),
+  UNIQUE KEY `uk_participacao_coreografia_aluno_papel` (`coreografia_id`,`aluno_id`,`papel_id`),
   CONSTRAINT `participacao_coreografia_ibfk_1` FOREIGN KEY (`aluno_id`) REFERENCES `aluno` (`id`),
   CONSTRAINT `participacao_coreografia_ibfk_2` FOREIGN KEY (`coreografia_id`) REFERENCES `coreografia` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -975,3 +1039,64 @@ CREATE TABLE IF NOT EXISTS `pagamento_despesa` (
   KEY `idx_pagamento_despesa_conta` (`conta_pagar_id`),
   CONSTRAINT `pagamento_despesa_ibfk_1` FOREIGN KEY (`conta_pagar_id`) REFERENCES `conta_pagar` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `evento`
+  ADD COLUMN IF NOT EXISTS `status` varchar(50) NOT NULL DEFAULT 'ATIVO';
+
+ALTER TABLE `coreografia`
+  MODIFY COLUMN `evento_id` int(11) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `descricao` varchar(255) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  ADD COLUMN IF NOT EXISTS `valor_fantasia_geral` decimal(10,2) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS `espetaculo_coreografia` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `espetaculo_id` int(11) NOT NULL,
+  `coreografia_id` int(11) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_espetaculo_coreografia` (`espetaculo_id`,`coreografia_id`),
+  KEY `idx_espetaculo_coreografia_espetaculo` (`espetaculo_id`),
+  KEY `idx_espetaculo_coreografia_coreografia` (`coreografia_id`),
+  CONSTRAINT `fk_espetaculo_coreografia_espetaculo` FOREIGN KEY (`espetaculo_id`) REFERENCES `evento` (`id`),
+  CONSTRAINT `fk_espetaculo_coreografia_coreografia` FOREIGN KEY (`coreografia_id`) REFERENCES `coreografia` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT IGNORE INTO `espetaculo_coreografia` (`espetaculo_id`, `coreografia_id`, `status`)
+SELECT `evento_id`, `id`, 'ATIVO'
+FROM `coreografia`
+WHERE `evento_id` IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS `coreografia_papel` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `coreografia_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `valor_fantasia` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  PRIMARY KEY (`id`),
+  KEY `idx_coreografia_papel_coreografia` (`coreografia_id`),
+  CONSTRAINT `fk_coreografia_papel_coreografia` FOREIGN KEY (`coreografia_id`) REFERENCES `coreografia` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `participacao_coreografia`
+  ADD COLUMN IF NOT EXISTS `papel_id` int(11) DEFAULT NULL AFTER `coreografia_id`,
+  ADD COLUMN IF NOT EXISTS `status` varchar(50) NOT NULL DEFAULT 'ATIVO',
+  ADD INDEX IF NOT EXISTS `idx_participacao_papel` (`papel_id`),
+  ADD UNIQUE INDEX IF NOT EXISTS `uk_participacao_coreografia_aluno_papel` (`coreografia_id`,`aluno_id`,`papel_id`);
+
+ALTER TABLE `conta_receber`
+  ADD COLUMN IF NOT EXISTS `coreografia_id` int(11) DEFAULT NULL AFTER `matricula_id`,
+  ADD COLUMN IF NOT EXISTS `espetaculo_id` int(11) DEFAULT NULL AFTER `coreografia_id`,
+  ADD COLUMN IF NOT EXISTS `espetaculo_coreografia_id` int(11) DEFAULT NULL AFTER `espetaculo_id`,
+  ADD COLUMN IF NOT EXISTS `fantasia_id` int(11) DEFAULT NULL AFTER `espetaculo_coreografia_id`,
+  ADD COLUMN IF NOT EXISTS `participacao_coreografia_id` int(11) DEFAULT NULL AFTER `fantasia_id`,
+  ADD INDEX IF NOT EXISTS `idx_conta_receber_fantasia_origem` (`espetaculo_coreografia_id`,`coreografia_id`,`fantasia_id`,`participacao_coreografia_id`);
+
+UPDATE `conta_receber` cr
+JOIN `coreografia` c ON c.`id` = cr.`coreografia_id`
+JOIN `espetaculo_coreografia` ec ON ec.`coreografia_id` = c.`id` AND ec.`espetaculo_id` = c.`evento_id`
+SET cr.`espetaculo_id` = COALESCE(cr.`espetaculo_id`, ec.`espetaculo_id`),
+    cr.`espetaculo_coreografia_id` = COALESCE(cr.`espetaculo_coreografia_id`, ec.`id`)
+WHERE cr.`tipo_receita` = 'FANTASIA'
+  AND cr.`coreografia_id` IS NOT NULL
+  AND cr.`espetaculo_coreografia_id` IS NULL;

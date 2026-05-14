@@ -39,6 +39,25 @@ export default class TurmaController {
         }
     }
 
+    async listarAlunos(req, res) {
+        try {
+            const id = Number(req.params.id);
+            if (!Number.isInteger(id) || id <= 0) {
+                return res.status(400).json({ error: "Turma invalida" });
+            }
+
+            const turma = await this.turmaRepository.obter(id);
+            if (!turma) {
+                return res.status(404).json({ error: "Turma nao encontrada" });
+            }
+
+            const alunos = await this.turmaRepository.listarAlunos(id);
+            return res.json(alunos);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async cadastrar(req, res) {
         try {
             const payload = this.normalizarPayload(req.body);

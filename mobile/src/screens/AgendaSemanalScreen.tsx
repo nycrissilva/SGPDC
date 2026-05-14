@@ -6,17 +6,13 @@ import { professorColors, professorRadii } from "@/src/constants/professorTheme"
 import { getApiErrorMessage } from "@/src/services/api";
 import { getAgendaSemanal } from "@/src/services/agendaService";
 import { Aula } from "@/src/types/agenda";
-import { addWeeks, formatTime, getStartOfWeek, getWeekRange, sameWeekday } from "@/src/utils/dateUtils";
+import { addWeeks, formatDateBR, formatTime, getStartOfWeek, getWeekRange, sameWeekday } from "@/src/utils/dateUtils";
 
 const WEEK_DAYS = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"];
 
 function getWeekLabel(start: Date) {
   const range = getWeekRange(start);
-  const format = (date: string) => {
-    const [, month, day] = date.split("-");
-    return `${day}/${month}`;
-  };
-  return `${format(range.inicio)} - ${format(range.fim)}`;
+  return `${formatDateBR(range.inicio)} - ${formatDateBR(range.fim)}`;
 }
 
 function sortByHorario(a: Aula, b: Aula) {

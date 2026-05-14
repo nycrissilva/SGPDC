@@ -1,6 +1,6 @@
 "use client";
 
-import { apiFetch } from "@/lib/api";
+import { apiFetch, normalizeText } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -79,7 +79,7 @@ const getWeekLabel = (offset: number) => {
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
 
-  const format = (date: Date) => date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  const format = (date: Date) => date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
   return `${format(monday)} - ${format(sunday)}`;
 };
 
@@ -93,7 +93,7 @@ const sortByHorario = (a: Turma, b: Turma) => {
 async function parseJsonSafe(response: Response) {
   const text = await response.text();
   if (!text) return null;
-  return JSON.parse(text);
+  return JSON.parse(normalizeText(text));
 }
 
 export default function AgendaProfessorPage() {

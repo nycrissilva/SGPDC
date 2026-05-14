@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, normalizeText } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 
 type Turma = {
   id: number;
@@ -47,15 +48,14 @@ async function parseJsonSafe(response: Response) {
   if (!text) return null;
 
   try {
-    return JSON.parse(text);
+    return JSON.parse(normalizeText(text));
   } catch {
     throw new Error(text || response.statusText || "Resposta inválida do servidor");
   }
 }
 
 function formatDate(date: string) {
-  const [year, month, day] = date.split("-");
-  return `${day}/${month}/${year}`;
+  return formatDateBR(date);
 }
 
 export default function PresencasProfessorPage() {

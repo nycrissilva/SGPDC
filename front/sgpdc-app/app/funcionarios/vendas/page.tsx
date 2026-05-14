@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -240,7 +241,7 @@ export default function VendasPage() {
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <Select label="Matricula" value={saleForm.matricula_id} onChange={(value) => setSaleForm((prev) => ({ ...prev, matricula_id: value }))} options={matriculas.map((item) => [String(item.id), `${item.aluno_nome} - matricula ${item.id}`])} placeholder="Selecione" />
-              <Field label="Data da venda" value={saleForm.data} onChange={(value) => setSaleForm((prev) => ({ ...prev, data: value }))} placeholder="YYYY-MM-DD" />
+              <Field label="Data da venda" type="date" value={saleForm.data} onChange={(value) => setSaleForm((prev) => ({ ...prev, data: value }))} placeholder="dd/mm/aaaa" />
             </div>
 
             <div className="mt-6 space-y-4">
@@ -367,11 +368,11 @@ function Select({ label, value, onChange, options, placeholder }: { label: strin
   );
 }
 
-function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
+function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20" placeholder={placeholder} />
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20" placeholder={placeholder} />
     </div>
   );
 }
@@ -385,8 +386,5 @@ function normalizeVendaStatus(status: string) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "-";
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
+  return formatDateBR(value);
 }

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, normalizeText } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 
 type Turma = {
   id: number;
@@ -35,11 +36,10 @@ type ResumoPresenca = {
 async function parseJsonSafe(response: Response) {
   const text = await response.text();
   if (!text) return null;
-  return JSON.parse(text);
+  return JSON.parse(normalizeText(text));
 }
 
-const formatDate = (value: string) =>
-  value ? new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR") : "";
+const formatDate = (value: string) => (value ? formatDateBR(value) : "");
 
 export default function RelatorioPresencasPage() {
   const hoje = new Date().toISOString().split("T")[0];

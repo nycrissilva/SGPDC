@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import { formatDateBR, formatInputDate } from "@/lib/format";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -114,13 +115,6 @@ export default function AlunosPage() {
     }
   };
 
-  const formatDateValue = (value?: string | null) => {
-    if (!value) return "";
-    if (value.includes("T")) return value.split("T")[0];
-    if (value.includes(" ")) return value.split(" ")[0];
-    return value;
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -211,8 +205,8 @@ export default function AlunosPage() {
       cpf: detalhes.cpf || "",
       telefone: detalhes.telefone || "",
       email: detalhes.email || "",
-      data_nascimento: detalhes.data_nascimento || "",
-      data_matricula: detalhes.data_matricula || "",
+      data_nascimento: formatInputDate(detalhes.data_nascimento),
+      data_matricula: formatInputDate(detalhes.data_matricula),
       responsavel_id: detalhes.responsavel_id?.toString() || "",
       turma_ids: Array.isArray(detalhes.turma_ids) ? detalhes.turma_ids : [],
     });
@@ -298,7 +292,7 @@ export default function AlunosPage() {
                       <td className="px-4 py-4 font-medium">{aluno.nome}</td>
                       <td className="px-4 py-4">{aluno.cpf}</td>
                       <td className="px-4 py-4">{aluno.email}</td>
-                      <td className="px-4 py-4">{formatDateValue(aluno.data_matricula) || "-"}</td>
+                      <td className="px-4 py-4">{formatDateBR(aluno.data_matricula)}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
                           onClick={() => handleEdit(aluno)}

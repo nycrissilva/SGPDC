@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -473,7 +474,7 @@ export default function MensalidadesPage() {
                   <Field label="Valor base" value={editForm.valor_base} onChange={(value) => setEditForm((prev) => ({ ...prev, valor_base: value }))} placeholder="0.00" />
                   <Field label="Multa" value={editForm.multa} onChange={(value) => setEditForm((prev) => ({ ...prev, multa: value }))} placeholder="0.00" />
                   <Field label="Valor final" value={editForm.valor_final} onChange={(value) => setEditForm((prev) => ({ ...prev, valor_final: value }))} placeholder="0.00" />
-                  <Field label="Vencimento" value={editForm.data_vencimento} onChange={(value) => setEditForm((prev) => ({ ...prev, data_vencimento: value }))} placeholder="YYYY-MM-DD" />
+                  <Field label="Vencimento" type="date" value={editForm.data_vencimento} onChange={(value) => setEditForm((prev) => ({ ...prev, data_vencimento: value }))} placeholder="dd/mm/aaaa" />
                   <Select label="Status" value={editForm.status} onChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))} options={[["PENDENTE", "Pendente"], ["ATRASADA", "Atrasada"], ["ATRASADA_COM_MULTA", "Atrasada com multa"], ["PAGA", "Paga"], ["CANCELADA", "Cancelada"]]} placeholder="Status" />
                 </div>
                 <button type="button" disabled={processing} onClick={saveEdit} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">Salvar alteracoes</button>
@@ -491,7 +492,7 @@ export default function MensalidadesPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <Field label="Valor pago" value={paymentForm.valor_pago} onChange={(value) => setPaymentForm((prev) => ({ ...prev, valor_pago: value }))} placeholder="0.00" />
-                  <Field label="Data do pagamento" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="YYYY-MM-DD" />
+                  <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="dd/mm/aaaa" />
                   <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["TRANSFERENCIA", "Transferencia"]]} placeholder="Forma" />
                 </div>
                 <button type="button" disabled={processing} onClick={savePayment} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">Confirmar pagamento</button>
@@ -527,11 +528,11 @@ function Select({ label, value, onChange, options, placeholder }: { label: strin
   );
 }
 
-function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
+function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
   return (
     <div>
       <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} inputMode="numeric" className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20" placeholder={placeholder} />
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} inputMode={type === "text" ? "numeric" : undefined} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20" placeholder={placeholder} />
     </div>
   );
 }
@@ -543,8 +544,5 @@ function formatReferencia(mes: number | null, ano: number | null) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "-";
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
+  return formatDateBR(value);
 }

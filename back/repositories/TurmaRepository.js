@@ -121,6 +121,40 @@ export default class TurmaRepository extends Repository {
         return TurmaEntity.toMap(rows[0]);
     }
 
+    async listarAlunos(turmaId) {
+        const sql = `
+            select
+                a.id,
+                p.nome,
+                p.cpf,
+                p.telefone,
+                p.email,
+                m.id as matricula_id,
+                t.id as turma_id,
+                t.nome as turma_nome
+            from matricula_turma mt
+            join matricula m on m.id = mt.matricula_id
+            join aluno a on a.id = m.aluno_id
+            join pessoa p on p.id = a.id
+            join turma t on t.id = mt.turma_id
+            where mt.turma_id = ?
+              and m.status = 'ATIVA'
+              and p.status = 'ATIVO'
+            order by p.nome asc`;
+
+        const rows = await this.banco.ExecutaComando(sql, [turmaId]);
+        return rows.map((row) => ({
+            id: row.id,
+            nome: row.nome,
+            cpf: row.cpf,
+            telefone: row.telefone,
+            email: row.email,
+            matricula_id: row.matricula_id,
+            turma_id: row.turma_id,
+            turma_nome: row.turma_nome,
+        }));
+    }
+
     async cadastrar(entidade, professorIds) {
         const sql = `
             insert into turma (nome, modalidade, modalidade_id, local_id, nivel, descricao, status)

@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -261,13 +262,13 @@ export default function DespesasPage() {
               <Field label="Descricao" value={form.descricao} onChange={(value) => setForm((prev) => ({ ...prev, descricao: value }))} placeholder="Ex.: Conta de energia" />
               <Select label="Categoria" value={form.tipo_despesa_id} onChange={(value) => setForm((prev) => ({ ...prev, tipo_despesa_id: value }))} options={tipos.filter((tipo) => tipo.status === "ATIVO").map((tipo) => [String(tipo.id), tipo.nome])} placeholder="Selecione uma categoria" disabledPlaceholder />
               <Field label="Valor total" value={form.valor_total} onChange={(value) => setForm((prev) => ({ ...prev, valor_total: value }))} placeholder="0.00" />
-              <Field label="Data da despesa" type="date" value={form.data_despesa} onChange={(value) => setForm((prev) => ({ ...prev, data_despesa: value }))} placeholder="YYYY-MM-DD" />
+              <Field label="Data da despesa" type="date" value={form.data_despesa} onChange={(value) => setForm((prev) => ({ ...prev, data_despesa: value }))} placeholder="dd/mm/aaaa" />
               <Select label="Forma prevista" value={form.forma_pagamento_prevista} onChange={(value) => setForm((prev) => ({ ...prev, forma_pagamento_prevista: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferencia"]]} />
               <Select label="Pagamento" value={form.pagamento} onChange={(value) => setForm((prev) => ({ ...prev, pagamento: value, quantidade_parcelas: value === "A_VISTA" ? "1" : prev.quantidade_parcelas }))} options={[["A_VISTA", "A vista"], ["PARCELADO", "Parcelado"]]} />
               {form.pagamento === "PARCELADO" && (
                 <Field label="Quantidade de parcelas" value={form.quantidade_parcelas} onChange={(value) => setForm((prev) => ({ ...prev, quantidade_parcelas: value }))} placeholder="2" />
               )}
-              <Field label="Primeiro vencimento" type="date" value={form.data_primeiro_vencimento} onChange={(value) => setForm((prev) => ({ ...prev, data_primeiro_vencimento: value }))} placeholder="YYYY-MM-DD" />
+              <Field label="Primeiro vencimento" type="date" value={form.data_primeiro_vencimento} onChange={(value) => setForm((prev) => ({ ...prev, data_primeiro_vencimento: value }))} placeholder="dd/mm/aaaa" />
             </div>
 
             <button type="button" disabled={processing} onClick={submitDespesa} className="mt-6 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
@@ -390,7 +391,7 @@ export default function DespesasPage() {
                 <p className="mb-2 text-sm font-medium text-[#1F2A5A]">Valor</p>
                 <p className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-semibold text-[#1F2A5A]">{currency.format(paying.valor)}</p>
               </div>
-              <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="YYYY-MM-DD" />
+              <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="dd/mm/aaaa" />
               <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferencia"]]} />
             </div>
             <button type="button" disabled={processing} onClick={quitarParcela} className="mt-6 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
@@ -450,8 +451,5 @@ function Field({ label, value, onChange, placeholder, type = "text" }: { label: 
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "-";
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
+  return formatDateBR(value);
 }

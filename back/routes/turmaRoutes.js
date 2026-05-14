@@ -6,6 +6,7 @@ const router = express.Router();
 const turmaController = new TurmaController();
 
 router.get('/', (req, res) => turmaController.listar(req, res));
+router.get('/:id/alunos', (req, res) => turmaController.listarAlunos(req, res));
 router.get('/:id', (req, res) => turmaController.obter(req, res));
 router.post('/', requireFuncionario, (req, res) => turmaController.cadastrar(req, res));
 router.put('/:id', requireFuncionario, (req, res) => turmaController.alterar(req, res));

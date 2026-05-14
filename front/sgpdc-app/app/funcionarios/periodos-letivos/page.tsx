@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import { formatDateBR } from "@/lib/format";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -20,8 +21,7 @@ const initialForm = {
 };
 
 function formatDate(date: string) {
-  const [year, month, day] = date.split("-");
-  return `${day}/${month}/${year}`;
+  return formatDateBR(date);
 }
 
 export default function PeriodosLetivosPage() {
