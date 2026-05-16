@@ -347,7 +347,7 @@ export default class MensalidadeRepository extends Repository {
                 cr.numero_parcela,
                 cr.total_parcelas,
                 cr.matricula_id,
-                m.aluno_id,
+                coalesce(m.aluno_id, pc.aluno_id) as aluno_id,
                 aluno_pessoa.nome as aluno_nome,
                 e.nome as espetaculo_nome,
                 c.nome as coreografia_nome,
@@ -355,10 +355,10 @@ export default class MensalidadeRepository extends Repository {
                 coalesce(sum(pg.valor_pago), 0) as valor_pago
             from conta_receber cr
             left join matricula m on m.id = cr.matricula_id
-            left join pessoa aluno_pessoa on aluno_pessoa.id = m.aluno_id
             left join evento e on e.id = cr.espetaculo_id
             left join coreografia c on c.id = cr.coreografia_id
             left join participacao_coreografia pc on pc.id = cr.participacao_coreografia_id
+            left join pessoa aluno_pessoa on aluno_pessoa.id = coalesce(m.aluno_id, pc.aluno_id)
             left join coreografia_papel cp on cp.id = cr.fantasia_id
             left join pagamento pg on pg.conta_receber_id = cr.id
             where cr.tipo_receita = 'FANTASIA'`;

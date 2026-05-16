@@ -9,7 +9,7 @@ export default function RelatoriosPage() {
         <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Relatórios</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight">Módulo de Relatórios</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-[#F8FAFC]/90">
-          Emita relatórios de turmas e de presença com filtros para apoiar a análise pedagógica e administrativa.
+          Emita relatórios pedagógicos, administrativos e financeiros com filtros para apoiar a gestão da escola.
         </p>
       </div>
 
@@ -24,6 +24,18 @@ export default function RelatoriosPage() {
           <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Relatório</p>
           <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Presença</h2>
           <p className="mt-2 text-sm text-[#4B5563]">Consulte frequência por turma, aluno e período com opção de exportação para Excel.</p>
+        </Link>
+
+        <Link href="/funcionarios/relatorios/receitas-despesas" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Relatório</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">Receitas e Despesas</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Veja totais, gráficos e movimentações financeiras por categoria, turma e período.</p>
+        </Link>
+
+        <Link href="/funcionarios/relatorios/dre" className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition hover:border-[#6A4FBF] hover:bg-[#F9FAFB]">
+          <p className="text-sm uppercase tracking-[0.22em] text-[#6A4FBF]">Demonstrativo</p>
+          <h2 className="mt-3 text-xl font-semibold text-[#1F2A5A]">DRE</h2>
+          <p className="mt-2 text-sm text-[#4B5563]">Acompanhe o Demonstrativo do Resultado do Exercício em uma página própria.</p>
         </Link>
       </div>
     </div>
