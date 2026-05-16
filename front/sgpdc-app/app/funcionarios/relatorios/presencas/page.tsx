@@ -78,7 +78,7 @@ export default function RelatorioPresencasPage() {
       setTurmas(Array.isArray(turmasData) ? turmasData : []);
       setAlunos(Array.isArray(alunosData) ? alunosData : []);
     } catch {
-      setError("Não foi possí­vel carregar os filtros do relatório.");
+      setError("Não foi possível carregar os filtros do relatório.");
     } finally {
       setLoadingFiltros(false);
     }

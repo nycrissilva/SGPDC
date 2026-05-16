@@ -12,6 +12,7 @@ router.post('/atualizar-atrasos', requireFuncionario, (req, res) => mensalidadeC
 router.post('/aplicar-multas', requireFuncionario, (req, res) => mensalidadeController.aplicarMultas(req, res));
 router.get('/configuracao-multa', requireFuncionario, (req, res) => mensalidadeController.obterConfiguracaoMulta(req, res));
 router.put('/configuracao-multa', requireFuncionario, (req, res) => mensalidadeController.alterarConfiguracaoMulta(req, res));
+router.get('/fantasias', requireFuncionario, (req, res) => mensalidadeController.listarFantasias(req, res));
 router.put('/:id', requireFuncionario, (req, res) => mensalidadeController.editar(req, res));
 router.post('/:id/pagar', requireFuncionario, (req, res) => mensalidadeController.marcarComoPaga(req, res));
 

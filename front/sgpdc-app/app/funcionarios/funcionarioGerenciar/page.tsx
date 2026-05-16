@@ -1,7 +1,8 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
+import SearchableSelect from "@/components/SearchableSelect";
+import { useEffect, useMemo, useState } from "react";
 
 type Funcionario = {
   id: number;
@@ -20,6 +21,7 @@ export default function FuncionariosPage() {
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -32,6 +34,22 @@ export default function FuncionariosPage() {
   useEffect(() => {
     loadFuncionarios();
   }, []);
+
+  const funcionariosFiltrados = useMemo(() => {
+    const query = normalizeSearch(search);
+    if (!query) return funcionarios;
+    return funcionarios.filter((funcionario) => {
+      const funcionarioBusca = normalizeSearch(`${funcionario.nome || ""} ${funcionario.cpf || ""}`);
+      return funcionarioBusca.includes(query);
+    });
+  }, [funcionarios, search]);
+
+  const funcionarioOptions = useMemo(() => {
+    return funcionarios.map((funcionario) => [
+      `${funcionario.nome} ${funcionario.cpf || ""}`.trim(),
+      `${funcionario.nome}${funcionario.cpf ? ` - ${funcionario.cpf}` : ""}`,
+    ]);
+  }, [funcionarios]);
 
   const loadFuncionarios = async () => {
     try {
@@ -158,7 +176,7 @@ export default function FuncionariosPage() {
               <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Lista</p>
-                  <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Funcionários Cadastrados ({funcionarios.length})</h2>
+                  <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Funcionários Cadastrados ({funcionariosFiltrados.length})</h2>
                 </div>
                 <button
                   onClick={() => (showForm && !editingId ? resetForm() : setShowForm(!showForm))}
@@ -168,10 +186,25 @@ export default function FuncionariosPage() {
                 </button>
               </div>
 
-              {loading && funcionarios.length === 0 ? (
+              <div className="mb-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                <SearchableSelect
+                  label="Buscar por nome ou CPF"
+                  value={search}
+                  onChange={setSearch}
+                  options={funcionarioOptions}
+                  placeholder="Digite nome ou CPF"
+                  inputClassName="bg-[#F9FAFB]"
+                  searchOnType
+                />
+                <button type="button" onClick={() => setSearch("")} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
+                  Limpar busca
+                </button>
+              </div>
+
+              {loading && funcionariosFiltrados.length === 0 ? (
                 <p className="text-sm text-[#2B2B2B]/70">Carregando funcionários...</p>
-              ) : funcionarios.length === 0 ? (
-                <p className="text-sm text-[#2B2B2B]/70">Nenhum funcionário cadastrado.</p>
+              ) : funcionariosFiltrados.length === 0 ? (
+                <p className="text-sm text-[#2B2B2B]/70">Nenhum funcionario encontrado.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
@@ -185,7 +218,7 @@ export default function FuncionariosPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB]">
-                      {funcionarios.map((func) => (
+                      {funcionariosFiltrados.map((func) => (
                         <tr key={func.id} className="bg-white hover:bg-[#F2F2F2]">
                           <td className="px-4 py-4 font-medium">{func.nome}</td>
                           <td className="px-4 py-4">{func.cpf}</td>
@@ -309,3 +342,13 @@ export default function FuncionariosPage() {
           </div>
   );
 }
+
+function normalizeSearch(value?: string) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "")
+    .trim();
+}
+

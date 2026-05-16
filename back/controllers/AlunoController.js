@@ -23,6 +23,23 @@ export default class AlunoController extends PessoaController {
         return this.alunoRepository;
     }
 
+    async listar(req, res) {
+        try {
+            const filtros = {
+                q: req.query.q || "",
+                turma_id: this.parsePositiveInt(req.query.turma_id),
+                turma: req.query.turma || "",
+                pagina: Number(req.query.page || 1),
+                limite: Number(req.query.limit || 200),
+            };
+
+            const lista = await this.alunoRepository.buscarComFiltros(filtros);
+            return res.json(lista);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async cadastrar(req, res) {
         try {
             const {
@@ -348,5 +365,10 @@ export default class AlunoController extends PessoaController {
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
+    }
+
+    parsePositiveInt(value) {
+        const parsed = Number(value);
+        return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
     }
 }

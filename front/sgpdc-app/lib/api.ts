@@ -87,7 +87,18 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   });
 
   const parseJson = response.json.bind(response);
-  response.json = async () => normalizeJson(await parseJson());
+  response.json = async () => {
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json")) {
+      const text = await response.text();
+      return {
+        error: text || `Resposta invalida da API (${response.status})`,
+      };
+    }
+
+    return normalizeJson(await parseJson());
+  };
 
   return response;
 }

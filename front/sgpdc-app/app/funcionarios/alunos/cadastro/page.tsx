@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
+import SearchableSelect from "@/components/SearchableSelect";
 
 type Responsavel = { id: number; nome: string };
 type Turma = { id: number; nome: string };
@@ -245,7 +246,7 @@ export default function CadastroAlunoPage() {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Cadastro</p>
-            <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Nova Matricula</h1>
+            <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Nova Matrícula</h1>
           </div>
           <Link href="/funcionarios/alunos" className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">
             Voltar
@@ -254,10 +255,10 @@ export default function CadastroAlunoPage() {
 
         <form onSubmit={handleSubmit} className="rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm space-y-8">
           {error && <div className="rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
-          {success && <div className="rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">Matricula cadastrada com sucesso!</div>}
+          {success && <div className="rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">Matrícula cadastrada com sucesso!</div>}
 
           <section className="space-y-5">
-            <h2 className="text-lg font-semibold text-[#1F2A5A]">Dados da Matricula</h2>
+            <h2 className="text-lg font-semibold text-[#1F2A5A]">Dados da Matrícula</h2>
             <Field label="Nome *" name="nome" value={formData.nome} onChange={handleChange} required placeholder="Nome completo" />
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="CPF *" name="cpf" value={formData.cpf} onChange={handleChange} required placeholder="000.000.000-00" />
@@ -266,21 +267,21 @@ export default function CadastroAlunoPage() {
             <Field label="Email *" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="aluno@example.com" />
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Data de Nascimento *" name="data_nascimento" type="date" value={formData.data_nascimento} onChange={handleChange} required />
-              <Field label="Data da Matricula *" name="data_matricula" type="date" value={formData.data_matricula} onChange={handleChange} required />
+              <Field label="Data da Matrícula *" name="data_matricula" type="date" value={formData.data_matricula} onChange={handleChange} required />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Select label="Responsavel *" name="responsavel_id" value={formData.responsavel_id} onChange={handleChange} required options={responsaveis.map((resp) => [String(resp.id), resp.nome])} placeholder="Selecionar responsavel" />
+              <Select label="Responsável *" name="responsavel_id" value={formData.responsavel_id} onChange={handleChange} required options={responsaveis.map((resp) => [String(resp.id), resp.nome])} placeholder="Selecionar responsável" />
               <Select label="Status" name="status" value={formData.status} onChange={handleChange} options={[["ATIVO", "Ativo"], ["INATIVO", "Inativo"]]} />
             </div>
-            <Checklist title="Turmas *" empty="Nenhuma turma ativa disponivel." items={turmas} selectedIds={formData.turma_ids} onToggle={handleTurmaToggle} />
+            <Checklist title="Turmas *" empty="Nenhuma turma ativa disponível." items={turmas} selectedIds={formData.turma_ids} onToggle={handleTurmaToggle} />
           </section>
 
           <section className="space-y-5 rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] p-5">
             <h2 className="text-lg font-semibold text-[#1F2A5A]">Plano Financeiro</h2>
-            {loadingPlanosFinanceiros && <p className="text-sm text-[#2B2B2B]/70">Consultando plano financeiro do responsavel...</p>}
+            {loadingPlanosFinanceiros && <p className="text-sm text-[#2B2B2B]/70">Consultando plano financeiro do responsável...</p>}
             {planosFinanceiros.length > 0 && (
               <div className="rounded-3xl bg-[#6A4FBF]/10 p-4 text-sm text-[#1F2A5A]">
-                <p className="font-semibold">Este responsavel ja possui um plano financeiro ativo.</p>
+                <p className="font-semibold">Este responsável já possui um plano financeiro ativo.</p>
                 {selectedPlanoFinanceiro && (
                   <p className="mt-2">
                     Plano atual: {selectedPlanoFinanceiro.plano.nome} ({selectedPlanoFinanceiro.tipo_grupo === "INDIVIDUAL" ? "Individual" : "Familiar"}).
@@ -288,7 +289,7 @@ export default function CadastroAlunoPage() {
                 )}
                 {planoFinanceiroIndividual && (
                   <p className="mt-2 text-[#E61E4D]">
-                    Este plano e individual, entao nao permite vincular outra aluna. Para cobrar as alunas juntas, substitua por um plano familiar.
+                    Este plano é individual, então não permite vincular outra aluna. Para cobrar as alunas juntas, substitua por um plano familiar.
                   </p>
                 )}
                 {selectedPlanoFinanceiro?.alunas.length ? (
@@ -313,7 +314,7 @@ export default function CadastroAlunoPage() {
             )}
             {(formData.acao_plano_financeiro === "VINCULAR" || formData.acao_plano_financeiro === "SUBSTITUIR") && planosFinanceiros.length > 0 && (
               <Select
-                label={formData.acao_plano_financeiro === "SUBSTITUIR" ? "Plano individual que sera substituido" : "Plano financeiro existente"}
+                label={formData.acao_plano_financeiro === "SUBSTITUIR" ? "Plano individual que será substituído" : "Plano financeiro existente"}
                 name="grupo_financeiro_id"
                 value={formData.grupo_financeiro_id}
                 onChange={handleChange}
@@ -322,22 +323,22 @@ export default function CadastroAlunoPage() {
               />
             )}
             <div className="grid gap-4 sm:grid-cols-2">
-              <Select label="Tipo de cobranca *" name="tipo_cobranca" value={formData.tipo_cobranca} onChange={handleTipoCobrancaChange} options={[["INDIVIDUAL", "Individual"], ["FAMILIAR", "Familiar"]]} />
-              <Select label="Plano de mensalidade *" name="plano_mensalidade_id" value={formData.plano_mensalidade_id} onChange={handlePlanoMensalidadeChange} required options={planosMensalidadeDisponiveis.map((plano) => [String(plano.id), `${plano.nome} (${plano.tipo_plano === "FAMILIAR" ? "Familiar" : "Individual"}) - Cartao/Pix R$ ${Number(plano.valor_cartao_pix).toFixed(2)} | Dinheiro R$ ${Number(plano.valor_dinheiro).toFixed(2)}`])} placeholder="Selecionar plano" />
+              <Select label="Tipo de cobrança *" name="tipo_cobranca" value={formData.tipo_cobranca} onChange={handleTipoCobrancaChange} options={[["INDIVIDUAL", "Individual"], ["FAMILIAR", "Familiar"]]} />
+              <Select label="Plano de mensalidade *" name="plano_mensalidade_id" value={formData.plano_mensalidade_id} onChange={handlePlanoMensalidadeChange} required options={planosMensalidadeDisponiveis.map((plano) => [String(plano.id), `${plano.nome} (${plano.tipo_plano === "FAMILIAR" ? "Familiar" : "Individual"}) - Cartão/Pix R$ ${Number(plano.valor_cartao_pix).toFixed(2)} | Dinheiro R$ ${Number(plano.valor_dinheiro).toFixed(2)}`])} placeholder="Selecionar plano" />
             </div>
             {selectedPlanoMensalidade && (
               <p className="text-sm text-[#4B5563]">
-                O plano selecionado esta configurado como {selectedPlanoMensalidade.tipo_plano === "FAMILIAR" ? "familiar" : "individual"}.
+                O plano selecionado está configurado como {selectedPlanoMensalidade.tipo_plano === "FAMILIAR" ? "familiar" : "individual"}.
               </p>
             )}
-            <Field label="Data de inicio da cobranca *" name="data_inicio_cobranca" type="date" value={formData.data_inicio_cobranca} onChange={handleChange} required />
+            <Field label="Data de início da cobrança *" name="data_inicio_cobranca" type="date" value={formData.data_inicio_cobranca} onChange={handleChange} required />
             {formData.tipo_cobranca === "FAMILIAR" && formData.acao_plano_financeiro === "CRIAR" && (
               <Checklist title="Outras alunas deste plano familiar" empty="Nenhuma aluna cadastrada para vincular." items={alunas} selectedIds={formData.aluna_ids} onToggle={handleAlunaToggle} />
             )}
           </section>
 
           <button type="submit" disabled={loading} className="w-full rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
-            {loading ? "Cadastrando..." : "Cadastrar Matricula"}
+            {loading ? "Cadastrando..." : "Cadastrar Matrícula"}
           </button>
         </form>
       </main>
@@ -354,17 +355,16 @@ function Field({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> 
   );
 }
 
-function Select({ label, options, placeholder, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; options: string[][]; placeholder?: string }) {
+function Select({ label, options, placeholder, value, onChange, name, disabled }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; options: string[][]; placeholder?: string }) {
   return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <select {...props} className="w-full rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20">
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map(([value, label]) => (
-          <option key={value} value={value}>{label}</option>
-        ))}
-      </select>
-    </div>
+    <SearchableSelect
+      label={label}
+      value={String(value || "")}
+      onChange={(nextValue) => onChange?.({ target: { name, value: nextValue } } as React.ChangeEvent<HTMLSelectElement>)}
+      options={options}
+      placeholder={placeholder || "Selecione"}
+      disabled={disabled}
+    />
   );
 }
 

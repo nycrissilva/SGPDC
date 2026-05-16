@@ -1,7 +1,8 @@
 "use client";
 
-import { apiFetch, apiBase } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
+import SearchableSelect from "@/components/SearchableSelect";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Professor = {
@@ -21,6 +22,7 @@ export default function ProfessoresPage() {
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({ busca: "", modalidade: "" });
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -33,6 +35,31 @@ export default function ProfessoresPage() {
   useEffect(() => {
     loadProfessores();
   }, []);
+
+  const modalidadeOptions = useMemo(() => {
+    return Array.from(new Set(professores.map((professor) => professor.modalidade).filter(Boolean) as string[]))
+      .sort((a, b) => a.localeCompare(b))
+      .map((modalidade) => [modalidade, formatModalidade(modalidade)]);
+  }, [professores]);
+
+  const professorOptions = useMemo(() => {
+    return professores.map((professor) => [
+      `${professor.nome} ${professor.cpf || ""}`.trim(),
+      `${professor.nome}${professor.cpf ? ` - ${professor.cpf}` : ""}`,
+    ]);
+  }, [professores]);
+
+  const professoresFiltrados = useMemo(() => {
+    const busca = normalizeSearch(filters.busca);
+    const modalidade = normalizeSearch(filters.modalidade);
+    return professores.filter((professor) => {
+      const professorBusca = normalizeSearch(`${professor.nome || ""} ${professor.cpf || ""}`);
+      const matchesBusca = !busca
+        || professorBusca.includes(busca);
+      const matchesModalidade = !modalidade || normalizeSearch(professor.modalidade).includes(modalidade);
+      return matchesBusca && matchesModalidade;
+    });
+  }, [professores, filters]);
 
   const loadProfessores = async () => {
     try {
@@ -162,7 +189,7 @@ export default function ProfessoresPage() {
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Lista</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Professores Cadastrados ({professores.length})</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Professores Cadastrados ({professoresFiltrados.length})</h2>
             </div>
             <button
               onClick={() => (showForm && !editingId ? resetForm() : setShowForm(!showForm))}
@@ -172,10 +199,34 @@ export default function ProfessoresPage() {
             </button>
           </div>
 
+          <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+            <SearchableSelect
+              label="Buscar por nome ou CPF"
+              value={filters.busca}
+              onChange={(value) => setFilters((prev) => ({ ...prev, busca: value }))}
+              options={professorOptions}
+              placeholder="Digite nome ou CPF"
+              inputClassName="bg-[#F9FAFB]"
+              searchOnType
+            />
+            <SearchableSelect
+              label="Buscar por modalidade"
+              value={filters.modalidade}
+              onChange={(value) => setFilters((prev) => ({ ...prev, modalidade: value }))}
+              options={modalidadeOptions}
+              placeholder="Todas as modalidades"
+              inputClassName="bg-[#F9FAFB]"
+              searchOnType
+            />
+            <button type="button" onClick={() => setFilters({ busca: "", modalidade: "" })} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
+              Limpar busca
+            </button>
+          </div>
+
           {loading && professores.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Carregando professores...</p>
-          ) : professores.length === 0 ? (
-            <p className="text-sm text-[#2B2B2B]/70">Nenhum professor cadastrado.</p>
+          ) : professoresFiltrados.length === 0 ? (
+            <p className="text-sm text-[#2B2B2B]/70">Nenhum professor encontrado.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
@@ -189,12 +240,12 @@ export default function ProfessoresPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {professores.map((professor) => (
+                  {professoresFiltrados.map((professor) => (
                     <tr key={professor.id} className="bg-white hover:bg-[#F2F2F2]">
                       <td className="px-4 py-4 font-medium">{professor.nome}</td>
                       <td className="px-4 py-4">{professor.cpf}</td>
                       <td className="px-4 py-4">{professor.email}</td>
-                      <td className="px-4 py-4">{professor.modalidade || "-"}</td>
+                      <td className="px-4 py-4">{formatModalidade(professor.modalidade)}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
                           onClick={() => handleEdit(professor)}
@@ -327,4 +378,22 @@ export default function ProfessoresPage() {
       </main>
     </div>
   );
+}
+
+function normalizeSearch(value?: string) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "")
+    .trim();
+}
+
+function formatModalidade(value?: string) {
+  if (!value) return "-";
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

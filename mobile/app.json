@@ -7,11 +7,18 @@
     "icon": "./assets/images/icon.png",
     "scheme": "sgpdcmobile",
     "userInterfaceStyle": "automatic",
+    "locales": {
+      "pt-BR": "./locales/pt-BR.json"
+    },
     "newArchEnabled": true,
     "ios": {
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "pt-BR"
+      },
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

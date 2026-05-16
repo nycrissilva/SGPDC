@@ -91,6 +91,8 @@ export default class EspetaculoRepository extends Repository {
               add column if not exists espetaculo_coreografia_id int(11) null after espetaculo_id,
               add column if not exists fantasia_id int(11) null after coreografia_id,
               add column if not exists participacao_coreografia_id int(11) null after fantasia_id,
+              add column if not exists numero_parcela int(11) not null default 1 after participacao_coreografia_id,
+              add column if not exists total_parcelas int(11) not null default 1 after numero_parcela,
               add index if not exists idx_conta_receber_fantasia_origem (espetaculo_coreografia_id, coreografia_id, fantasia_id, participacao_coreografia_id)
         `, []);
 
@@ -381,11 +383,14 @@ export default class EspetaculoRepository extends Repository {
         return await this.banco.ExecutaComandoNonQuery(`update participacao_coreografia set status = 'INATIVO' where id = ?`, [id]);
     }
 
-    async gerarCobrancasFantasia(coreografiaId, { data_vencimento, participacao_ids = [], espetaculo_coreografia_id = null, espetaculo_id = null }) {
+    async gerarCobrancasFantasia(coreografiaId, { data_vencimento, participacao_ids = [], espetaculo_coreografia_id = null, espetaculo_id = null, quantidade_parcelas = 1 }) {
         await this.garantirEstrutura();
         const conn = await this.getConnection();
         const geradas = [];
         const ignoradas = [];
+        const totalParcelas = Number.isInteger(Number(quantidade_parcelas)) && Number(quantidade_parcelas) > 0
+            ? Number(quantidade_parcelas)
+            : 1;
 
         try {
             await this.query(conn, "START TRANSACTION");
@@ -430,15 +435,31 @@ export default class EspetaculoRepository extends Repository {
                 const valor = participante.valor_fantasia === null
                     ? Number(participante.valor_papel || 0)
                     : Number(participante.valor_fantasia || 0);
+                const parcelas = this.calcularParcelas(valor, totalParcelas, data_vencimento);
 
-                const result = await this.query(conn, `
-                    insert into conta_receber
-                        (grupo_financeiro_id, matricula_id, coreografia_id, fantasia_id, participacao_coreografia_id,
-                         espetaculo_id, espetaculo_coreografia_id, tipo_receita, mes_referencia, ano_referencia,
-                         valor_base, valor_final, multa, valor, status, data_vencimento)
-                    values (null, ?, ?, ?, ?, ?, ?, 'FANTASIA', null, null, ?, ?, 0.00, ?, 'PENDENTE', ?)
-                `, [matricula[0].id, coreografiaId, participante.papel_id, participante.id, vinculo.espetaculo_id, vinculo.id, valor, valor, valor, data_vencimento]);
-                geradas.push({ participacao_coreografia_id: participante.id, conta_receber_id: result.insertId });
+                for (const parcela of parcelas) {
+                    const result = await this.query(conn, `
+                        insert into conta_receber
+                            (grupo_financeiro_id, matricula_id, coreografia_id, fantasia_id, participacao_coreografia_id,
+                             espetaculo_id, espetaculo_coreografia_id, numero_parcela, total_parcelas, tipo_receita,
+                             mes_referencia, ano_referencia, valor_base, valor_final, multa, valor, status, data_vencimento)
+                        values (null, ?, ?, ?, ?, ?, ?, ?, ?, 'FANTASIA', null, null, ?, ?, 0.00, ?, 'PENDENTE', ?)
+                    `, [
+                        matricula[0].id,
+                        coreografiaId,
+                        participante.papel_id,
+                        participante.id,
+                        vinculo.espetaculo_id,
+                        vinculo.id,
+                        parcela.numero,
+                        totalParcelas,
+                        parcela.valor,
+                        parcela.valor,
+                        parcela.valor,
+                        parcela.vencimento,
+                    ]);
+                    geradas.push({ participacao_coreografia_id: participante.id, conta_receber_id: result.insertId, parcela: parcela.numero });
+                }
             }
 
             await this.query(conn, "COMMIT");
@@ -449,6 +470,28 @@ export default class EspetaculoRepository extends Repository {
         } finally {
             conn.release();
         }
+    }
+
+    calcularParcelas(valorTotal, totalParcelas, primeiroVencimento) {
+        const totalCentavos = Math.round(Number(valorTotal || 0) * 100);
+        const baseCentavos = Math.floor(totalCentavos / totalParcelas);
+        const resto = totalCentavos % totalParcelas;
+        return Array.from({ length: totalParcelas }, (_, index) => {
+            const centavos = baseCentavos + (index < resto ? 1 : 0);
+            return {
+                numero: index + 1,
+                valor: centavos / 100,
+                vencimento: this.addMeses(primeiroVencimento, index),
+            };
+        });
+    }
+
+    addMeses(data, meses) {
+        const [ano, mes, dia] = String(data).split("-").map(Number);
+        const target = new Date(ano, mes - 1 + meses, 1);
+        const ultimoDia = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+        target.setDate(Math.min(dia, ultimoDia));
+        return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, "0")}-${String(target.getDate()).padStart(2, "0")}`;
     }
 
     async listarEspetaculosDaCoreografia(coreografiaId) {

@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { apiFetch } from "@/lib/api";
+import SearchableSelect from "@/components/SearchableSelect";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -59,7 +60,7 @@ export default function ProdutosPage() {
       setSuccess(message);
       await loadProdutos();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar operacao");
+      setError(err instanceof Error ? err.message : "Erro ao processar operação");
     } finally {
       setProcessing(false);
     }
@@ -126,8 +127,8 @@ export default function ProdutosPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-4">
             <Field label="Nome" value={productForm.nome} onChange={(value) => setProductForm((prev) => ({ ...prev, nome: value }))} placeholder="Uniforme" />
-            <Field label="Descricao" value={productForm.descricao} onChange={(value) => setProductForm((prev) => ({ ...prev, descricao: value }))} placeholder="Tamanho, cor ou observacao" />
-            <Field label="Valor unitario" value={productForm.valor_unitario} onChange={(value) => setProductForm((prev) => ({ ...prev, valor_unitario: value }))} placeholder="0.00" />
+            <Field label="Descrição" value={productForm.descricao} onChange={(value) => setProductForm((prev) => ({ ...prev, descricao: value }))} placeholder="Tamanho, cor ou observação" />
+            <Field label="Valor unitário" value={productForm.valor_unitario} onChange={(value) => setProductForm((prev) => ({ ...prev, valor_unitario: value }))} placeholder="0.00" />
             {editingProductId ? (
               <Select label="Status" value={productForm.status} onChange={(value) => setProductForm((prev) => ({ ...prev, status: value }))} options={[["ATIVO", "Ativo"], ["INATIVO", "Inativo"]]} placeholder="Status" />
             ) : (
@@ -143,7 +144,7 @@ export default function ProdutosPage() {
             </button>
             {editingProductId && (
               <button type="button" onClick={resetProductForm} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
-                Cancelar edicao
+                Cancelar edição
               </button>
             )}
           </div>
@@ -167,7 +168,7 @@ export default function ProdutosPage() {
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Produto</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Valor</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Acoes</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
@@ -204,17 +205,7 @@ export default function ProdutosPage() {
 }
 
 function Select({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (value: string) => void; options: string[][]; placeholder: string }) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20">
-        <option value="">{placeholder}</option>
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>{optionLabel}</option>
-        ))}
-      </select>
-    </div>
-  );
+  return <SearchableSelect label={label} value={value} onChange={onChange} options={options} placeholder={placeholder} inputClassName="bg-[#F9FAFB]" />;
 }
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {

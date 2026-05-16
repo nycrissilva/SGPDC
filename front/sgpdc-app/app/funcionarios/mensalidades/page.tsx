@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { apiFetch } from "@/lib/api";
 import { formatDateBR } from "@/lib/format";
+import SearchableSelect from "@/components/SearchableSelect";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -38,7 +39,7 @@ const currency = new Intl.NumberFormat("pt-BR", {
 const meses = [
   ["1", "Janeiro"],
   ["2", "Fevereiro"],
-  ["3", "Marco"],
+  ["3", "Março"],
   ["4", "Abril"],
   ["5", "Maio"],
   ["6", "Junho"],
@@ -180,7 +181,7 @@ export default function MensalidadesPage() {
       setSuccess(resultMessage || message);
       await loadMensalidades();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar operacao");
+      setError(err instanceof Error ? err.message : "Erro ao processar operação");
     } finally {
       setProcessing(false);
     }
@@ -196,7 +197,7 @@ export default function MensalidadesPage() {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Erro ao gerar mensalidades");
-    return `${data.geradas} mensalidade(s) gerada(s). ${data.ignoradas} ignorada(s) por ja existirem.`;
+    return `${data.geradas} mensalidade(s) gerada(s). ${data.ignoradas} ignorada(s) por já existirem.`;
   });
 
   const salvarMulta = () => runAction("Multa atualizada com sucesso.", async () => {
@@ -220,7 +221,7 @@ export default function MensalidadesPage() {
     const response = await apiFetch("/api/mensalidades/aplicar-multas", { method: "POST" });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Erro ao aplicar multas");
-    return "Multas aplicadas nas mensalidades elegiveis.";
+    return "Multas aplicadas nas mensalidades elegíveis.";
   });
 
   const openEdit = (item: Mensalidade) => {
@@ -332,11 +333,11 @@ export default function MensalidadesPage() {
         <div className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <div className="mb-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Geracao</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Gerar mensalidades do mes</h2>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Geração</p>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Gerar mensalidades do mês</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-              <Select label="Mes" value={generation.mes_referencia} onChange={(value) => setGeneration((prev) => ({ ...prev, mes_referencia: value }))} options={meses} placeholder="Mes" />
+              <Select label="Mês" value={generation.mes_referencia} onChange={(value) => setGeneration((prev) => ({ ...prev, mes_referencia: value }))} options={meses} placeholder="Mês" />
               <Field label="Ano" value={generation.ano_referencia} onChange={(value) => setGeneration((prev) => ({ ...prev, ano_referencia: value }))} placeholder="2026" />
               <button type="button" disabled={processing} onClick={gerarMensalidades} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
                 Gerar
@@ -347,7 +348,7 @@ export default function MensalidadesPage() {
           <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <div className="mb-5">
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Multa</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Configuracao</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Configuração</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
               <Field label="Valor da multa" value={valorMulta} onChange={setValorMulta} placeholder="0.00" />
@@ -361,7 +362,7 @@ export default function MensalidadesPage() {
         <div className="mb-8 flex flex-col gap-3 rounded-[32px] border border-[#E5E7EB] bg-[#F9FAFB] p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Rotinas</p>
-            <p className="mt-2 text-sm text-[#4B5563]">Atualize atrasos apos o dia 15 e aplique multa somente apos o ultimo dia do mes.</p>
+            <p className="mt-2 text-sm text-[#4B5563]">Atualize atrasos após o dia 15 e aplique multa somente após o último dia do mês.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <button type="button" disabled={processing} onClick={atualizarAtrasos} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20 disabled:opacity-50">
@@ -377,7 +378,7 @@ export default function MensalidadesPage() {
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Filtros</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Consulta de cobrancas</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Consulta de cobranças</h2>
             </div>
             <button type="button" onClick={clearFilters} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
               Limpar filtros
@@ -385,9 +386,9 @@ export default function MensalidadesPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-5">
-            <Select label="Responsavel" value={filters.responsavel_id} onChange={(value) => handleFilter("responsavel_id", value)} options={responsaveis.map((item) => [String(item.id), item.nome])} placeholder="Todos" />
+            <Select label="Responsável" value={filters.responsavel_id} onChange={(value) => handleFilter("responsavel_id", value)} options={responsaveis.map((item) => [String(item.id), item.nome])} placeholder="Todos" />
             <Select label="Aluna" value={filters.aluno_id} onChange={(value) => handleFilter("aluno_id", value)} options={alunos.map((item) => [String(item.id), item.nome])} placeholder="Todas" />
-            <Select label="Mes" value={filters.mes_referencia} onChange={(value) => handleFilter("mes_referencia", value)} options={meses} placeholder="Todos" />
+            <Select label="Mês" value={filters.mes_referencia} onChange={(value) => handleFilter("mes_referencia", value)} options={meses} placeholder="Todos" />
             <Field label="Ano" value={filters.ano_referencia} onChange={(value) => handleFilter("ano_referencia", value)} placeholder="2026" />
             <Select label="Status" value={filters.status} onChange={(value) => handleFilter("status", value)} options={[["PENDENTE", "Pendente"], ["ATRASADA", "Atrasada"], ["ATRASADA_COM_MULTA", "Atrasada com multa"], ["PAGA", "Paga"], ["CANCELADA", "Cancelada"]]} placeholder="Todos" />
           </div>
@@ -408,8 +409,8 @@ export default function MensalidadesPage() {
               <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
                 <thead>
                   <tr className="bg-[#F9FAFB]">
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Referencia</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Responsavel</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Referência</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Responsável</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunas</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Plano</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Vencimento</th>
@@ -417,7 +418,7 @@ export default function MensalidadesPage() {
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Pago</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Saldo</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Acoes</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
@@ -463,13 +464,13 @@ export default function MensalidadesPage() {
               <div className="space-y-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Edicao</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Edição</p>
                     <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Editar mensalidade</h2>
                   </div>
                   <button type="button" onClick={() => setEditing(null)} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">Cancelar</button>
                 </div>
                 <div className="grid gap-4 md:grid-cols-4">
-                  <Select label="Mes" value={editForm.mes_referencia} onChange={(value) => setEditForm((prev) => ({ ...prev, mes_referencia: value }))} options={meses} placeholder="Mes" />
+                  <Select label="Mês" value={editForm.mes_referencia} onChange={(value) => setEditForm((prev) => ({ ...prev, mes_referencia: value }))} options={meses} placeholder="Mês" />
                   <Field label="Ano" value={editForm.ano_referencia} onChange={(value) => setEditForm((prev) => ({ ...prev, ano_referencia: value }))} placeholder="2026" />
                   <Field label="Valor base" value={editForm.valor_base} onChange={(value) => setEditForm((prev) => ({ ...prev, valor_base: value }))} placeholder="0.00" />
                   <Field label="Multa" value={editForm.multa} onChange={(value) => setEditForm((prev) => ({ ...prev, multa: value }))} placeholder="0.00" />
@@ -477,7 +478,7 @@ export default function MensalidadesPage() {
                   <Field label="Vencimento" type="date" value={editForm.data_vencimento} onChange={(value) => setEditForm((prev) => ({ ...prev, data_vencimento: value }))} placeholder="dd/mm/aaaa" />
                   <Select label="Status" value={editForm.status} onChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))} options={[["PENDENTE", "Pendente"], ["ATRASADA", "Atrasada"], ["ATRASADA_COM_MULTA", "Atrasada com multa"], ["PAGA", "Paga"], ["CANCELADA", "Cancelada"]]} placeholder="Status" />
                 </div>
-                <button type="button" disabled={processing} onClick={saveEdit} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">Salvar alteracoes</button>
+                <button type="button" disabled={processing} onClick={saveEdit} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">Salvar alterações</button>
               </div>
             )}
 
@@ -493,7 +494,7 @@ export default function MensalidadesPage() {
                 <div className="grid gap-4 md:grid-cols-3">
                   <Field label="Valor pago" value={paymentForm.valor_pago} onChange={(value) => setPaymentForm((prev) => ({ ...prev, valor_pago: value }))} placeholder="0.00" />
                   <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="dd/mm/aaaa" />
-                  <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["TRANSFERENCIA", "Transferencia"]]} placeholder="Forma" />
+                  <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartão"], ["DINHEIRO", "Dinheiro"], ["TRANSFERENCIA", "Transferência"]]} placeholder="Forma" />
                 </div>
                 <button type="button" disabled={processing} onClick={savePayment} className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">Confirmar pagamento</button>
               </div>
@@ -515,17 +516,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 }
 
 function Select({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (value: string) => void; options: string[][]; placeholder: string }) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20">
-        <option value="">{placeholder}</option>
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>{optionLabel}</option>
-        ))}
-      </select>
-    </div>
-  );
+  return <SearchableSelect label={label} value={value} onChange={onChange} options={options} placeholder={placeholder} inputClassName="bg-[#F9FAFB]" />;
 }
 
 function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {

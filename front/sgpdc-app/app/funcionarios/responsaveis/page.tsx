@@ -1,7 +1,8 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
-import { useEffect, useState } from "react";
+import SearchableSelect from "@/components/SearchableSelect";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Responsavel = {
@@ -63,6 +64,7 @@ export default function ResponsaveisPage() {
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -74,6 +76,22 @@ export default function ResponsaveisPage() {
   useEffect(() => {
     loadResponsaveis();
   }, []);
+
+  const responsaveisFiltrados = useMemo(() => {
+    const query = normalizeSearch(search);
+    if (!query) return responsaveis;
+    return responsaveis.filter((responsavel) => {
+      const responsavelBusca = normalizeSearch(`${responsavel.nome || ""} ${responsavel.cpf || ""}`);
+      return responsavelBusca.includes(query);
+    });
+  }, [responsaveis, search]);
+
+  const responsavelOptions = useMemo(() => {
+    return responsaveis.map((responsavel) => [
+      `${responsavel.nome} ${responsavel.cpf || ""}`.trim(),
+      `${responsavel.nome}${responsavel.cpf ? ` - ${responsavel.cpf}` : ""}`,
+    ]);
+  }, [responsaveis]);
 
   const loadResponsaveis = async () => {
     try {
@@ -201,7 +219,7 @@ export default function ResponsaveisPage() {
           <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Lista</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Responsáveis Cadastrados ({responsaveis.length})</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Responsáveis Cadastrados ({responsaveisFiltrados.length})</h2>
             </div>
             <button
               onClick={() => (showForm && !editingId ? resetForm() : setShowForm(!showForm))}
@@ -211,10 +229,25 @@ export default function ResponsaveisPage() {
             </button>
           </div>
 
-          {loading && responsaveis.length === 0 ? (
+          <div className="mb-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+            <SearchableSelect
+              label="Buscar por nome ou CPF"
+              value={search}
+              onChange={setSearch}
+              options={responsavelOptions}
+              placeholder="Digite nome ou CPF"
+              inputClassName="bg-[#F9FAFB]"
+              searchOnType
+            />
+            <button type="button" onClick={() => setSearch("")} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
+              Limpar busca
+            </button>
+          </div>
+
+          {loading && responsaveisFiltrados.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Carregando responsáveis...</p>
-          ) : responsaveis.length === 0 ? (
-            <p className="text-sm text-[#2B2B2B]/70">Nenhum responsável cadastrado.</p>
+          ) : responsaveisFiltrados.length === 0 ? (
+            <p className="text-sm text-[#2B2B2B]/70">Nenhum responsável encontrado.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
@@ -228,7 +261,7 @@ export default function ResponsaveisPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {responsaveis.map((responsavel) => (
+                  {responsaveisFiltrados.map((responsavel) => (
                     <tr key={responsavel.id} className="bg-white hover:bg-[#F2F2F2]">
                       <td className="px-4 py-4 font-medium">{responsavel.nome}</td>
                       <td className="px-4 py-4">{responsavel.cpf}</td>
@@ -364,4 +397,13 @@ export default function ResponsaveisPage() {
       </main>
     </div>
   );
+}
+
+function normalizeSearch(value?: string) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "")
+    .trim();
 }

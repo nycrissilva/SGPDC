@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -176,10 +176,10 @@ export default function PlanosMensalidadePage() {
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Tipo</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunas</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cursos</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cartao/Pix</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cartão/Pix</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Dinheiro</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Acoes</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">

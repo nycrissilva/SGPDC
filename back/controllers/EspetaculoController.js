@@ -202,6 +202,10 @@ export default class EspetaculoController {
             if (!dataVencimento || !/^\d{4}-\d{2}-\d{2}$/.test(String(dataVencimento))) {
                 return res.status(400).json({ error: "Data de vencimento invalida" });
             }
+            const quantidadeParcelas = Number(req.body.quantidade_parcelas || 1);
+            if (!Number.isInteger(quantidadeParcelas) || quantidadeParcelas < 1 || quantidadeParcelas > 24) {
+                return res.status(400).json({ error: "Quantidade de parcelas invalida" });
+            }
             const participacaoIds = Array.isArray(req.body.participacao_ids)
                 ? req.body.participacao_ids.map((id) => this.parsePositiveInt(id)).filter(Boolean)
                 : [];
@@ -210,6 +214,7 @@ export default class EspetaculoController {
                 participacao_ids: participacaoIds,
                 espetaculo_id: this.parsePositiveInt(req.body.espetaculo_id),
                 espetaculo_coreografia_id: this.parsePositiveInt(req.body.espetaculo_coreografia_id),
+                quantidade_parcelas: quantidadeParcelas,
             });
             return res.status(201).json(resultado);
         } catch (error) {

@@ -2,7 +2,8 @@
 
 import { apiFetch } from "@/lib/api";
 import { formatDateBR, formatInputDate } from "@/lib/format";
-import { useEffect, useState } from "react";
+import SearchableSelect from "@/components/SearchableSelect";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Aluno = {
@@ -15,6 +16,7 @@ type Aluno = {
   data_nascimento?: string;
   data_matricula?: string;
   responsavel_id?: number;
+  turmas?: Turma[];
 };
 
 type Responsavel = {
@@ -25,6 +27,8 @@ type Responsavel = {
 type Turma = {
   id: number;
   nome: string;
+  nivel?: string;
+  modalidade?: string;
 };
 
 type AlunoPayload = {
@@ -48,6 +52,7 @@ export default function AlunosPage() {
   const [success, setSuccess] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({ aluno: "", turma: "" });
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -60,17 +65,45 @@ export default function AlunosPage() {
   });
 
   useEffect(() => {
-    loadAlunos();
     loadResponsaveis();
     loadTurmas();
   }, []);
 
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      loadAlunos();
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
+
+  const alunoOptions = useMemo(() => {
+    return Array.from(new Set(alunos.map((aluno) => aluno.nome))).sort((a, b) => a.localeCompare(b));
+  }, [alunos]);
+
+  const turmaOptions = useMemo(() => {
+    return turmas.map((turma) => formatTurmaOption(turma));
+  }, [turmas]);
+
   const loadAlunos = async () => {
     try {
       setLoading(true);
-      const response = await apiFetch(`/api/alunos`);
+      const params = new URLSearchParams();
+      if (filters.aluno) params.set("q", filters.aluno);
+      if (filters.turma) {
+        const turmaSelecionada = turmas.find((turma) => {
+          const typed = filters.turma.trim().toLowerCase();
+          return formatTurmaOption(turma).toLowerCase() === typed || turma.nome.toLowerCase() === typed;
+        });
+
+        if (turmaSelecionada) params.set("turma_id", String(turmaSelecionada.id));
+        else params.set("turma", filters.turma);
+      }
+      params.set("limit", "500");
+      const response = await apiFetch(`/api/alunos?${params.toString()}`);
       const data = await response.json();
-      console.log("Alunos carregados:", data);
+      if (!response.ok) throw new Error(data.error || "Erro ao carregar alunos");
       setAlunos(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Erro ao carregar alunos:", err);
@@ -84,7 +117,6 @@ export default function AlunosPage() {
     try {
       const response = await apiFetch(`/api/responsaveis`);
       const data = await response.json();
-      console.log("Responsáveis carregados:", data);
       setResponsaveis(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Erro ao carregar responsáveis:", err);
@@ -95,7 +127,6 @@ export default function AlunosPage() {
     try {
       const response = await apiFetch(`/api/turmas`);
       const data = await response.json();
-      console.log("Turmas carregadas:", data);
       setTurmas(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Erro ao carregar turmas:", err);
@@ -236,6 +267,10 @@ export default function AlunosPage() {
     }
   };
 
+  const clearFilters = () => {
+    setFilters({ aluno: "", turma: "" });
+  };
+
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -270,6 +305,26 @@ export default function AlunosPage() {
             </button>
           </div>
 
+          <div className="mb-6 grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <SearchField
+              label="Pesquisar por aluno"
+              value={filters.aluno}
+              onChange={(value) => setFilters((prev) => ({ ...prev, aluno: value }))}
+              options={alunoOptions}
+              placeholder="Digite nome, CPF ou email"
+            />
+            <SearchField
+              label="Pesquisar por turma"
+              value={filters.turma}
+              onChange={(value) => setFilters((prev) => ({ ...prev, turma: value }))}
+              options={turmaOptions}
+              placeholder="Digite ou selecione a turma"
+            />
+            <button type="button" onClick={clearFilters} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
+              Limpar filtros
+            </button>
+          </div>
+
           {loading && alunos.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Carregando alunos...</p>
           ) : alunos.length === 0 ? (
@@ -282,6 +337,7 @@ export default function AlunosPage() {
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Nome</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">CPF</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Email</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Turmas</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Matrícula</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                   </tr>
@@ -292,6 +348,7 @@ export default function AlunosPage() {
                       <td className="px-4 py-4 font-medium">{aluno.nome}</td>
                       <td className="px-4 py-4">{aluno.cpf}</td>
                       <td className="px-4 py-4">{aluno.email}</td>
+                      <td className="px-4 py-4">{aluno.turmas?.map((turma) => turma.nome).join(", ") || "-"}</td>
                       <td className="px-4 py-4">{formatDateBR(aluno.data_matricula)}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
@@ -301,10 +358,10 @@ export default function AlunosPage() {
                           Editar
                         </button>
                         <Link
-                          href={`/funcionarios/mensalidades?aluno_id=${aluno.id}`}
+                          href={`/funcionarios/alunos/${aluno.id}/contas`}
                           className="text-xs rounded-full bg-[#1F2A5A]/10 px-3 py-1 text-[#1F2A5A] hover:bg-[#1F2A5A]/20 transition"
                         >
-                          Mensalidades
+                          Contas
                         </Link>
                         <button
                           onClick={() => handleDelete(aluno.id)}
@@ -404,20 +461,14 @@ export default function AlunosPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Responsável</label>
-              <select
-                name="responsavel_id"
+              <SearchableSelect
+                label="Responsável"
                 value={formData.responsavel_id}
-                onChange={handleChange}
-                className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-              >
-                <option value="">Selecionar responsável</option>
-                {responsaveis.map((resp) => (
-                  <option key={resp.id} value={resp.id}>
-                    {resp.nome}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormData((prev) => ({ ...prev, responsavel_id: value }))}
+                options={responsaveis.map((resp) => [String(resp.id), resp.nome])}
+                placeholder="Selecionar responsável"
+                inputClassName="bg-[#F9FAFB]"
+              />
             </div>
 
             <div className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] p-4">
@@ -467,4 +518,22 @@ export default function AlunosPage() {
       </main>
     </div>
   );
+}
+
+function SearchField({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (value: string) => void; options: string[]; placeholder: string }) {
+  return (
+    <SearchableSelect
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={options.map((option) => [option, option])}
+      placeholder={placeholder}
+      inputClassName="bg-[#F9FAFB]"
+      searchOnType
+    />
+  );
+}
+
+function formatTurmaOption(turma: Turma) {
+  return `${turma.nome}${turma.nivel ? ` - ${turma.nivel}` : ""}`;
 }

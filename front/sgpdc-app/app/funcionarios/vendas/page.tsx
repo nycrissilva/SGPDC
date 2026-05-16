@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { apiFetch } from "@/lib/api";
 import { formatDateBR } from "@/lib/format";
+import SearchableSelect from "@/components/SearchableSelect";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -118,10 +119,10 @@ export default function VendasPage() {
     try {
       const response = await apiFetch("/api/vendas/matriculas");
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao carregar matriculas");
+      if (!response.ok) throw new Error(data.error || "Erro ao carregar matrículas");
       setMatriculas(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar matriculas");
+      setError(err instanceof Error ? err.message : "Erro ao carregar matrículas");
     }
   };
 
@@ -152,7 +153,7 @@ export default function VendasPage() {
       setSuccess(message);
       await loadVendas();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar operacao");
+      setError(err instanceof Error ? err.message : "Erro ao processar operação");
     } finally {
       setProcessing(false);
     }
@@ -240,7 +241,7 @@ export default function VendasPage() {
               <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Registrar venda</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              <Select label="Matricula" value={saleForm.matricula_id} onChange={(value) => setSaleForm((prev) => ({ ...prev, matricula_id: value }))} options={matriculas.map((item) => [String(item.id), `${item.aluno_nome} - matricula ${item.id}`])} placeholder="Selecione" />
+              <Select label="Matrícula" value={saleForm.matricula_id} onChange={(value) => setSaleForm((prev) => ({ ...prev, matricula_id: value }))} options={matriculas.map((item) => [String(item.id), `${item.aluno_nome} - matrícula ${item.id}`])} placeholder="Selecione" />
               <Field label="Data da venda" type="date" value={saleForm.data} onChange={(value) => setSaleForm((prev) => ({ ...prev, data: value }))} placeholder="dd/mm/aaaa" />
             </div>
 
@@ -303,7 +304,7 @@ export default function VendasPage() {
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Itens</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Total</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Acoes</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
@@ -355,17 +356,7 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 }
 
 function Select({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (value: string) => void; options: string[][]; placeholder: string }) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20">
-        <option value="">{placeholder}</option>
-        {options.map(([optionValue, optionLabel], index) => (
-          <option key={`${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>
-        ))}
-      </select>
-    </div>
-  );
+  return <SearchableSelect label={label} value={value} onChange={onChange} options={options} placeholder={placeholder} inputClassName="bg-[#F9FAFB]" />;
 }
 
 function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {

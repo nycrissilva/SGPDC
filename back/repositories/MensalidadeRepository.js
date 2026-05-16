@@ -55,13 +55,27 @@ export default class MensalidadeRepository extends Repository {
 
         if (filtros.aluno_id) {
             sql += `
-                and exists (
-                    select 1
-                    from grupo_financeiro_aluno filtro_gfa
-                    where filtro_gfa.grupo_financeiro_id = gf.id
-                      and filtro_gfa.aluno_id = ?
+                and (
+                    exists (
+                        select 1
+                        from grupo_financeiro_aluno filtro_gfa
+                        where filtro_gfa.grupo_financeiro_id = gf.id
+                          and filtro_gfa.aluno_id = ?
+                    )
+                    or exists (
+                        select 1
+                        from aluno filtro_aluno
+                        where filtro_aluno.id = ?
+                          and filtro_aluno.responsavel_id = gf.responsavel_id
+                    )
+                    or exists (
+                        select 1
+                        from matricula filtro_matricula
+                        where filtro_matricula.id = cr.matricula_id
+                          and filtro_matricula.aluno_id = ?
+                    )
                 )`;
-            values.push(filtros.aluno_id);
+            values.push(filtros.aluno_id, filtros.aluno_id, filtros.aluno_id);
         }
 
         if (filtros.status) {
@@ -137,13 +151,21 @@ export default class MensalidadeRepository extends Repository {
 
         if (filtros.aluno_id) {
             sql += `
-                and exists (
-                    select 1
-                    from grupo_financeiro_aluno filtro_gfa
-                    where filtro_gfa.grupo_financeiro_id = gf.id
-                      and filtro_gfa.aluno_id = ?
+                and (
+                    exists (
+                        select 1
+                        from grupo_financeiro_aluno filtro_gfa
+                        where filtro_gfa.grupo_financeiro_id = gf.id
+                          and filtro_gfa.aluno_id = ?
+                    )
+                    or exists (
+                        select 1
+                        from aluno filtro_aluno
+                        where filtro_aluno.id = ?
+                          and filtro_aluno.responsavel_id = gf.responsavel_id
+                    )
                 )`;
-            values.push(filtros.aluno_id);
+            values.push(filtros.aluno_id, filtros.aluno_id);
         }
 
         if (filtros.status && filtros.status !== 'PENDENTE') {
@@ -309,6 +331,82 @@ export default class MensalidadeRepository extends Repository {
     async obterConta(id) {
         const rows = await this.banco.ExecutaComando(`select * from conta_receber where id = ?`, [id]);
         return rows.length > 0 ? rows[0] : null;
+    }
+
+    async listarFantasias(filtros = {}) {
+        await this.garantirParcelasContaReceber();
+        let sql = `
+            select
+                cr.id,
+                cr.tipo_receita,
+                cr.valor_base,
+                cr.valor_final,
+                cr.multa,
+                cr.status,
+                cr.data_vencimento,
+                cr.numero_parcela,
+                cr.total_parcelas,
+                cr.matricula_id,
+                m.aluno_id,
+                aluno_pessoa.nome as aluno_nome,
+                e.nome as espetaculo_nome,
+                c.nome as coreografia_nome,
+                coalesce(cp.nome, pc.papel) as papel_nome,
+                coalesce(sum(pg.valor_pago), 0) as valor_pago
+            from conta_receber cr
+            left join matricula m on m.id = cr.matricula_id
+            left join pessoa aluno_pessoa on aluno_pessoa.id = m.aluno_id
+            left join evento e on e.id = cr.espetaculo_id
+            left join coreografia c on c.id = cr.coreografia_id
+            left join participacao_coreografia pc on pc.id = cr.participacao_coreografia_id
+            left join coreografia_papel cp on cp.id = cr.fantasia_id
+            left join pagamento pg on pg.conta_receber_id = cr.id
+            where cr.tipo_receita = 'FANTASIA'`;
+
+        const values = [];
+
+        if (filtros.aluno_id) {
+            sql += ` and (m.aluno_id = ? or pc.aluno_id = ?)`;
+            values.push(filtros.aluno_id, filtros.aluno_id);
+        }
+
+        if (filtros.status) {
+            sql += ` and cr.status = ?`;
+            values.push(filtros.status);
+        }
+
+        sql += `
+            group by cr.id
+            order by cr.data_vencimento desc, cr.id desc`;
+
+        const rows = await this.banco.ExecutaComando(sql, values);
+        return rows.map((row) => ({
+            id: row.id,
+            tipo_receita: row.tipo_receita,
+            valor_base: Number(row.valor_base || 0),
+            valor_final: Number(row.valor_final || 0),
+            multa: Number(row.multa || 0),
+            valor_pago: Number(row.valor_pago || 0),
+            saldo: Number(row.valor_final || 0) - Number(row.valor_pago || 0),
+            status: row.status,
+            data_vencimento: this.formatDateValue(row.data_vencimento),
+            numero_parcela: Number(row.numero_parcela || 1),
+            total_parcelas: Number(row.total_parcelas || 1),
+            matricula_id: row.matricula_id,
+            aluno_id: row.aluno_id,
+            aluno_nome: row.aluno_nome,
+            espetaculo_nome: row.espetaculo_nome,
+            coreografia_nome: row.coreografia_nome,
+            papel_nome: row.papel_nome,
+        }));
+    }
+
+    async garantirParcelasContaReceber() {
+        await this.banco.ExecutaComando(`
+            alter table conta_receber
+              add column if not exists numero_parcela int(11) not null default 1 after participacao_coreografia_id,
+              add column if not exists total_parcelas int(11) not null default 1 after numero_parcela
+        `, []);
     }
 
     async editarMensalidade(id, dados) {

@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { apiFetch } from "@/lib/api";
 import { formatDateBR } from "@/lib/format";
+import SearchableSelect from "@/components/SearchableSelect";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -144,13 +145,13 @@ export default function DespesasPage() {
       setSuccess(message);
       await Promise.all([loadTipos(), loadDespesas()]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar operacao");
+      setError(err instanceof Error ? err.message : "Erro ao processar operação");
     } finally {
       setProcessing(false);
     }
   };
 
-  const submitDespesa = () => runAction(editing ? "Despesa atualizada com sucesso." : "Despesa lancada com sucesso.", async () => {
+  const submitDespesa = () => runAction(editing ? "Despesa atualizada com sucesso." : "Despesa lançada com sucesso.", async () => {
     const parcelas = form.pagamento === "PARCELADO" ? Number(form.quantidade_parcelas) : 1;
     const response = await apiFetch(editing ? `/api/despesas/${editing.id}` : "/api/despesas", {
       method: editing ? "PUT" : "POST",
@@ -238,7 +239,7 @@ export default function DespesasPage() {
         {error && <div className="mb-6 rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
 
         <div className="mb-8 grid gap-4 md:grid-cols-4">
-          <SummaryCard label="Total lancado" value={currency.format(resumo.total)} />
+          <SummaryCard label="Total lançado" value={currency.format(resumo.total)} />
           <SummaryCard label="Pago" value={currency.format(resumo.pago)} />
           <SummaryCard label="Em aberto" value={currency.format(resumo.saldo)} />
           <SummaryCard label="Status" value={`${resumo.pendentes} pendente(s) / ${resumo.quitadas} quitada(s)`} />
@@ -248,23 +249,23 @@ export default function DespesasPage() {
           <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">{editing ? "Edicao" : "Lancamento"}</p>
-                <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">{editing ? `Editar despesa #${editing.id}` : "Lancar despesa"}</h2>
+                <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">{editing ? "Edição" : "Lançamento"}</p>
+                <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">{editing ? `Editar despesa #${editing.id}` : "Lançar despesa"}</h2>
               </div>
               {editing && (
                 <button type="button" onClick={cancelEdit} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
-                  Cancelar edicao
+                  Cancelar edição
                 </button>
               )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Descricao" value={form.descricao} onChange={(value) => setForm((prev) => ({ ...prev, descricao: value }))} placeholder="Ex.: Conta de energia" />
+              <Field label="Descrição" value={form.descricao} onChange={(value) => setForm((prev) => ({ ...prev, descricao: value }))} placeholder="Ex.: Conta de energia" />
               <Select label="Categoria" value={form.tipo_despesa_id} onChange={(value) => setForm((prev) => ({ ...prev, tipo_despesa_id: value }))} options={tipos.filter((tipo) => tipo.status === "ATIVO").map((tipo) => [String(tipo.id), tipo.nome])} placeholder="Selecione uma categoria" disabledPlaceholder />
               <Field label="Valor total" value={form.valor_total} onChange={(value) => setForm((prev) => ({ ...prev, valor_total: value }))} placeholder="0.00" />
               <Field label="Data da despesa" type="date" value={form.data_despesa} onChange={(value) => setForm((prev) => ({ ...prev, data_despesa: value }))} placeholder="dd/mm/aaaa" />
-              <Select label="Forma prevista" value={form.forma_pagamento_prevista} onChange={(value) => setForm((prev) => ({ ...prev, forma_pagamento_prevista: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferencia"]]} />
-              <Select label="Pagamento" value={form.pagamento} onChange={(value) => setForm((prev) => ({ ...prev, pagamento: value, quantidade_parcelas: value === "A_VISTA" ? "1" : prev.quantidade_parcelas }))} options={[["A_VISTA", "A vista"], ["PARCELADO", "Parcelado"]]} />
+              <Select label="Forma prevista" value={form.forma_pagamento_prevista} onChange={(value) => setForm((prev) => ({ ...prev, forma_pagamento_prevista: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartão"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferência"]]} />
+              <Select label="Pagamento" value={form.pagamento} onChange={(value) => setForm((prev) => ({ ...prev, pagamento: value, quantidade_parcelas: value === "A_VISTA" ? "1" : prev.quantidade_parcelas }))} options={[["A_VISTA", "À vista"], ["PARCELADO", "Parcelado"]]} />
               {form.pagamento === "PARCELADO" && (
                 <Field label="Quantidade de parcelas" value={form.quantidade_parcelas} onChange={(value) => setForm((prev) => ({ ...prev, quantidade_parcelas: value }))} placeholder="2" />
               )}
@@ -272,7 +273,7 @@ export default function DespesasPage() {
             </div>
 
             <button type="button" disabled={processing} onClick={submitDespesa} className="mt-6 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
-              {editing ? "Salvar alteracoes" : "Lancar despesa"}
+              {editing ? "Salvar alterações" : "Lançar despesa"}
             </button>
           </section>
 
@@ -282,8 +283,8 @@ export default function DespesasPage() {
               <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Nova categoria</h2>
             </div>
             <div className="space-y-4">
-              <Field label="Nome" value={tipoForm.nome} onChange={(value) => setTipoForm((prev) => ({ ...prev, nome: value }))} placeholder="Ex.: Manutencao" />
-              <Field label="Descricao" value={tipoForm.descricao} onChange={(value) => setTipoForm((prev) => ({ ...prev, descricao: value }))} placeholder="Opcional" />
+              <Field label="Nome" value={tipoForm.nome} onChange={(value) => setTipoForm((prev) => ({ ...prev, nome: value }))} placeholder="Ex.: Manutenção" />
+              <Field label="Descrição" value={tipoForm.descricao} onChange={(value) => setTipoForm((prev) => ({ ...prev, descricao: value }))} placeholder="Opcional" />
               <button type="button" disabled={processing} onClick={createTipo} className="rounded-full bg-[#1F2A5A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#6A4FBF] disabled:opacity-50">
                 Cadastrar categoria
               </button>
@@ -311,7 +312,7 @@ export default function DespesasPage() {
         <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
           <div className="mb-6">
             <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Contas a pagar</p>
-            <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Despesas lancadas ({despesas.length})</h2>
+            <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Despesas lançadas ({despesas.length})</h2>
           </div>
 
           {loading ? (
@@ -346,7 +347,7 @@ export default function DespesasPage() {
                           <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Valor</th>
                           <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
                           <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Pagamento</th>
-                          <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Acoes</th>
+                          <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#E5E7EB]">
@@ -379,7 +380,7 @@ export default function DespesasPage() {
           <section className="mt-8 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Quitacao</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Quitação</p>
                 <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Quitar parcela {paying.numero_parcela}/{paying.total_parcelas}</h2>
               </div>
               <button type="button" onClick={() => setPaying(null)} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
@@ -392,10 +393,10 @@ export default function DespesasPage() {
                 <p className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-semibold text-[#1F2A5A]">{currency.format(paying.valor)}</p>
               </div>
               <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="dd/mm/aaaa" />
-              <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartao"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferencia"]]} />
+              <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartão"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferência"]]} />
             </div>
             <button type="button" disabled={processing} onClick={quitarParcela} className="mt-6 rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
-              Confirmar quitacao
+              Confirmar quitação
             </button>
           </section>
         )}
@@ -419,7 +420,6 @@ function Select({
   onChange,
   options,
   placeholder,
-  disabledPlaceholder = false,
 }: {
   label: string;
   value: string;
@@ -428,17 +428,7 @@ function Select({
   placeholder?: string;
   disabledPlaceholder?: boolean;
 }) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20">
-        {placeholder && <option value="" disabled={disabledPlaceholder}>{placeholder}</option>}
-        {options.map(([optionValue, optionLabel], index) => (
-          <option key={`${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>
-        ))}
-      </select>
-    </div>
-  );
+  return <SearchableSelect label={label} value={value} onChange={onChange} options={options} placeholder={placeholder} inputClassName="bg-[#F9FAFB]" />;
 }
 
 function Field({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {

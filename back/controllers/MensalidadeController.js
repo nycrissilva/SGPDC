@@ -22,6 +22,20 @@ export default class MensalidadeController {
         }
     }
 
+    async listarFantasias(req, res) {
+        try {
+            const filtros = {
+                aluno_id: this.parsePositiveInt(req.query.aluno_id),
+                status: req.query.status ? String(req.query.status).toUpperCase() : null,
+            };
+
+            const fantasias = await this.mensalidadeRepository.listarFantasias(filtros);
+            return res.json(fantasias);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async gerar(req, res) {
         try {
             const mesReferencia = this.parsePositiveInt(req.body.mes_referencia);
