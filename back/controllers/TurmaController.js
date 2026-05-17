@@ -2,12 +2,14 @@ import TurmaRepository from "../repositories/TurmaRepository.js";
 import TurmaEntity from "../entities/turmaEntity.js";
 import ModalidadeRepository from "../repositories/ModalidadeRepository.js";
 import LocalRepository from "../repositories/LocalRepository.js";
+import MensalidadeRepository from "../repositories/MensalidadeRepository.js";
 
 export default class TurmaController {
     constructor() {
         this.turmaRepository = new TurmaRepository();
         this.modalidadeRepository = new ModalidadeRepository();
         this.localRepository = new LocalRepository();
+        this.mensalidadeRepository = new MensalidadeRepository();
     }
 
     async listar(req, res) {
@@ -52,10 +54,45 @@ export default class TurmaController {
             }
 
             const alunos = await this.turmaRepository.listarAlunos(id);
-            return res.json(alunos);
+            const alunosComMensalidades = await Promise.all(alunos.map(async (aluno) => {
+                const mensalidades = await this.mensalidadeRepository.listar({ aluno_id: aluno.id });
+                const porSituacao = this.organizarMensalidadesPorSituacao(mensalidades);
+
+                return {
+                    ...aluno,
+                    mensalidades: porSituacao,
+                    resumo_mensalidades: {
+                        total: mensalidades.length,
+                        pagas: porSituacao.pagas.length,
+                        em_aberto: porSituacao.em_aberto.length,
+                        atrasadas: porSituacao.atrasadas.length,
+                    },
+                };
+            }));
+            return res.json(alunosComMensalidades);
         } catch (error) {
             return res.status(500).json({ error: error.message });
         }
+    }
+
+    organizarMensalidadesPorSituacao(mensalidades = []) {
+        return mensalidades.reduce((acc, mensalidade) => {
+            const status = String(mensalidade.status || '').toUpperCase();
+
+            if (status === 'PAGA') {
+                acc.pagas.push(mensalidade);
+            } else if (status === 'PENDENTE') {
+                acc.em_aberto.push(mensalidade);
+            } else if (['ATRASADA', 'ATRASADA_COM_MULTA'].includes(status)) {
+                acc.atrasadas.push(mensalidade);
+            }
+
+            return acc;
+        }, {
+            pagas: [],
+            em_aberto: [],
+            atrasadas: [],
+        });
     }
 
     async cadastrar(req, res) {
