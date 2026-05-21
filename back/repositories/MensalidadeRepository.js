@@ -349,16 +349,37 @@ export default class MensalidadeRepository extends Repository {
                 cr.matricula_id,
                 coalesce(m.aluno_id, pc.aluno_id) as aluno_id,
                 aluno_pessoa.nome as aluno_nome,
+                coalesce(aluno_matricula.responsavel_id, aluno_participacao.responsavel_id) as responsavel_id,
+                responsavel_pessoa.nome as responsavel_nome,
+                (
+                    select group_concat(distinct turma_filtro.id order by turma_filtro.nome separator ',')
+                    from matricula matricula_filtro
+                    join matricula_turma mt_filtro on mt_filtro.matricula_id = matricula_filtro.id
+                    join turma turma_filtro on turma_filtro.id = mt_filtro.turma_id
+                    where matricula_filtro.aluno_id = coalesce(m.aluno_id, pc.aluno_id)
+                      and matricula_filtro.status = 'ATIVA'
+                ) as turma_ids,
+                (
+                    select group_concat(distinct turma_filtro.nome order by turma_filtro.nome separator '||')
+                    from matricula matricula_filtro
+                    join matricula_turma mt_filtro on mt_filtro.matricula_id = matricula_filtro.id
+                    join turma turma_filtro on turma_filtro.id = mt_filtro.turma_id
+                    where matricula_filtro.aluno_id = coalesce(m.aluno_id, pc.aluno_id)
+                      and matricula_filtro.status = 'ATIVA'
+                ) as turma_nomes,
                 e.nome as espetaculo_nome,
                 c.nome as coreografia_nome,
                 coalesce(cp.nome, pc.papel) as papel_nome,
                 coalesce(sum(pg.valor_pago), 0) as valor_pago
             from conta_receber cr
             left join matricula m on m.id = cr.matricula_id
+            left join aluno aluno_matricula on aluno_matricula.id = m.aluno_id
             left join evento e on e.id = cr.espetaculo_id
             left join coreografia c on c.id = cr.coreografia_id
             left join participacao_coreografia pc on pc.id = cr.participacao_coreografia_id
+            left join aluno aluno_participacao on aluno_participacao.id = pc.aluno_id
             left join pessoa aluno_pessoa on aluno_pessoa.id = coalesce(m.aluno_id, pc.aluno_id)
+            left join pessoa responsavel_pessoa on responsavel_pessoa.id = coalesce(aluno_matricula.responsavel_id, aluno_participacao.responsavel_id)
             left join coreografia_papel cp on cp.id = cr.fantasia_id
             left join pagamento pg on pg.conta_receber_id = cr.id
             where cr.tipo_receita = 'FANTASIA'`;
@@ -368,6 +389,24 @@ export default class MensalidadeRepository extends Repository {
         if (filtros.aluno_id) {
             sql += ` and (m.aluno_id = ? or pc.aluno_id = ?)`;
             values.push(filtros.aluno_id, filtros.aluno_id);
+        }
+
+        if (filtros.responsavel_id) {
+            sql += ` and (aluno_matricula.responsavel_id = ? or aluno_participacao.responsavel_id = ?)`;
+            values.push(filtros.responsavel_id, filtros.responsavel_id);
+        }
+
+        if (filtros.turma_id) {
+            sql += `
+                and exists (
+                    select 1
+                    from matricula filtro_matricula
+                    join matricula_turma filtro_mt on filtro_mt.matricula_id = filtro_matricula.id
+                    where filtro_matricula.aluno_id = coalesce(m.aluno_id, pc.aluno_id)
+                      and filtro_matricula.status = 'ATIVA'
+                      and filtro_mt.turma_id = ?
+                )`;
+            values.push(filtros.turma_id);
         }
 
         if (filtros.status) {
@@ -395,6 +434,9 @@ export default class MensalidadeRepository extends Repository {
             matricula_id: row.matricula_id,
             aluno_id: row.aluno_id,
             aluno_nome: row.aluno_nome,
+            responsavel_id: row.responsavel_id,
+            responsavel_nome: row.responsavel_nome,
+            turmas: this.mapAlunas(row.turma_ids, row.turma_nomes),
             espetaculo_nome: row.espetaculo_nome,
             coreografia_nome: row.coreografia_nome,
             papel_nome: row.papel_nome,

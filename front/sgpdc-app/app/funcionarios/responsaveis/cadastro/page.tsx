@@ -65,7 +65,7 @@ export default function CadastroResponsavelPage() {
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Novo Responsável</h1>
           </div>
           <Link
-            href="/responsaveis"
+            href="/funcionarios/responsaveis"
             className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
           >
             Voltar

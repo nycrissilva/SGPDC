@@ -55,17 +55,29 @@ export default class TurmaController {
 
             const alunos = await this.turmaRepository.listarAlunos(id);
             const alunosComMensalidades = await Promise.all(alunos.map(async (aluno) => {
-                const mensalidades = await this.mensalidadeRepository.listar({ aluno_id: aluno.id });
-                const porSituacao = this.organizarMensalidadesPorSituacao(mensalidades);
+                const mensalidadeFiltros = aluno.responsavel_id
+                    ? { responsavel_id: aluno.responsavel_id }
+                    : { aluno_id: aluno.id };
+                const mensalidades = await this.mensalidadeRepository.listar(mensalidadeFiltros);
+                const fantasias = await this.mensalidadeRepository.listarFantasias({ aluno_id: aluno.id });
+                const mensalidadesPorSituacao = this.organizarContasPorSituacao(mensalidades);
+                const fantasiasPorSituacao = this.organizarContasPorSituacao(fantasias);
 
                 return {
                     ...aluno,
-                    mensalidades: porSituacao,
+                    mensalidades: mensalidadesPorSituacao,
+                    fantasias: fantasiasPorSituacao,
                     resumo_mensalidades: {
                         total: mensalidades.length,
-                        pagas: porSituacao.pagas.length,
-                        em_aberto: porSituacao.em_aberto.length,
-                        atrasadas: porSituacao.atrasadas.length,
+                        pagas: mensalidadesPorSituacao.pagas.length,
+                        em_aberto: mensalidadesPorSituacao.em_aberto.length,
+                        atrasadas: mensalidadesPorSituacao.atrasadas.length,
+                    },
+                    resumo_fantasias: {
+                        total: fantasias.length,
+                        pagas: fantasiasPorSituacao.pagas.length,
+                        em_aberto: fantasiasPorSituacao.em_aberto.length,
+                        atrasadas: fantasiasPorSituacao.atrasadas.length,
                     },
                 };
             }));
@@ -75,16 +87,16 @@ export default class TurmaController {
         }
     }
 
-    organizarMensalidadesPorSituacao(mensalidades = []) {
-        return mensalidades.reduce((acc, mensalidade) => {
-            const status = String(mensalidade.status || '').toUpperCase();
+    organizarContasPorSituacao(contas = []) {
+        return contas.reduce((acc, conta) => {
+            const status = String(conta.status || '').toUpperCase();
 
             if (status === 'PAGA') {
-                acc.pagas.push(mensalidade);
+                acc.pagas.push(conta);
             } else if (status === 'PENDENTE') {
-                acc.em_aberto.push(mensalidade);
+                acc.em_aberto.push(conta);
             } else if (['ATRASADA', 'ATRASADA_COM_MULTA'].includes(status)) {
-                acc.atrasadas.push(mensalidade);
+                acc.atrasadas.push(conta);
             }
 
             return acc;

@@ -73,6 +73,7 @@ export default class VendaRepository extends Repository {
                 cr.status as conta_receber_status
             from venda v
             join matricula m on m.id = v.matricula_id
+            join aluno a on a.id = m.aluno_id
             join pessoa pessoa on pessoa.id = m.aluno_id
             left join conta_receber cr on cr.id = v.conta_receber_id
             where 1 = 1`;
@@ -80,6 +81,11 @@ export default class VendaRepository extends Repository {
         if (filtros.aluno_id) {
             sql += ` and m.aluno_id = ?`;
             values.push(filtros.aluno_id);
+        }
+
+        if (filtros.responsavel_id) {
+            sql += ` and a.responsavel_id = ?`;
+            values.push(filtros.responsavel_id);
         }
 
         if (filtros.matricula_id) {

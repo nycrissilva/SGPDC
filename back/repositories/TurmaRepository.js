@@ -129,6 +129,8 @@ export default class TurmaRepository extends Repository {
                 p.cpf,
                 p.telefone,
                 p.email,
+                a.responsavel_id,
+                responsavel.nome as responsavel_nome,
                 m.id as matricula_id,
                 t.id as turma_id,
                 t.nome as turma_nome
@@ -136,6 +138,7 @@ export default class TurmaRepository extends Repository {
             join matricula m on m.id = mt.matricula_id
             join aluno a on a.id = m.aluno_id
             join pessoa p on p.id = a.id
+            left join pessoa responsavel on responsavel.id = a.responsavel_id
             join turma t on t.id = mt.turma_id
             where mt.turma_id = ?
               and m.status = 'ATIVA'
@@ -149,6 +152,8 @@ export default class TurmaRepository extends Repository {
             cpf: row.cpf,
             telefone: row.telefone,
             email: row.email,
+            responsavel_id: row.responsavel_id,
+            responsavel_nome: row.responsavel_nome,
             matricula_id: row.matricula_id,
             turma_id: row.turma_id,
             turma_nome: row.turma_nome,

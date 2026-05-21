@@ -12,6 +12,7 @@ type SearchableSelectProps = {
   emptyText?: string;
   inputClassName?: string;
   searchOnType?: boolean;
+  showAllOnFocus?: boolean;
 };
 
 export default function SearchableSelect({
@@ -24,6 +25,7 @@ export default function SearchableSelect({
   emptyText = "Nenhum resultado encontrado",
   inputClassName = "bg-white",
   searchOnType = false,
+  showAllOnFocus = false,
 }: SearchableSelectProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function SearchableSelect({
             setOpen(true);
           }}
           onFocus={() => {
-            setQuery(selectedLabel || (searchOnType ? value : ""));
+            setQuery(showAllOnFocus ? "" : selectedLabel || (searchOnType ? value : ""));
             setOpen(true);
           }}
           disabled={disabled}
@@ -81,7 +83,7 @@ export default function SearchableSelect({
           aria-label={open ? "Fechar opções" : "Abrir opções"}
           disabled={disabled}
           onClick={() => {
-            setQuery(selectedLabel || (searchOnType ? value : ""));
+            setQuery(showAllOnFocus ? "" : selectedLabel || (searchOnType ? value : ""));
             setOpen((current) => !current);
           }}
           className="absolute inset-y-0 right-3 flex items-center text-[#1F2A5A] disabled:cursor-not-allowed"

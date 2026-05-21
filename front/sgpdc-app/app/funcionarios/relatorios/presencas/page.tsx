@@ -20,6 +20,7 @@ type RegistroPresenca = {
   aluno_nome: string;
   turma_id: number;
   turma_nome: string;
+  data_matricula: string;
   data_aula: string;
   presente: boolean;
 };
@@ -31,6 +32,16 @@ type ResumoPresenca = {
   total_presencas: number;
   total_ausencias: number;
   percentual_presenca: number;
+};
+
+type ChamadaResumo = {
+  key: string;
+  turma_id: number;
+  turma_nome: string;
+  data_aula: string;
+  total_alunos: number;
+  total_presencas: number;
+  total_ausencias: number;
 };
 
 async function parseJsonSafe(response: Response) {
@@ -51,6 +62,8 @@ export default function RelatorioPresencasPage() {
   const [loadingFiltros, setLoadingFiltros] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [selectedAlunoId, setSelectedAlunoId] = useState<number | null>(null);
+  const [selectedChamadaKey, setSelectedChamadaKey] = useState<string | null>(null);
   const [filtros, setFiltros] = useState({
     turmaId: "",
     alunoId: "",
@@ -123,12 +136,16 @@ export default function RelatorioPresencasPage() {
 
       setRegistros(Array.isArray(data?.registros) ? data.registros : []);
       setResumo(Array.isArray(data?.resumo) ? data.resumo : []);
+      setSelectedAlunoId(null);
+      setSelectedChamadaKey(null);
       setInfo(data?.message || null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro desconhecido ao gerar relatório";
       setError(message);
       setRegistros([]);
       setResumo([]);
+      setSelectedAlunoId(null);
+      setSelectedChamadaKey(null);
     } finally {
       setLoading(false);
     }
@@ -143,29 +160,81 @@ export default function RelatorioPresencasPage() {
     });
     setRegistros([]);
     setResumo([]);
+    setSelectedAlunoId(null);
+    setSelectedChamadaKey(null);
     setError(null);
     setInfo(null);
   };
 
+  const registrosFiltrados = useMemo(
+    () => registros.filter((registro) => {
+      const matchesAluno = selectedAlunoId ? registro.aluno_id === selectedAlunoId : true;
+      const chamadaKey = `${registro.turma_id}-${registro.data_aula}`;
+      const matchesChamada = selectedChamadaKey ? chamadaKey === selectedChamadaKey : true;
+      return matchesAluno && matchesChamada;
+    }),
+    [registros, selectedAlunoId, selectedChamadaKey]
+  );
+  const alunoSelecionado = useMemo(
+    () => selectedAlunoId ? resumo.find((item) => item.aluno_id === selectedAlunoId) : null,
+    [resumo, selectedAlunoId]
+  );
+  const chamadas = useMemo(() => {
+    const chamadasMap = new Map<string, ChamadaResumo>();
+
+    for (const registro of registros) {
+      const key = `${registro.turma_id}-${registro.data_aula}`;
+      const atual = chamadasMap.get(key) || {
+        key,
+        turma_id: registro.turma_id,
+        turma_nome: registro.turma_nome,
+        data_aula: registro.data_aula,
+        total_alunos: 0,
+        total_presencas: 0,
+        total_ausencias: 0,
+      };
+
+      atual.total_alunos += 1;
+      if (registro.presente) {
+        atual.total_presencas += 1;
+      } else {
+        atual.total_ausencias += 1;
+      }
+
+      chamadasMap.set(key, atual);
+    }
+
+    return Array.from(chamadasMap.values()).sort((a, b) => {
+      if (a.data_aula !== b.data_aula) return a.data_aula.localeCompare(b.data_aula);
+      return a.turma_nome.localeCompare(b.turma_nome);
+    });
+  }, [registros]);
+  const chamadaSelecionada = useMemo(
+    () => selectedChamadaKey ? chamadas.find((item) => item.key === selectedChamadaKey) : null,
+    [chamadas, selectedChamadaKey]
+  );
+  const totalRegistros = useMemo(() => registrosFiltrados.length, [registrosFiltrados]);
+
   const exportarExcel = () => {
-    if (registros.length === 0) {
+    if (registrosFiltrados.length === 0) {
       setError("Gere um relatório com registros antes de exportar.");
       return;
     }
 
-    const linhasDetalhe = registros
+    const linhasDetalhe = registrosFiltrados
       .map(
         (registro) => `
           <tr>
             <td>${registro.aluno_nome}</td>
             <td>${registro.turma_nome}</td>
+            <td>${formatDate(registro.data_matricula)}</td>
             <td>${formatDate(registro.data_aula)}</td>
             <td>${registro.presente ? "PRESENTE" : "AUSENTE"}</td>
           </tr>`
       )
       .join("");
 
-    const linhasResumo = resumo
+    const linhasResumo = (alunoSelecionado ? resumo.filter((item) => item.aluno_id === alunoSelecionado.aluno_id) : resumo)
       .map(
         (item) => `
           <tr>
@@ -189,6 +258,7 @@ export default function RelatorioPresencasPage() {
               <tr>
                 <th>Aluno</th>
                 <th>Turma</th>
+                <th>Data da Matricula</th>
                 <th>Data da Aula</th>
                 <th>Status</th>
               </tr>
@@ -221,8 +291,6 @@ export default function RelatorioPresencasPage() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-  const totalRegistros = useMemo(() => registros.length, [registros]);
 
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
@@ -330,6 +398,32 @@ export default function RelatorioPresencasPage() {
 
         {error && <div className="mb-6 rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
         {info && <div className="mb-6 rounded-lg bg-[#1F2A5A]/10 p-4 text-sm text-[#1F2A5A]">{info}</div>}
+        {alunoSelecionado && (
+          <div className="mb-6 flex flex-col gap-3 rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#1F2A5A] sm:flex-row sm:items-center sm:justify-between">
+            <span>Mostrando somente os registros de chamada de {alunoSelecionado.aluno_nome}.</span>
+            <button
+              type="button"
+              onClick={() => setSelectedAlunoId(null)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1F2A5A] transition hover:bg-[#F3F4F6]"
+            >
+              Limpar selecao
+            </button>
+          </div>
+        )}
+        {chamadaSelecionada && (
+          <div className="mb-6 flex flex-col gap-3 rounded-lg bg-[#1F2A5A]/10 p-4 text-sm text-[#1F2A5A] sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Mostrando chamada de {chamadaSelecionada.turma_nome} em {formatDate(chamadaSelecionada.data_aula)}.
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedChamadaKey(null)}
+              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#1F2A5A] transition hover:bg-[#F3F4F6]"
+            >
+              Limpar chamada
+            </button>
+          </div>
+        )}
 
         <section className="mb-8 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -345,16 +439,100 @@ export default function RelatorioPresencasPage() {
           ) : resumo.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Nenhum dado resumido para exibir.</p>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {resumo.map((item) => (
-                <article key={item.aluno_id} className="rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                  <p className="text-sm font-semibold text-[#1F2A5A]">{item.aluno_nome}</p>
-                  <p className="mt-3 text-sm text-[#4B5563]">Presenças: {item.total_presencas}</p>
-                  <p className="text-sm text-[#4B5563]">Ausências: {item.total_ausencias}</p>
-                  <p className="text-sm text-[#4B5563]">Total de aulas: {item.total_aulas}</p>
-                  <p className="mt-3 text-lg font-semibold text-[#6A4FBF]">{item.percentual_presenca.toFixed(2)}%</p>
-                </article>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
+                <thead>
+                  <tr className="bg-[#F9FAFB]">
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluno</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Total de aulas</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Presenças</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ausências</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Frequência</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {resumo.map((item) => (
+                    <tr
+                      key={item.aluno_id}
+                      onClick={() => setSelectedAlunoId((current) => current === item.aluno_id ? null : item.aluno_id)}
+                      className={`cursor-pointer bg-white transition hover:bg-[#F2F2F2] ${selectedAlunoId === item.aluno_id ? "bg-[#6A4FBF]/10" : ""}`}
+                    >
+                      <td className="px-4 py-4">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedAlunoId((current) => current === item.aluno_id ? null : item.aluno_id);
+                          }}
+                          className="text-left font-semibold text-[#1F2A5A] underline-offset-4 hover:text-[#6A4FBF] hover:underline"
+                        >
+                          {item.aluno_nome}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4">{item.total_aulas}</td>
+                      <td className="px-4 py-4">{item.total_presencas}</td>
+                      <td className="px-4 py-4">{item.total_ausencias}</td>
+                      <td className="px-4 py-4 font-semibold text-[#6A4FBF]">{item.percentual_presenca.toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <section className="mb-8 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Chamadas</p>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Chamadas Realizadas ({chamadas.length})</h2>
+            </div>
+            <p className="text-sm text-[#4B5563]">Clique em uma data para ver a lista daquela chamada.</p>
+          </div>
+
+          {loading ? (
+            <p className="text-sm text-[#2B2B2B]/70">Carregando chamadas...</p>
+          ) : chamadas.length === 0 ? (
+            <p className="text-sm text-[#2B2B2B]/70">Nenhuma chamada encontrada.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
+                <thead>
+                  <tr className="bg-[#F9FAFB]">
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Chamada</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Turma</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunos</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Presentes</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Ausentes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5E7EB]">
+                  {chamadas.map((chamada) => (
+                    <tr
+                      key={chamada.key}
+                      onClick={() => setSelectedChamadaKey((current) => current === chamada.key ? null : chamada.key)}
+                      className={`cursor-pointer bg-white transition hover:bg-[#F2F2F2] ${selectedChamadaKey === chamada.key ? "bg-[#6A4FBF]/10" : ""}`}
+                    >
+                      <td className="px-4 py-4">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setSelectedChamadaKey((current) => current === chamada.key ? null : chamada.key);
+                          }}
+                          className="text-left font-semibold text-[#1F2A5A] underline-offset-4 hover:text-[#6A4FBF] hover:underline"
+                        >
+                          Presenca dia {formatDate(chamada.data_aula)}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4">{chamada.turma_nome}</td>
+                      <td className="px-4 py-4">{chamada.total_alunos}</td>
+                      <td className="px-4 py-4">{chamada.total_presencas}</td>
+                      <td className="px-4 py-4">{chamada.total_ausencias}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>
@@ -370,7 +548,7 @@ export default function RelatorioPresencasPage() {
 
           {loading ? (
             <p className="text-sm text-[#2B2B2B]/70">Carregando registros...</p>
-          ) : registros.length === 0 ? (
+          ) : registrosFiltrados.length === 0 ? (
             <p className="text-sm text-[#2B2B2B]/70">Nenhum registro encontrado.</p>
           ) : (
             <div className="overflow-x-auto">
@@ -379,15 +557,17 @@ export default function RelatorioPresencasPage() {
                   <tr className="bg-[#F9FAFB]">
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluno</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Turma</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Matriculado em</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Data da aula</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
-                  {registros.map((registro, index) => (
+                  {registrosFiltrados.map((registro, index) => (
                     <tr key={`${registro.aluno_id}-${registro.turma_id}-${registro.data_aula}-${index}`} className="bg-white hover:bg-[#F2F2F2]">
                       <td className="px-4 py-4 font-medium text-[#1F2A5A]">{registro.aluno_nome}</td>
                       <td className="px-4 py-4">{registro.turma_nome}</td>
+                      <td className="px-4 py-4">{formatDate(registro.data_matricula)}</td>
                       <td className="px-4 py-4">{formatDate(registro.data_aula)}</td>
                       <td className="px-4 py-4">
                         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${registro.presente ? "bg-[#6A4FBF]/10 text-[#6A4FBF]" : "bg-[#E61E4D]/10 text-[#E61E4D]"}`}>

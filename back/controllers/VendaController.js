@@ -66,6 +66,7 @@ export default class VendaController {
         try {
             const filtros = {
                 aluno_id: this.parsePositiveInt(req.query.aluno_id),
+                responsavel_id: this.parsePositiveInt(req.query.responsavel_id),
                 matricula_id: this.parsePositiveInt(req.query.matricula_id),
                 status: req.query.status ? String(req.query.status).toUpperCase() : null,
             };

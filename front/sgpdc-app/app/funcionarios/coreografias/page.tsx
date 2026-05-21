@@ -501,7 +501,7 @@ export default function CoreografiasPage() {
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB]">
                   {coreografias.map((item) => (
-                    <tr key={item.id} className="bg-white hover:bg-[#F9FAFB]">
+                    <tr key={coreografiaRowKey(item)} className="bg-white hover:bg-[#F9FAFB]">
                       <Td><strong>{item.nome}</strong><br /><span className="text-xs text-[#4B5563]">{item.tipo || "-"}</span></Td>
                       <Td>{item.espetaculo_nome}</Td>
                       <Td>{item.total_papeis}</Td>
@@ -601,7 +601,7 @@ export default function CoreografiasPage() {
                             const selected = selectedAlunoIds.includes(aluna.id);
                             const papelUnico = coreografia.papeis.filter((item) => item.status === "ATIVO").length === 1;
                             return (
-                              <tr key={aluna.id} className={selected ? "bg-white" : "bg-[#F9FAFB] text-[#4B5563]"}>
+                              <tr key={`${aluna.turma_id}-${aluna.matricula_id}-${aluna.id}`} className={selected ? "bg-white" : "bg-[#F9FAFB] text-[#4B5563]"}>
                                 <Td>
                                   <label className="flex items-center gap-3 font-medium text-[#1F2A5A]">
                                     <input type="checkbox" checked={selected} onChange={() => toggleAluno(aluna.id)} className="h-4 w-4 accent-[#E61E4D]" />
@@ -733,4 +733,8 @@ function Th({ children }: { children: React.ReactNode }) {
 
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-4 py-4">{children}</td>;
+}
+
+function coreografiaRowKey(item: CoreografiaResumo) {
+  return `${item.id}-${item.espetaculo_coreografia_id || item.espetaculo_id}`;
 }

@@ -18,9 +18,23 @@ type Fantasia = {
   total_parcelas: number;
   aluno_id: number | null;
   aluno_nome: string | null;
+  responsavel_id?: number | null;
+  responsavel_nome?: string | null;
+  turmas?: Turma[];
   espetaculo_nome: string | null;
   coreografia_nome: string | null;
   papel_nome: string | null;
+};
+
+type Pessoa = {
+  id: number;
+  nome: string;
+};
+
+type Turma = {
+  id: number;
+  nome: string;
+  nivel?: string | null;
 };
 
 const currency = new Intl.NumberFormat("pt-BR", {
@@ -39,14 +53,21 @@ const statusOptions = [
 
 export default function CobrancaFantasiaPage() {
   const [fantasias, setFantasias] = useState<Fantasia[]>([]);
+  const [responsaveis, setResponsaveis] = useState<Pessoa[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [payment, setPayment] = useState<Fantasia | null>(null);
   const [filters, setFilters] = useState({
-    busca: "",
+    aluno: "",
+    espetaculo: "",
+    coreografia: "",
+    papel: "",
     status: "ABERTAS",
+    responsavel_id: "",
+    turma_id: "",
   });
   const [paymentForm, setPaymentForm] = useState({
     valor_pago: "",
@@ -55,33 +76,54 @@ export default function CobrancaFantasiaPage() {
   });
 
   useEffect(() => {
+    loadRefs();
+  }, []);
+
+  useEffect(() => {
     loadFantasias();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.status]);
+  }, [filters.status, filters.responsavel_id, filters.turma_id]);
 
   const alunaOptions = useMemo(() => {
-    const options = new Map<string, string>();
-    fantasias.forEach((item) => {
-      const nome = item.aluno_nome?.trim();
-      if (nome) options.set(nome, nome);
-    });
-    return Array.from(options.entries()).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+    return uniqueTextOptions(fantasias.map((item) => item.aluno_nome));
   }, [fantasias]);
 
+  const espetaculoOptions = useMemo(() => uniqueTextOptions(fantasias.map((item) => item.espetaculo_nome)), [fantasias]);
+  const coreografiaOptions = useMemo(() => uniqueTextOptions(fantasias.map((item) => item.coreografia_nome)), [fantasias]);
+  const papelOptions = useMemo(() => uniqueTextOptions(fantasias.map((item) => item.papel_nome)), [fantasias]);
+
+  const responsavelOptions = useMemo(() => {
+    const options = new Map<string, string>();
+    responsaveis.forEach((responsavel) => options.set(String(responsavel.id), responsavel.nome));
+    fantasias.forEach((item) => {
+      if (item.responsavel_id && item.responsavel_nome) options.set(String(item.responsavel_id), item.responsavel_nome);
+    });
+    return Array.from(options.entries()).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  }, [fantasias, responsaveis]);
+
+  const turmaOptions = useMemo(() => {
+    const options = new Map<string, string>();
+    turmas.forEach((turma) => options.set(String(turma.id), formatTurma(turma)));
+    fantasias.forEach((item) => {
+      item.turmas?.forEach((turma) => options.set(String(turma.id), formatTurma(turma)));
+    });
+    return Array.from(options.entries()).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  }, [fantasias, turmas]);
+
   const filteredFantasias = useMemo(() => {
-    const termo = normalize(filters.busca);
+    const aluno = normalize(filters.aluno);
+    const espetaculo = normalize(filters.espetaculo);
+    const coreografia = normalize(filters.coreografia);
+    const papel = normalize(filters.papel);
     return fantasias.filter((item) => {
       if (filters.status === "ABERTAS" && ["PAGA", "CANCELADA"].includes(item.status)) return false;
-      const searchable = [
-        item.aluno_nome,
-        item.espetaculo_nome,
-        item.coreografia_nome,
-        item.papel_nome,
-        item.status,
-      ].filter(Boolean).join(" ");
-      return !termo || normalize(searchable).includes(termo);
+      if (aluno && !normalize(item.aluno_nome || "").includes(aluno)) return false;
+      if (espetaculo && !normalize(item.espetaculo_nome || "").includes(espetaculo)) return false;
+      if (coreografia && !normalize(item.coreografia_nome || "").includes(coreografia)) return false;
+      if (papel && !normalize(item.papel_nome || "").includes(papel)) return false;
+      return true;
     });
-  }, [fantasias, filters.busca, filters.status]);
+  }, [fantasias, filters.aluno, filters.coreografia, filters.espetaculo, filters.papel, filters.status]);
 
   const resumo = useMemo(() => {
     return filteredFantasias.reduce(
@@ -103,6 +145,8 @@ export default function CobrancaFantasiaPage() {
       setError(null);
       const params = new URLSearchParams();
       if (filters.status && filters.status !== "ABERTAS") params.set("status", filters.status);
+      if (filters.responsavel_id) params.set("responsavel_id", filters.responsavel_id);
+      if (filters.turma_id) params.set("turma_id", filters.turma_id);
       const response = await apiFetch(`/api/mensalidades/fantasias${params.toString() ? `?${params.toString()}` : ""}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao carregar cobranças de fantasia");
@@ -114,8 +158,18 @@ export default function CobrancaFantasiaPage() {
     }
   };
 
+  const loadRefs = async () => {
+    const [responsaveisResult, turmasResult] = await Promise.allSettled([
+      fetchJson("/api/responsaveis?limit=500"),
+      fetchJson("/api/turmas"),
+    ]);
+
+    if (responsaveisResult.status === "fulfilled") setResponsaveis(Array.isArray(responsaveisResult.value) ? responsaveisResult.value : []);
+    if (turmasResult.status === "fulfilled") setTurmas(Array.isArray(turmasResult.value) ? turmasResult.value : []);
+  };
+
   const clearFilters = () => {
-    setFilters({ busca: "", status: "ABERTAS" });
+    setFilters({ aluno: "", espetaculo: "", coreografia: "", papel: "", status: "ABERTAS", responsavel_id: "", turma_id: "" });
   };
 
   const openPayment = (item: Fantasia) => {
@@ -186,15 +240,64 @@ export default function CobrancaFantasiaPage() {
           </button>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr]">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <SearchableSelect
-            label="Buscar por aluna, espetáculo, coreografia ou papel"
-            value={filters.busca}
-            onChange={(value) => setFilters((prev) => ({ ...prev, busca: value }))}
+            label="Aluna"
+            value={filters.aluno}
+            onChange={(value) => setFilters((prev) => ({ ...prev, aluno: value }))}
             options={alunaOptions}
-            placeholder="Digite para pesquisar"
+            placeholder="Todas"
             inputClassName="bg-white"
             searchOnType
+            showAllOnFocus
+          />
+          <SearchableSelect
+            label="Responsável"
+            value={filters.responsavel_id}
+            onChange={(value) => setFilters((prev) => ({ ...prev, responsavel_id: value }))}
+            options={responsavelOptions}
+            placeholder="Todos"
+            inputClassName="bg-white"
+            showAllOnFocus
+          />
+          <SearchableSelect
+            label="Turma"
+            value={filters.turma_id}
+            onChange={(value) => setFilters((prev) => ({ ...prev, turma_id: value }))}
+            options={turmaOptions}
+            placeholder="Todas"
+            inputClassName="bg-white"
+            showAllOnFocus
+          />
+          <SearchableSelect
+            label="Espetáculo"
+            value={filters.espetaculo}
+            onChange={(value) => setFilters((prev) => ({ ...prev, espetaculo: value }))}
+            options={espetaculoOptions}
+            placeholder="Todos"
+            inputClassName="bg-white"
+            searchOnType
+            showAllOnFocus
+          />
+          <SearchableSelect
+            label="Coreografia"
+            value={filters.coreografia}
+            onChange={(value) => setFilters((prev) => ({ ...prev, coreografia: value }))}
+            options={coreografiaOptions}
+            placeholder="Todas"
+            inputClassName="bg-white"
+            searchOnType
+            showAllOnFocus
+          />
+          <SearchableSelect
+            label="Papel"
+            value={filters.papel}
+            onChange={(value) => setFilters((prev) => ({ ...prev, papel: value }))}
+            options={papelOptions}
+            placeholder="Todos"
+            inputClassName="bg-white"
+            searchOnType
+            showAllOnFocus
           />
           <SearchableSelect
             label="Status"
@@ -339,4 +442,24 @@ function formatStatus(value: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function formatTurma(turma: Turma) {
+  return `${turma.nome}${turma.nivel ? ` - ${turma.nivel}` : ""}`;
+}
+
+function uniqueTextOptions(values: Array<string | null | undefined>) {
+  const options = new Map<string, string>();
+  values.forEach((value) => {
+    const text = value?.trim();
+    if (text) options.set(text, text);
+  });
+  return Array.from(options.entries()).sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+}
+
+async function fetchJson(path: string) {
+  const response = await apiFetch(path);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Erro ao carregar dados");
+  return data;
 }

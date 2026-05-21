@@ -68,7 +68,7 @@ export default function CadastroProfessorPage() {
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Novo Professor</h1>
           </div>
           <Link
-            href="/professores"
+            href="/funcionarios/professores"
             className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
           >
             Voltar

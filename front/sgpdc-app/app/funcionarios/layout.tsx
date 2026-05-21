@@ -38,17 +38,14 @@ const menuGroups: MenuGroup[] = [
     title: "Turmas",
     items: [
       { href: "/funcionarios/turmas", label: "Turmas" },
-      { href: "/funcionarios/turmas", label: "Alocar Turma" },
-      { href: "/funcionarios/turmas", label: "Agenda" },
-      { href: "/funcionarios/relatorios/presencas", label: "Presenças" },
     ],
   },
   {
     title: "Mensalidades",
     items: [
+      { href: "/funcionarios/contas", label: "Contas" },
       { href: "/funcionarios/planos-mensalidade", label: "Planos de Mensalidade" },
       { href: "/funcionarios/mensalidades", label: "Mensalidades" },
-      { href: "/funcionarios/mensalidades", label: "Quitar Mensalidades" },
     ],
   },
   {
@@ -70,7 +67,6 @@ const menuGroups: MenuGroup[] = [
     title: "Despesas",
     items: [
       { href: "/funcionarios/despesas", label: "Despesas" },
-      { href: "/funcionarios/despesas", label: "Quitar Despesas" },
     ],
   },
   {
@@ -131,8 +127,8 @@ export default function FuncionariosLayout({
           </div>
 
           <div className="mt-8 lg:grid lg:gap-8" style={{ gridTemplateColumns: "280px 1fr" }}>
-            <aside className={`${menuOpen ? "block" : "hidden"} rounded-[32px] border border-[#E5E7EB] bg-[#F2F2F2] p-6 shadow-sm lg:block`}>
-              <div className="flex h-full flex-col gap-6">
+            <aside className={`${menuOpen ? "block" : "hidden"} self-start rounded-[32px] border border-[#E5E7EB] bg-[#F2F2F2] p-6 shadow-sm lg:sticky lg:top-10 lg:block lg:max-h-[calc(100vh-5rem)]`}>
+              <div className="flex max-h-[calc(100vh-8rem)] flex-col gap-6">
                 <div>
                   <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Navegação</p>
                   <h2 className="mt-2 text-2xl font-semibold text-[#1F2A5A]">Menu</h2>
@@ -145,7 +141,7 @@ export default function FuncionariosLayout({
                   Página inicial
                 </Link>
 
-                <nav className="flex max-h-[62vh] flex-col gap-3 overflow-y-auto pr-1">
+                <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
                   {menuGroups.map((group) => {
                     const groupOpen = Boolean(openGroups[group.title]);
                     const groupActive = group.items.some((item) => isActivePath(pathname, item.href));
@@ -189,7 +185,7 @@ export default function FuncionariosLayout({
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-[#1F2A5A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6A4FBF]"
+                  className="inline-flex w-full shrink-0 items-center justify-center rounded-full bg-[#1F2A5A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6A4FBF]"
                 >
                   Sair
                 </button>

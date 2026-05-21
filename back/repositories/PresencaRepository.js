@@ -179,6 +179,7 @@ export default class PresencaRepository extends Repository {
                 p.nome as aluno_nome,
                 t.id as turma_id,
                 t.nome as turma_nome,
+                m.data_matricula,
                 pr.data as data_aula,
                 pr.presente
             from presenca pr
@@ -212,6 +213,9 @@ export default class PresencaRepository extends Repository {
             aluno_nome: row["aluno_nome"],
             turma_id: row["turma_id"],
             turma_nome: row["turma_nome"],
+            data_matricula: row["data_matricula"] instanceof Date
+                ? row["data_matricula"].toISOString().split("T")[0]
+                : String(row["data_matricula"] || "").split("T")[0],
             data_aula: row["data_aula"] instanceof Date
                 ? row["data_aula"].toISOString().split("T")[0]
                 : String(row["data_aula"]).split("T")[0],
