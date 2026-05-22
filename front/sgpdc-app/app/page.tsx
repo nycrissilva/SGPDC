@@ -40,7 +40,7 @@ export default function Home() {
 
       if (data.user?.perfil === "PROFESSOR") {
         router.push("/professores");
-      } else if (data.user?.perfil === "FUNCIONARIO") {
+      } else if (data.user?.perfil === "FUNCIONARIO" || data.user?.perfil === "ADMIN") {
         router.push("/funcionarios");
       } else {
         router.push("/");

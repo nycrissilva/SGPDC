@@ -34,5 +34,5 @@ export function requireRole(...allowedRoles) {
     };
 }
 
-export const requireFuncionario = requireRole('FUNCIONARIO');
+export const requireFuncionario = requireRole('FUNCIONARIO', 'ADMIN');
 export const requireProfessor = requireRole('PROFESSOR');

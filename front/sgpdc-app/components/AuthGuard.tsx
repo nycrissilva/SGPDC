@@ -36,7 +36,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        if (perfil === "FUNCIONARIO" && isProfessorArea) {
+        if ((perfil === "FUNCIONARIO" || perfil === "ADMIN") && isProfessorArea) {
           router.replace("/funcionarios");
           return;
         }

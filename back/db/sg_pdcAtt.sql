@@ -1100,3 +1100,33 @@ SET cr.`espetaculo_id` = COALESCE(cr.`espetaculo_id`, ec.`espetaculo_id`),
 WHERE cr.`tipo_receita` = 'FANTASIA'
   AND cr.`coreografia_id` IS NOT NULL
   AND cr.`espetaculo_coreografia_id` IS NULL;
+
+ALTER TABLE `pessoa`
+  ADD COLUMN IF NOT EXISTS `data_nascimento` date DEFAULT NULL AFTER `email`;
+
+UPDATE `pessoa` p
+JOIN `aluno` a ON a.`id` = p.`id`
+SET p.`data_nascimento` = COALESCE(p.`data_nascimento`, a.`data_nascimento`);
+
+ALTER TABLE `usuario`
+  ADD COLUMN IF NOT EXISTS `primeiro_acesso` tinyint(1) NOT NULL DEFAULT 1 AFTER `perfil`,
+  ADD UNIQUE INDEX IF NOT EXISTS `uk_usuario_email` (`email`);
+
+INSERT INTO `pessoa` (`nome`, `cpf`, `telefone`, `email`, `data_nascimento`, `status`)
+SELECT 'Administrador do Sistema', '00000000000', NULL, 'admin@sgpdc.local', '2000-01-01', 'ATIVO'
+WHERE NOT EXISTS (
+  SELECT 1 FROM `pessoa` WHERE `cpf` = '00000000000' OR `email` = 'admin@sgpdc.local'
+);
+
+INSERT IGNORE INTO `diretoria` (`id`, `cargo`)
+SELECT `id`, 'ADMINISTRADOR'
+FROM `pessoa`
+WHERE `email` = 'admin@sgpdc.local';
+
+INSERT INTO `usuario` (`pessoa_id`, `email`, `senha`, `perfil`, `primeiro_acesso`)
+SELECT p.`id`, p.`email`, '$2a$10$h7Df0S2pGzddF8LebP/UEuYNaBKS13DY.2S9sWmg4IrF7mL9xqsm.', 'ADMIN', 1
+FROM `pessoa` p
+WHERE p.`email` = 'admin@sgpdc.local'
+  AND NOT EXISTS (
+    SELECT 1 FROM `usuario` u WHERE u.`email` = 'admin@sgpdc.local' OR u.`pessoa_id` = p.`id`
+  );
