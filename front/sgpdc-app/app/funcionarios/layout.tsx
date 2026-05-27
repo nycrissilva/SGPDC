@@ -32,6 +32,7 @@ const menuGroups: MenuGroup[] = [
       { href: "/funcionarios/modalidades", label: "Modalidades" },
       { href: "/funcionarios/locais", label: "Locais" },
       { href: "/funcionarios/periodos-letivos", label: "Período Letivo" },
+      { href: "/funcionarios/planos-mensalidade", label: "Planos Financeiros" },
     ],
   },
   {
@@ -44,8 +45,8 @@ const menuGroups: MenuGroup[] = [
     title: "Mensalidades",
     items: [
       { href: "/funcionarios/contas", label: "Contas" },
-      { href: "/funcionarios/planos-mensalidade", label: "Planos de Mensalidade" },
       { href: "/funcionarios/mensalidades", label: "Mensalidades" },
+      { href: "/funcionarios/turmas-mensalidade", label: "Turmas Mensalidade" },
     ],
   },
   {
@@ -72,9 +73,7 @@ const menuGroups: MenuGroup[] = [
   {
     title: "Relatórios",
     items: [
-      { href: "/funcionarios/relatorios/turmas", label: "Relatório de Turmas" },
       { href: "/funcionarios/relatorios/presencas", label: "Relatório de Presença" },
-      { href: "/funcionarios/mensalidades", label: "Relatório de Mensalidades" },
       { href: "/funcionarios/relatorios/receitas-despesas", label: "Relatório de Receitas e Despesas" },
       { href: "/funcionarios/relatorios/dre", label: "DRE" },
     ],
@@ -139,6 +138,12 @@ export default function FuncionariosLayout({
                   className={`block rounded-3xl border px-4 py-3 text-sm font-semibold transition ${pathname === "/funcionarios" ? "border-[#6A4FBF] bg-[#6A4FBF]/10 text-[#6A4FBF]" : "border-transparent bg-white text-[#1F2A5A] hover:border-[#6A4FBF]"}`}
                 >
                   Página inicial
+                </Link>
+                <Link
+                  href="/perfil"
+                  className={`block rounded-3xl border px-4 py-3 text-sm font-semibold transition ${pathname === "/perfil" ? "border-[#6A4FBF] bg-[#6A4FBF]/10 text-[#6A4FBF]" : "border-transparent bg-white text-[#1F2A5A] hover:border-[#6A4FBF]"}`}
+                >
+                  Meu Perfil
                 </Link>
 
                 <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">

@@ -74,7 +74,7 @@ export default function LocaisPage() {
 
       const response = await apiFetch(path, {
         method,
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, status: editingId ? formData.status : "ATIVO" }),
       });
 
       const result = await response.json();
@@ -288,17 +288,21 @@ export default function LocaisPage() {
                 />
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Status</label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as "ATIVO" | "INATIVO" }))}
-                  className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                >
-                  <option value="ATIVO">Ativo</option>
-                  <option value="INATIVO">Inativo</option>
-                </select>
-              </div>
+              {editingId ? (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as "ATIVO" | "INATIVO" }))}
+                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                  >
+                    <option value="ATIVO">Ativo</option>
+                    <option value="INATIVO">Inativo</option>
+                  </select>
+                </div>
+              ) : (
+                <ReadOnlyStatus label="Status" value="ATIVO" />
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -322,6 +326,15 @@ export default function LocaisPage() {
           </form>
         )}
       </main>
+    </div>
+  );
+}
+
+function ReadOnlyStatus({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="mb-2 text-sm font-medium text-[#1F2A5A]">{label}</p>
+      <p className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-semibold text-[#1F2A5A]">{value}</p>
     </div>
   );
 }

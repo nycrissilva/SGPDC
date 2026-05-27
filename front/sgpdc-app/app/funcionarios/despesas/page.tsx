@@ -73,6 +73,7 @@ export default function DespesasPage() {
   const [paymentForm, setPaymentForm] = useState({
     data_pagamento: today,
     forma_pagamento: "PIX",
+    valor_pago: "",
   });
   const [tipoForm, setTipoForm] = useState({ nome: "", descricao: "" });
   const [filters, setFilters] = useState({
@@ -206,7 +207,7 @@ export default function DespesasPage() {
   const openPayment = (parcela: Parcela) => {
     setEditing(null);
     setPaying(parcela);
-    setPaymentForm({ data_pagamento: today, forma_pagamento: "PIX" });
+    setPaymentForm({ data_pagamento: today, forma_pagamento: "PIX", valor_pago: String(parcela.valor) });
   };
 
   const quitarParcela = () => {
@@ -214,7 +215,7 @@ export default function DespesasPage() {
     runAction("Parcela quitada com sucesso.", async () => {
       const response = await apiFetch(`/api/despesas/parcelas/${paying.id}/quitar`, {
         method: "POST",
-        body: JSON.stringify(paymentForm),
+        body: JSON.stringify({ ...paymentForm, valor_pago: Number(paymentForm.valor_pago) }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Erro ao quitar parcela");
@@ -280,7 +281,7 @@ export default function DespesasPage() {
           <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
             <div className="mb-5">
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Categorias</p>
-              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Nova categoria</h2>
+              <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Adicionar e gerenciar categorias</h2>
             </div>
             <div className="space-y-4">
               <Field label="Nome" value={tipoForm.nome} onChange={(value) => setTipoForm((prev) => ({ ...prev, nome: value }))} placeholder="Ex.: Manutenção" />
@@ -288,6 +289,21 @@ export default function DespesasPage() {
               <button type="button" disabled={processing} onClick={createTipo} className="rounded-full bg-[#1F2A5A] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#6A4FBF] disabled:opacity-50">
                 Cadastrar categoria
               </button>
+              <div className="border-t border-[#E5E7EB] pt-4">
+                <p className="mb-3 text-sm font-semibold text-[#1F2A5A]">Categorias cadastradas ({tipos.length})</p>
+                {tipos.length === 0 ? (
+                  <p className="text-sm text-[#4B5563]">Nenhuma categoria cadastrada.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {tipos.map((tipo) => (
+                      <div key={tipo.id} className="rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm">
+                        <p className="font-semibold text-[#1F2A5A]">{tipo.nome}</p>
+                        <p className="mt-1 text-[#4B5563]">{tipo.descricao || "Sem descrição"} - {tipo.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>
@@ -388,10 +404,7 @@ export default function DespesasPage() {
               </button>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <p className="mb-2 text-sm font-medium text-[#1F2A5A]">Valor</p>
-                <p className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-semibold text-[#1F2A5A]">{currency.format(paying.valor)}</p>
-              </div>
+              <Field label="Valor pago" type="number" value={paymentForm.valor_pago} onChange={(value) => setPaymentForm((prev) => ({ ...prev, valor_pago: value }))} placeholder="0.00" />
               <Field label="Data do pagamento" type="date" value={paymentForm.data_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, data_pagamento: value }))} placeholder="dd/mm/aaaa" />
               <Select label="Forma de pagamento" value={paymentForm.forma_pagamento} onChange={(value) => setPaymentForm((prev) => ({ ...prev, forma_pagamento: value }))} options={[["PIX", "Pix"], ["CARTAO", "Cartão"], ["DINHEIRO", "Dinheiro"], ["BOLETO", "Boleto"], ["TRANSFERENCIA", "Transferência"]]} />
             </div>

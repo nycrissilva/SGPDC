@@ -252,7 +252,7 @@ export default function VendasPage() {
                 return (
                   <div key={index} className="grid gap-4 rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4 md:grid-cols-[1fr_120px_120px_auto] md:items-end">
                     <Select label="Produto" value={item.produto_id} onChange={(value) => updateItem(index, "produto_id", value)} options={produtosAtivos.map((produtoOption) => [String(produtoOption.id), `${produtoOption.nome} - ${currency.format(produtoOption.valor_unitario)}`])} placeholder="Selecione" />
-                    <Field label="Quantidade" value={item.quantidade} onChange={(value) => updateItem(index, "quantidade", value)} placeholder="1" />
+                    <Field label="Quantidade" type="number" value={item.quantidade} onChange={(value) => updateItem(index, "quantidade", value)} placeholder="1" />
                     <div>
                       <p className="mb-2 text-sm font-medium text-[#1F2A5A]">Subtotal</p>
                       <p className="rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm font-semibold text-[#1F2A5A]">{currency.format(subtotal)}</p>

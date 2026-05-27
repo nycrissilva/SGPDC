@@ -8,7 +8,7 @@ export default class FuncionarioRepository extends Repository {
 
     async listar() {
         let sql = `
-            select d.*
+            select d.*, p.data_nascimento
             from diretoria d
             join pessoa p on p.id = d.id
             where p.status = 'ATIVO'`;
@@ -23,7 +23,7 @@ export default class FuncionarioRepository extends Repository {
 
     async obter(id) {
         let sql = `
-            select d.*
+            select d.*, p.data_nascimento
             from diretoria d
             join pessoa p on p.id = d.id
             where d.id = ?`;

@@ -85,9 +85,18 @@ export default class PessoaEntity  {
             cargo: row["cargo"],
             parentesco: normalizarParentesco(row["parentesco"]),
             responsavel_id: row["responsavel_id"],
-            data_nascimento: row["data_nascimento"],
-            data_matricula: row["data_matricula"],
+            data_nascimento: PessoaEntity.formatDateValue(row["data_nascimento"]),
+            data_matricula: PessoaEntity.formatDateValue(row["data_matricula"]),
             modalidade: row["modalidade"],
         };
+    }
+
+    static formatDateValue(value) {
+        if (!value) return null;
+        if (value instanceof Date) return value.toISOString().split("T")[0];
+        const str = value.toString();
+        if (str.includes("T")) return str.split("T")[0];
+        if (str.includes(" ")) return str.split(" ")[0];
+        return str;
     }
 }

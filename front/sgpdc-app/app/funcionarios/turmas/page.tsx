@@ -232,7 +232,7 @@ export default function TurmasPage() {
 
     try {
       const payload = {
-        nome: formData.nome,
+        nome: nomeAutomatico,
         modalidade_id: Number(formData.modalidade_id),
         local_id: Number(formData.local_id),
         nivel: formData.nivel,
@@ -317,6 +317,12 @@ export default function TurmasPage() {
   const locaisDisponiveis = locais.filter(
     (item) => item.status === "ATIVO" || item.id === localAtual?.id
   );
+  const nomeAutomatico = [
+    modalidades.find((item) => String(item.id) === formData.modalidade_id)?.nome,
+    formData.dia_semana,
+    formData.horario_inicio,
+    locais.find((item) => String(item.id) === formData.local_id)?.nome,
+  ].filter(Boolean).join(" - ");
   const turmaSelecionada = turmas.find((turma) => turma.id === selectedTurmaId);
   const normalizedAlunoSearch = alunoSearch.trim().toLowerCase();
   const alunosFiltrados = normalizedAlunoSearch
@@ -604,11 +610,10 @@ export default function TurmasPage() {
               <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Nome da turma *</label>
               <input
                 name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                required
+                value={nomeAutomatico}
+                readOnly
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                placeholder="Nome da turma"
+                placeholder="Gerado automaticamente"
               />
             </div>
 

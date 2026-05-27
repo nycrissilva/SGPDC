@@ -93,10 +93,12 @@ export default class DespesaController {
             const dados = {
                 data_pagamento: req.body.data_pagamento,
                 forma_pagamento: req.body.forma_pagamento ? String(req.body.forma_pagamento).toUpperCase() : '',
+                valor_pago: Number(req.body.valor_pago),
             };
 
             if (!this.isValidDate(dados.data_pagamento)) return res.status(400).json({ error: "Data de pagamento invalida" });
             if (!dados.forma_pagamento) return res.status(400).json({ error: "Forma de pagamento obrigatoria" });
+            if (!Number.isFinite(dados.valor_pago) || dados.valor_pago <= 0) return res.status(400).json({ error: "Valor pago invalido" });
 
             const quitada = await this.despesaRepository.quitarParcela(parcelaId, dados);
             if (!quitada) return res.status(404).json({ error: "Parcela nao encontrada" });

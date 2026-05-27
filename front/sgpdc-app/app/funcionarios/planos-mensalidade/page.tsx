@@ -4,7 +4,7 @@ import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-type TipoPlano = "INDIVIDUAL" | "COMBINADO" | "FAMILIAR";
+type TipoPlano = "INDIVIDUAL" | "FAMILIAR";
 type StatusPlano = "ATIVO" | "INATIVO";
 
 type PlanoMensalidade = {
@@ -69,7 +69,7 @@ export default function PlanosMensalidadePage() {
   };
 
   const buildPayload = () => ({
-    nome: formData.nome.trim(),
+    nome: nomeAutomatico,
     tipo_plano: formData.tipo_plano,
     qtd_alunas: Number(formData.qtd_alunas),
     qtd_cursos: Number(formData.qtd_cursos),
@@ -135,6 +135,8 @@ export default function PlanosMensalidadePage() {
       setError(err instanceof Error ? err.message : "Erro ao inativar plano");
     }
   };
+
+  const nomeAutomatico = `${formData.tipo_plano === "FAMILIAR" ? "Familiar" : "Individual"} ${formData.qtd_alunas || 1} aluna(s) ${formData.qtd_cursos || 1} curso(s)`;
 
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
@@ -214,8 +216,8 @@ export default function PlanosMensalidadePage() {
           <form onSubmit={handleSubmit} className="space-y-6 rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm">
             <h3 className="text-lg font-semibold text-[#1F2A5A]">{editingId ? "Editar Plano" : "Novo Plano"}</h3>
             <div className="grid gap-5 md:grid-cols-2">
-              <FormInput label="Nome do plano *" value={formData.nome} onChange={(value) => setFormData((prev) => ({ ...prev, nome: value }))} placeholder="Ex: Individual 1 curso" />
-              <FormSelect label="Tipo do plano *" value={formData.tipo_plano} onChange={(value) => setFormData((prev) => ({ ...prev, tipo_plano: value as TipoPlano }))} options={[["INDIVIDUAL", "Individual"], ["COMBINADO", "Combinado"], ["FAMILIAR", "Familiar"]]} />
+              <FormInput label="Nome do plano *" value={nomeAutomatico} onChange={() => undefined} placeholder="Gerado automaticamente" readOnly />
+              <FormSelect label="Tipo do plano *" value={formData.tipo_plano} onChange={(value) => setFormData((prev) => ({ ...prev, tipo_plano: value as TipoPlano }))} options={[["INDIVIDUAL", "Individual"], ["FAMILIAR", "Familiar"]]} />
               <FormSelect label="Status" value={formData.status} disabled={!editingId} onChange={(value) => setFormData((prev) => ({ ...prev, status: value as StatusPlano }))} options={[["ATIVO", "Ativo"], ["INATIVO", "Inativo"]]} />
               <FormInput label="Quantidade de alunas *" type="number" min="1" step="1" value={formData.qtd_alunas} onChange={(value) => setFormData((prev) => ({ ...prev, qtd_alunas: value }))} />
               <FormInput label="Quantidade de cursos *" type="number" min="1" step="1" value={formData.qtd_cursos} onChange={(value) => setFormData((prev) => ({ ...prev, qtd_cursos: value }))} />
@@ -248,6 +250,7 @@ function FormInput({
   min,
   step,
   placeholder,
+  readOnly,
 }: {
   label: string;
   value: string;
@@ -256,6 +259,7 @@ function FormInput({
   min?: string;
   step?: string;
   placeholder?: string;
+  readOnly?: boolean;
 }) {
   return (
     <div>
@@ -268,6 +272,7 @@ function FormInput({
         onChange={(e) => onChange(e.target.value)}
         required
         placeholder={placeholder}
+        readOnly={readOnly}
         className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
       />
     </div>

@@ -41,7 +41,7 @@ export default class ModalidadeController {
                 return res.status(400).json({ error: 'Já existe uma modalidade cadastrada com este nome' });
             }
 
-            const entidade = new ModalidadeEntity(null, nome, req.body.status || 'ATIVA');
+            const entidade = new ModalidadeEntity(null, nome, 'ATIVA');
             const id = await this.modalidadeRepository.cadastrar(entidade);
             if (!id) {
                 return res.status(500).json({ error: 'Erro ao cadastrar modalidade' });

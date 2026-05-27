@@ -37,7 +37,7 @@ export default class LocalController {
                 return res.status(400).json({ error: erro });
             }
 
-            const entidade = new LocalEntity(null, payload.nome, payload.cep, payload.rua, payload.numero, payload.bairro, payload.cidade, payload.status || 'ATIVO');
+            const entidade = new LocalEntity(null, payload.nome, payload.cep, payload.rua, payload.numero, payload.bairro, payload.cidade, 'ATIVO');
             const id = await this.localRepository.cadastrar(entidade);
             if (!id) {
                 return res.status(500).json({ error: 'Erro ao cadastrar local' });

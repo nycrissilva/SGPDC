@@ -42,6 +42,7 @@ export default class ProfessorEntity extends PessoaEntity {
         return {
             id: row["id"],
             modalidade: row["modalidade"],
+            data_nascimento: PessoaEntity.formatDateValue(row["data_nascimento"]),
         };
     }
 }

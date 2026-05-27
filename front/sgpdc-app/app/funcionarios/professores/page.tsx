@@ -13,10 +13,14 @@ type Professor = {
   telefone?: string;
   status?: string;
   modalidade?: string;
+  data_nascimento?: string;
 };
+
+type Modalidade = { id: number; nome: string; status: string };
 
 export default function ProfessoresPage() {
   const [professores, setProfessores] = useState<Professor[]>([]);
+  const [modalidades, setModalidades] = useState<Modalidade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -33,14 +37,15 @@ export default function ProfessoresPage() {
   });
 
   useEffect(() => {
-    loadProfessores();
+    void Promise.all([loadProfessores(), loadModalidades()]);
   }, []);
 
   const modalidadeOptions = useMemo(() => {
-    return Array.from(new Set(professores.map((professor) => professor.modalidade).filter(Boolean) as string[]))
+    const nomes = modalidades.length > 0 ? modalidades.map((modalidade) => modalidade.nome) : professores.map((professor) => professor.modalidade).filter(Boolean) as string[];
+    return Array.from(new Set(nomes))
       .sort((a, b) => a.localeCompare(b))
       .map((modalidade) => [modalidade, formatModalidade(modalidade)]);
-  }, [professores]);
+  }, [professores, modalidades]);
 
   const professorOptions = useMemo(() => {
     return professores.map((professor) => [
@@ -73,6 +78,12 @@ export default function ProfessoresPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadModalidades = async () => {
+    const response = await apiFetch("/api/modalidades");
+    const data = await response.json();
+    if (response.ok) setModalidades(Array.isArray(data) ? data : []);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -130,16 +141,27 @@ export default function ProfessoresPage() {
     setEditingId(null);
   };
 
-  const handleEdit = (professor: Professor) => {
+  const handleEdit = async (professor: Professor) => {
+    let detalhe = professor;
+    if (!professor.data_nascimento) {
+      try {
+        const response = await apiFetch(`/api/professores/${professor.id}`);
+        const data = await response.json();
+        if (response.ok) detalhe = { ...professor, ...data };
+      } catch {
+        detalhe = professor;
+      }
+    }
+
     setFormData({
-      nome: professor.nome || "",
-      cpf: professor.cpf || "",
-      telefone: professor.telefone || "",
-      email: professor.email || "",
-      modalidade: professor.modalidade || "",
-      data_nascimento: "",
+      nome: detalhe.nome || "",
+      cpf: detalhe.cpf || "",
+      telefone: detalhe.telefone || "",
+      email: detalhe.email || "",
+      modalidade: detalhe.modalidade || "",
+      data_nascimento: detalhe.data_nascimento || "",
     });
-    setEditingId(professor.id);
+    setEditingId(detalhe.id);
     setShowForm(true);
   };
 
@@ -248,7 +270,7 @@ export default function ProfessoresPage() {
                       <td className="px-4 py-4">{formatModalidade(professor.modalidade)}</td>
                       <td className="px-4 py-4 flex gap-2">
                         <button
-                          onClick={() => handleEdit(professor)}
+                          onClick={() => void handleEdit(professor)}
                           className="text-xs rounded-full bg-[#6A4FBF]/10 px-3 py-1 text-[#6A4FBF] hover:bg-[#6A4FBF]/20 transition"
                         >
                           Editar
@@ -335,11 +357,9 @@ export default function ProfessoresPage() {
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
               >
                 <option value="">Selecionar modalidade</option>
-                <option value="DANÇA_CLÁSSICA">Dança Clássica</option>
-                <option value="DANÇA_MODERNA">Dança Moderna</option>
-                <option value="JAZZ">Jazz</option>
-                <option value="HIP_HOP">Hip Hop</option>
-                <option value="CONTEMPORANEA">Contemporânea</option>
+                {modalidadeOptions.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
             </div>
 

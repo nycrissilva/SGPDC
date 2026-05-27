@@ -92,6 +92,9 @@ export default function Home() {
             >
               {loading ? "Entrando..." : "Entrar"}
             </button>
+            <Link href="/auth/forgot-password" className="block text-center text-sm font-semibold text-[#1F2A5A] hover:text-[#6A4FBF]">
+              Esqueci minha senha
+            </Link>
           </form>
         </div>
 

@@ -1,15 +1,15 @@
 import PlanoMensalidadeEntity from "../entities/planoMensalidadeEntity.js";
 import PlanoMensalidadeRepository from "../repositories/PlanoMensalidadeRepository.js";
 
-const TIPOS_PLANO = ['INDIVIDUAL', 'COMBINADO', 'FAMILIAR'];
+const TIPOS_PLANO = ['INDIVIDUAL', 'FAMILIAR'];
 const STATUS_PLANO = ['ATIVO', 'INATIVO'];
 
 function normalizarPlano(body, statusPadrao = 'ATIVO') {
-    const nome = String(body.nome || '').trim();
     const tipo_plano = String(body.tipo_plano || '').trim().toUpperCase();
-    const status = String(body.status || statusPadrao).trim().toUpperCase();
     const qtd_alunas = Number(body.qtd_alunas);
     const qtd_cursos = Number(body.qtd_cursos);
+    const nome = String(body.nome || `${tipo_plano === 'FAMILIAR' ? 'Familiar' : 'Individual'} ${qtd_alunas} aluna(s) ${qtd_cursos} curso(s)`).trim();
+    const status = String(body.status || statusPadrao).trim().toUpperCase();
     const valor_cartao_pix = Number(body.valor_cartao_pix);
     const valor_dinheiro = Number(body.valor_dinheiro);
 

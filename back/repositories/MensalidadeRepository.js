@@ -231,13 +231,15 @@ export default class MensalidadeRepository extends Repository {
         const grupos = await this.banco.ExecutaComando(`
             select
                 gf.id as grupo_financeiro_id,
+                gf.data_inicio,
                 pm.valor_cartao_pix,
                 pm.valor_dinheiro
             from grupo_financeiro gf
             join plano_mensalidade pm on pm.id = gf.plano_mensalidade_id
             where gf.status = 'ATIVO'
               and pm.status = 'ATIVO'
-        `, []);
+              and gf.data_inicio <= last_day(str_to_date(concat(?, '-', lpad(?, 2, '0'), '-01'), '%Y-%m-%d'))
+        `, [anoReferencia, mesReferencia]);
 
         const dataVencimento = `${anoReferencia}-${String(mesReferencia).padStart(2, "0")}-15`;
         const conn = await this.getConnection();
@@ -295,6 +297,7 @@ export default class MensalidadeRepository extends Repository {
         const grupos = await this.banco.ExecutaComando(`
             select
                 gf.id as grupo_financeiro_id,
+                gf.data_inicio,
                 pm.valor_cartao_pix,
                 pm.valor_dinheiro
             from grupo_financeiro gf
@@ -302,8 +305,9 @@ export default class MensalidadeRepository extends Repository {
             where gf.id = ?
               and gf.status = 'ATIVO'
               and pm.status = 'ATIVO'
+              and gf.data_inicio <= last_day(str_to_date(concat(?, '-', lpad(?, 2, '0'), '-01'), '%Y-%m-%d'))
             limit 1
-        `, [grupoId]);
+        `, [grupoId, anoReferencia, mesReferencia]);
 
         if (grupos.length === 0) return null;
 
@@ -516,7 +520,7 @@ export default class MensalidadeRepository extends Repository {
             set status = 'ATRASADA'
             where tipo_receita = 'MENSALIDADE'
               and status = 'PENDENTE'
-              and data_vencimento < ?
+              and last_day(str_to_date(concat(ano_referencia, '-', lpad(mes_referencia, 2, '0'), '-01'), '%Y-%m-%d')) < ?
               and status not in ('PAGA', 'CANCELADA')`;
         return await this.banco.ExecutaComandoNonQuery(sql, [hoje]);
     }
@@ -531,12 +535,13 @@ export default class MensalidadeRepository extends Repository {
             update conta_receber
             set multa = ?,
                 valor_final = coalesce(valor_base, 0) + ?,
+                valor = coalesce(valor_base, 0) + ?,
                 status = 'ATRASADA_COM_MULTA'
             where tipo_receita = 'MENSALIDADE'
               and status in ('PENDENTE', 'ATRASADA')
               and last_day(str_to_date(concat(ano_referencia, '-', lpad(mes_referencia, 2, '0'), '-01'), '%Y-%m-%d')) < ?
               and status not in ('PAGA', 'CANCELADA')`;
-        return await this.banco.ExecutaComandoNonQuery(sql, [valorMulta, valorMulta, hoje]);
+        return await this.banco.ExecutaComandoNonQuery(sql, [valorMulta, valorMulta, valorMulta, hoje]);
     }
 
     async garantirTabelaConfiguracaoFinanceira() {

@@ -78,13 +78,14 @@ export default class AlunoController extends PessoaController {
                 return res.status(400).json({ error: erroPlanoFinanceiro });
             }
 
-            const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO");
+            const dataMatricula = data_matricula || this.today();
+            const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO", data_nascimento);
             const pessoaCadastrada = await this.pessoaRepository.cadastrar(pessoa);
             if (!pessoaCadastrada) {
                 return res.status(500).json({ error: "Erro ao cadastrar pessoa" });
             }
 
-            const aluno = new AlunoEntity(pessoa.id, responsavel_id, data_nascimento, data_matricula);
+            const aluno = new AlunoEntity(pessoa.id, responsavel_id, data_nascimento, dataMatricula);
             const alunoCadastrado = await this.alunoRepository.cadastrar(aluno);
             if (!alunoCadastrado) {
                 await this.pessoaRepository.inativar(pessoa.id);
@@ -93,7 +94,7 @@ export default class AlunoController extends PessoaController {
 
             let matriculaId = null;
             try {
-                matriculaId = await this.alunoRepository.criarMatricula(pessoa.id, data_matricula, "ATIVA");
+                matriculaId = await this.alunoRepository.criarMatricula(pessoa.id, dataMatricula, "ATIVA");
                 if (!matriculaId) {
                     throw new Error("Erro ao criar matrícula");
                 }
@@ -324,7 +325,8 @@ export default class AlunoController extends PessoaController {
             }
 
             const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, cpf || pessoaExistente.cpf,
-                telefone || pessoaExistente.telefone, email || pessoaExistente.email, status || pessoaExistente.status);
+                telefone || pessoaExistente.telefone, email || pessoaExistente.email, status || pessoaExistente.status,
+                data_nascimento || pessoaExistente.data_nascimento || alunoExistente.data_nascimento);
 
             const pessoaAtualizada = await this.pessoaRepository.alterar(pessoa);
             if (!pessoaAtualizada) {
@@ -370,5 +372,9 @@ export default class AlunoController extends PessoaController {
     parsePositiveInt(value) {
         const parsed = Number(value);
         return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+    }
+
+    today() {
+        return new Date().toISOString().split("T")[0];
     }
 }

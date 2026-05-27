@@ -125,6 +125,8 @@ export default class TurmaController {
                 return res.status(400).json({ error: validacaoAgenda });
             }
 
+            payload.nome = this.gerarNomeAutomatico(payload);
+
             const turma = new TurmaEntity(
                 null,
                 payload.nome,
@@ -174,6 +176,8 @@ export default class TurmaController {
             if (validacaoAgenda) {
                 return res.status(400).json({ error: validacaoAgenda });
             }
+
+            payload.nome = this.gerarNomeAutomatico(payload);
 
             const turma = new TurmaEntity(
                 id,
@@ -241,7 +245,7 @@ export default class TurmaController {
     }
 
     validarCamposObrigatorios(payload) {
-        if (!payload.nome || !payload.modalidade_id || !payload.local_id || !payload.nivel || !payload.dia_semana || !payload.horario_inicio || !payload.horario_fim) {
+        if (!payload.modalidade_id || !payload.local_id || !payload.nivel || !payload.dia_semana || !payload.horario_inicio || !payload.horario_fim) {
             return "Campos obrigatórios faltando";
         }
 
@@ -276,6 +280,15 @@ export default class TurmaController {
         payload.modalidade_nome = modalidade.nome;
         payload.local_nome = local.nome;
         return null;
+    }
+
+    gerarNomeAutomatico(payload) {
+        return [
+            payload.modalidade_nome,
+            payload.dia_semana,
+            payload.horario_inicio,
+            payload.local_nome,
+        ].filter(Boolean).join(' - ');
     }
 
     async validarAgenda(payload, turmaId = null) {

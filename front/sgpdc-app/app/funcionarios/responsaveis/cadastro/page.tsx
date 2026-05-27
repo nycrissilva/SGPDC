@@ -13,8 +13,8 @@ export default function CadastroResponsavelPage() {
     cpf: "",
     telefone: "",
     email: "",
+    data_nascimento: "",
     parentesco: "",
-    status: "ATIVO",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -31,7 +31,7 @@ export default function CadastroResponsavelPage() {
       const response = await apiFetch(`/api/responsaveis`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, status: "ATIVO" }),
       });
 
       if (!response.ok) {
@@ -45,8 +45,8 @@ export default function CadastroResponsavelPage() {
         cpf: "",
         telefone: "",
         email: "",
+        data_nascimento: "",
         parentesco: "",
-        status: "ATIVO",
       });
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -128,6 +128,17 @@ export default function CadastroResponsavelPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Data de nascimento</label>
+            <input
+              type="date"
+              name="data_nascimento"
+              value={formData.data_nascimento}
+              onChange={handleChange}
+              className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Parentesco *</label>
@@ -148,18 +159,6 @@ export default function CadastroResponsavelPage() {
                 <option value="TIA">Tia</option>
                 <option value="TIO">Tio</option>
                 <option value="TUTOR">Tutor</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Status</label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-              >
-                <option value="ATIVO">Ativo</option>
-                <option value="INATIVO">Inativo</option>
               </select>
             </div>
           </div>

@@ -44,6 +44,18 @@ export default class UsuarioRepository extends Repository {
         return UsuarioEntity.toMap(rows[0]);
     }
 
+    async obterPorCpfOuEmail(identificador) {
+        const sql = `
+            select u.*
+            from usuario u
+            join pessoa p on p.id = u.pessoa_id
+            where u.email = ? or p.email = ? or p.cpf = ?
+            limit 1`;
+        const rows = await this.banco.ExecutaComando(sql, [identificador, identificador, identificador]);
+        if (rows.length === 0) return null;
+        return UsuarioEntity.toMap(rows[0]);
+    }
+
     async cadastrar(entidade) {
         let sql;
         let valores;

@@ -25,7 +25,7 @@ export default function SearchableSelect({
   emptyText = "Nenhum resultado encontrado",
   inputClassName = "bg-white",
   searchOnType = false,
-  showAllOnFocus = false,
+  showAllOnFocus = true,
 }: SearchableSelectProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);

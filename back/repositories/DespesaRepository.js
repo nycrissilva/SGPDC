@@ -43,14 +43,15 @@ export default class DespesaRepository extends Repository {
                 d.quantidade_parcelas,
                 d.data_primeiro_vencimento,
                 d.status,
-                coalesce(sum(case when cp.status = 'PAGA' then cp.valor else 0 end), 0) as valor_pago,
-                coalesce(sum(case when cp.status <> 'PAGA' then cp.valor else 0 end), 0) as saldo,
+                coalesce(sum(pg.valor_pago), 0) as valor_pago,
+                greatest(coalesce(d.valor_total, 0) - coalesce(sum(pg.valor_pago), 0), 0) as saldo,
                 count(cp.id) as total_parcelas,
                 sum(case when cp.status in ('PENDENTE', 'ATRASADA') then 1 else 0 end) as parcelas_abertas,
                 sum(case when cp.status = 'PAGA' then 1 else 0 end) as parcelas_pagas
             from despesa d
             join tipo_despesa td on td.id = d.tipo_despesa_id
             left join conta_pagar cp on cp.despesa_id = d.id
+            left join pagamento_despesa pg on pg.conta_pagar_id = cp.id
             where 1 = 1`;
 
         if (filtros.status) {
@@ -227,18 +228,20 @@ export default class DespesaRepository extends Repository {
                 throw new Error("Parcela ja paga ou indisponivel para quitacao");
             }
 
+            const valorPago = Math.min(Number(dados.valor_pago || parcela.valor || 0), Number(parcela.valor || 0));
+
             await this.query(conn, `
                 insert into pagamento_despesa (conta_pagar_id, data_pagamento, valor_pago, forma_pagamento)
                 values (?, ?, ?, ?)
-            `, [parcelaId, dados.data_pagamento, Number(parcela.valor || 0), dados.forma_pagamento]);
+            `, [parcelaId, dados.data_pagamento, valorPago, dados.forma_pagamento]);
 
             await this.query(conn, `
                 update conta_pagar
-                set status = 'PAGA',
+                set status = ?,
                     data_pagamento = ?,
                     forma_pagamento = ?
                 where id = ?
-            `, [dados.data_pagamento, dados.forma_pagamento, parcelaId]);
+            `, [valorPago >= Number(parcela.valor || 0) ? 'PAGA' : 'PENDENTE', dados.data_pagamento, dados.forma_pagamento, parcelaId]);
 
             const abertas = await this.query(conn, `
                 select count(*) as total

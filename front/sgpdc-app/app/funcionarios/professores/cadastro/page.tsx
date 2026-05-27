@@ -1,13 +1,16 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+type Modalidade = { id: number; nome: string; status: string };
 
 export default function CadastroProfessorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [modalidades, setModalidades] = useState<Modalidade[]>([]);
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -17,6 +20,14 @@ export default function CadastroProfessorPage() {
     status: "ATIVO",
     data_nascimento: "",
   });
+
+  useEffect(() => {
+    void (async () => {
+      const response = await apiFetch("/api/modalidades");
+      const data = await response.json();
+      if (response.ok) setModalidades(Array.isArray(data) ? data : []);
+    })();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -145,15 +156,18 @@ export default function CadastroProfessorPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Modalidade *</label>
-              <input
-                type="text"
+              <select
                 name="modalidade"
                 value={formData.modalidade}
                 onChange={handleChange}
                 required
                 className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                placeholder="Ex: Ballet, Sapateado"
-              />
+              >
+                <option value="">Selecionar modalidade</option>
+                {modalidades.filter((item) => item.status === "ATIVA").map((item) => (
+                  <option key={item.id} value={item.nome}>{item.nome}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

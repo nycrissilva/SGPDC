@@ -88,6 +88,7 @@ export default function ContasPage() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [selectedTurma, setSelectedTurma] = useState("");
   const [selectedResponsavel, setSelectedResponsavel] = useState("");
+  const [contaFilters, setContaFilters] = useState({ status: "", mes: "", ano: "", aluno_id: "" });
   const [loadingTurma, setLoadingTurma] = useState(false);
   const [loadingResponsavel, setLoadingResponsavel] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -116,11 +117,15 @@ export default function ContasPage() {
     return responsaveis.find((responsavel) => String(responsavel.id) === selectedResponsavel)?.nome || "";
   }, [responsaveis, selectedResponsavel]);
 
+  const mensalidadesFiltradas = useMemo(() => mensalidades.filter((item) => contaPassaFiltros(item, contaFilters)), [mensalidades, contaFilters]);
+  const fantasiasFiltradas = useMemo(() => fantasias.filter((item) => contaPassaFiltros(item, contaFilters)), [fantasias, contaFilters]);
+  const vendasFiltradas = useMemo(() => vendas.filter((item) => vendaPassaFiltros(item, contaFilters)), [vendas, contaFilters]);
+
   const resumoResponsavel = useMemo(() => {
     const base = { total: 0, pago: 0, saldo: 0, pendentes: 0, pagas: 0 };
-    mensalidades.forEach((item) => addContaResumo(base, item));
-    fantasias.forEach((item) => addContaResumo(base, item));
-    vendas.forEach((item) => {
+    mensalidadesFiltradas.forEach((item) => addContaResumo(base, item));
+    fantasiasFiltradas.forEach((item) => addContaResumo(base, item));
+    vendasFiltradas.forEach((item) => {
       const valor = Number(item.valor_total || 0);
       base.total += valor;
       if (item.status === "PAGO") {
@@ -132,7 +137,7 @@ export default function ContasPage() {
       }
     });
     return base;
-  }, [mensalidades, fantasias, vendas]);
+  }, [mensalidadesFiltradas, fantasiasFiltradas, vendasFiltradas]);
 
   async function loadRefs() {
     try {
@@ -297,9 +302,10 @@ export default function ContasPage() {
               </div>
 
               <ChildrenList alunos={alunosResponsavel} />
-              <ContaTable title="Mensalidades do plano" items={mensalidades} />
-              <ContaTable title="Cobranças de fantasia" items={fantasias} showAluno />
-              <VendaTable vendas={vendas} />
+              <ResponsavelFilters alunos={alunosResponsavel} filters={contaFilters} onChange={setContaFilters} />
+              <ContaTable title="Mensalidades do plano" items={mensalidadesFiltradas} />
+              <ContaTable title="Cobranças de fantasia" items={fantasiasFiltradas} showAluno />
+              <VendaTable vendas={vendasFiltradas} />
             </>
           )}
         </section>
@@ -319,6 +325,67 @@ function ChildrenList({ alunos }: { alunos: Aluno[] }) {
           {alunos.map((aluno) => <AlunoLink key={aluno.id} id={aluno.id}>{aluno.nome}</AlunoLink>)}
         </div>
       )}
+    </div>
+  );
+}
+
+function ResponsavelFilters({
+  alunos,
+  filters,
+  onChange,
+}: {
+  alunos: Aluno[];
+  filters: { status: string; mes: string; ano: string; aluno_id: string };
+  onChange: React.Dispatch<React.SetStateAction<{ status: string; mes: string; ano: string; aluno_id: string }>>;
+}) {
+  const currentYear = new Date().getFullYear();
+  const anos = Array.from({ length: 5 }, (_, index) => String(currentYear - 2 + index));
+
+  return (
+    <div className="mb-8 rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-[#6A4FBF]">Filtros</p>
+          <h3 className="mt-2 text-lg font-semibold text-[#1F2A5A]">Contas do responsável</h3>
+        </div>
+        <button type="button" onClick={() => onChange({ status: "", mes: "", ano: "", aluno_id: "" })} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
+          Limpar filtros
+        </button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-4">
+        <SearchableSelect
+          label="Status"
+          value={filters.status}
+          onChange={(value) => onChange((prev) => ({ ...prev, status: value }))}
+          options={[["PENDENTE", "Pendente"], ["ATRASADA", "Atrasada"], ["ATRASADA_COM_MULTA", "Atrasada com multa"], ["PAGA", "Paga"], ["PAGO", "Pago"], ["CANCELADA", "Cancelada"], ["CANCELADO", "Cancelado"]]}
+          placeholder="Todos"
+          inputClassName="bg-white"
+        />
+        <SearchableSelect
+          label="Mês/referência"
+          value={filters.mes}
+          onChange={(value) => onChange((prev) => ({ ...prev, mes: value }))}
+          options={meses.slice(1).map((mes, index) => [String(index + 1), mes])}
+          placeholder="Todos"
+          inputClassName="bg-white"
+        />
+        <SearchableSelect
+          label="Ano"
+          value={filters.ano}
+          onChange={(value) => onChange((prev) => ({ ...prev, ano: value }))}
+          options={anos.map((ano) => [ano, ano])}
+          placeholder="Todos"
+          inputClassName="bg-white"
+        />
+        <SearchableSelect
+          label="Aluno"
+          value={filters.aluno_id}
+          onChange={(value) => onChange((prev) => ({ ...prev, aluno_id: value }))}
+          options={alunos.map((aluno) => [String(aluno.id), aluno.nome])}
+          placeholder="Todos"
+          inputClassName="bg-white"
+        />
+      </div>
     </div>
   );
 }
@@ -463,6 +530,42 @@ function montarResumoContas(items: Conta[], fallback?: { total: number; pagas: n
     else if (!["CANCELADA", "CANCELADO"].includes(status)) resumo.em_aberto += 1;
     return resumo;
   }, { total: 0, pagas: 0, em_aberto: 0, atrasadas: 0 });
+}
+
+function contaPassaFiltros(item: Conta, filters: { status: string; mes: string; ano: string; aluno_id: string }) {
+  if (filters.status && !statusMatches(item.status, filters.status)) return false;
+  if (filters.mes && String(item.mes_referencia || "") !== filters.mes) return false;
+  if (filters.ano && String(item.ano_referencia || "") !== filters.ano) return false;
+  if (filters.aluno_id && !contaTemAluno(item, filters.aluno_id)) return false;
+  return true;
+}
+
+function vendaPassaFiltros(item: Venda, filters: { status: string; mes: string; ano: string; aluno_id: string }) {
+  if (filters.status && !statusMatches(item.status, filters.status)) return false;
+  if (filters.aluno_id && String(item.aluno_id || "") !== filters.aluno_id) return false;
+
+  if ((filters.mes || filters.ano) && item.data) {
+    const [ano, mes] = item.data.split("-");
+    if (filters.mes && String(Number(mes)) !== filters.mes) return false;
+    if (filters.ano && ano !== filters.ano) return false;
+  } else if (filters.mes || filters.ano) {
+    return false;
+  }
+
+  return true;
+}
+
+function contaTemAluno(item: Conta, alunoId: string) {
+  if (String(item.aluno_id || "") === alunoId) return true;
+  return Boolean(item.alunas?.some((aluna) => String(aluna.id) === alunoId));
+}
+
+function statusMatches(value: string, filter: string) {
+  const status = String(value || "").toUpperCase();
+  const filtro = String(filter || "").toUpperCase();
+  if (filtro === "PAGA" || filtro === "PAGO") return status === "PAGA" || status === "PAGO";
+  if (filtro === "CANCELADA" || filtro === "CANCELADO") return status === "CANCELADA" || status === "CANCELADO";
+  return status === filtro;
 }
 
 async function fetchJson(path: string) {

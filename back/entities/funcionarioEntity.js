@@ -23,6 +23,7 @@ export default class FuncionarioEntity extends PessoaEntity {
         return {
             id: row["id"],
             cargo: row["cargo"],
+            data_nascimento: PessoaEntity.formatDateValue(row["data_nascimento"]),
         };
     }
 }

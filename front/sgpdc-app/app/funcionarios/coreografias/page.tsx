@@ -174,14 +174,24 @@ export default function CoreografiasPage() {
     setAjustesAluna({});
   };
 
-  const pesquisarAlunasTurma = async () => {
-    try {
-      setError(null);
-      await loadAlunosTurma(loteForm.turma_id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar alunas da turma");
+  useEffect(() => {
+    if (!coreografia) return;
+    if (!loteForm.turma_id) {
+      setAlunosTurma([]);
+      setSelectedAlunoIds([]);
+      setAjustesAluna({});
+      return;
     }
-  };
+
+    void (async () => {
+      try {
+        setError(null);
+        await loadAlunosTurma(loteForm.turma_id, coreografia);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao carregar alunas da turma");
+      }
+    })();
+  }, [loteForm.turma_id, coreografia?.id]);
 
   const refresh = async () => {
     await loadInitial();
@@ -509,7 +519,7 @@ export default function CoreografiasPage() {
                       <Td>{item.status}</Td>
                       <Td>
                         <div className="flex flex-wrap gap-2">
-                          <SmallButton onClick={() => selectCoreografia(item)}>Abrir</SmallButton>
+                          <SmallButton onClick={() => selectCoreografia(item)}>Visualizar</SmallButton>
                           <SmallButton onClick={() => editCoreografia(item)}>Editar</SmallButton>
                           {item.status === "ATIVO" && <DangerSmallButton onClick={() => inactivateCoreografia(item)}>Inativar</DangerSmallButton>}
                         </div>
@@ -559,19 +569,15 @@ export default function CoreografiasPage() {
               </div>
 
               <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-5">
-                <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div className="mb-5">
                   <FormHeader overline="Participantes" title="Adicionar alunas na coreografia" />
-                  <PrimaryButton disabled={processing || selectedAlunoIds.length === 0 || alunosTurma.length === 0} onClick={saveParticipantesLote}>
-                    Salvar {selectedAlunoIds.length || ""} selecionada(s)
-                  </PrimaryButton>
                 </div>
 
                 <div className="rounded-lg border border-[#E5E7EB] bg-white p-4">
-                  <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_0.8fr_auto] lg:items-end">
+                  <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_0.8fr] lg:items-end">
                     <Select label="Turma" value={loteForm.turma_id} onChange={(value) => setLoteForm((prev) => ({ ...prev, turma_id: value }))} options={turmas.map((item) => [String(item.id), `${item.nome}${item.nivel ? ` - ${item.nivel}` : ""}`])} placeholder="Selecione" />
                     <Select label="Papel padrão" value={loteForm.papel_id} onChange={(value) => setLoteForm((prev) => ({ ...prev, papel_id: value }))} options={coreografia.papeis.filter((item) => item.status === "ATIVO").map((item) => [String(item.id), `${item.nome} - ${currency.format(item.valor_fantasia)}`])} placeholder={coreografia.papeis.filter((item) => item.status === "ATIVO").length === 1 ? "Preenchido automaticamente" : "Selecione"} />
                     <Field label="Valor padrão ajustado" value={loteForm.valor_fantasia} onChange={(value) => setLoteForm((prev) => ({ ...prev, valor_fantasia: value }))} placeholder="Opcional" />
-                    <SecondaryButton onClick={pesquisarAlunasTurma}>Pesquisar</SecondaryButton>
                   </div>
                 </div>
 
@@ -640,6 +646,12 @@ export default function CoreografiasPage() {
                     </div>
                   </div>
                 </details>
+
+                <div className="mt-5 flex justify-end">
+                  <PrimaryButton disabled={processing || selectedAlunoIds.length === 0 || alunosTurma.length === 0} onClick={saveParticipantesLote}>
+                    Salvar {selectedAlunoIds.length || ""} selecionada(s)
+                  </PrimaryButton>
+                </div>
 
                 <div className="mt-6 space-y-2">
                   <p className="text-sm font-semibold text-[#1F2A5A]">Participantes vinculadas</p>

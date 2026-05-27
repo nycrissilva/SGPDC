@@ -8,6 +8,14 @@ import SearchableSelect from "@/components/SearchableSelect";
 type Responsavel = { id: number; nome: string };
 type Turma = { id: number; nome: string };
 type Aluna = { id: number; nome: string };
+type ResponsavelFormData = {
+  nome: string;
+  cpf: string;
+  telefone: string;
+  email: string;
+  data_nascimento: string;
+  parentesco: string;
+};
 type PlanoMensalidade = {
   id: number;
   nome: string;
@@ -25,6 +33,15 @@ type PlanoFinanceiroAtivo = {
   alunas: Aluna[];
 };
 
+const initialResponsavelFormData: ResponsavelFormData = {
+  nome: "",
+  cpf: "",
+  telefone: "",
+  email: "",
+  data_nascimento: "",
+  parentesco: "",
+};
+
 export default function CadastroAlunoPage() {
   const [responsaveis, setResponsaveis] = useState<Responsavel[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
@@ -32,9 +49,13 @@ export default function CadastroAlunoPage() {
   const [planos, setPlanos] = useState<PlanoMensalidade[]>([]);
   const [planosFinanceiros, setPlanosFinanceiros] = useState<PlanoFinanceiroAtivo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [responsavelModalOpen, setResponsavelModalOpen] = useState(false);
+  const [savingResponsavel, setSavingResponsavel] = useState(false);
+  const [responsavelError, setResponsavelError] = useState<string | null>(null);
   const [loadingPlanosFinanceiros, setLoadingPlanosFinanceiros] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [responsavelFormData, setResponsavelFormData] = useState<ResponsavelFormData>(initialResponsavelFormData);
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -117,6 +138,55 @@ export default function CadastroAlunoPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleResponsavelChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setResponsavelFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const closeResponsavelModal = () => {
+    if (savingResponsavel) return;
+    setResponsavelModalOpen(false);
+    setResponsavelError(null);
+    setResponsavelFormData(initialResponsavelFormData);
+  };
+
+  const handleResponsavelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingResponsavel(true);
+    setResponsavelError(null);
+
+    try {
+      const response = await apiFetch("/api/responsaveis", {
+        method: "POST",
+        body: JSON.stringify({ ...responsavelFormData, status: "ATIVO" }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao cadastrar responsável");
+      }
+
+      const novoResponsavelId = Number(data.id);
+      if (!Number.isInteger(novoResponsavelId) || novoResponsavelId <= 0) {
+        throw new Error("Responsável cadastrado sem id válido");
+      }
+
+      const novoResponsavel = { id: novoResponsavelId, nome: responsavelFormData.nome };
+      setResponsaveis((prev) => {
+        const semDuplicado = prev.filter((responsavel) => responsavel.id !== novoResponsavelId);
+        return [...semDuplicado, novoResponsavel].sort((a, b) => a.nome.localeCompare(b.nome));
+      });
+      setFormData((prev) => ({ ...prev, responsavel_id: String(novoResponsavelId) }));
+      setResponsavelModalOpen(false);
+      setResponsavelFormData(initialResponsavelFormData);
+      await loadResponsaveis();
+    } catch (err) {
+      setResponsavelError(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setSavingResponsavel(false);
+    }
   };
 
   const handleTurmaToggle = (id: number) => {
@@ -270,8 +340,26 @@ export default function CadastroAlunoPage() {
               <Field label="Data da Matrícula *" name="data_matricula" type="date" value={formData.data_matricula} onChange={handleChange} required />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Select label="Responsável *" name="responsavel_id" value={formData.responsavel_id} onChange={handleChange} required options={responsaveis.map((resp) => [String(resp.id), resp.nome])} placeholder="Selecionar responsável" />
-              <Select label="Status" name="status" value={formData.status} onChange={handleChange} options={[["ATIVO", "Ativo"], ["INATIVO", "Inativo"]]} />
+              <div>
+                <div className="grid grid-cols-[minmax(0,1fr)_3rem] items-end gap-2">
+                  <Select label="Responsável *" name="responsavel_id" value={formData.responsavel_id} onChange={handleChange} required options={responsaveis.map((resp) => [String(resp.id), resp.nome])} placeholder="Selecionar responsável" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResponsavelError(null);
+                      setResponsavelModalOpen(true);
+                    }}
+                    aria-label="Cadastrar novo responsável"
+                    title="Cadastrar novo responsável"
+                    className="mb-0 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#1F2A5A] bg-white text-2xl font-semibold leading-none text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+                <div className="rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm font-semibold text-[#1F2A5A]">
+                  Status: ATIVO
+                </div>
             </div>
             <Checklist title="Turmas *" empty="Nenhuma turma ativa disponível." items={turmas} selectedIds={formData.turma_ids} onToggle={handleTurmaToggle} />
           </section>
@@ -342,6 +430,79 @@ export default function CadastroAlunoPage() {
           </button>
         </form>
       </main>
+
+      {responsavelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1F2A5A]/40 px-4 py-6">
+          <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-[32px] bg-white p-6 shadow-xl sm:p-8">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Responsável</p>
+                <h2 className="mt-2 text-2xl font-semibold text-[#1F2A5A]">Novo Responsável</h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeResponsavelModal}
+                disabled={savingResponsavel}
+                aria-label="Fechar modal"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] text-xl text-[#1F2A5A] transition hover:border-[#E61E4D] hover:text-[#E61E4D] disabled:opacity-50"
+              >
+                x
+              </button>
+            </div>
+
+            <form onSubmit={handleResponsavelSubmit} className="space-y-5">
+              {responsavelError && <div className="rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{responsavelError}</div>}
+
+              <Field label="Nome *" name="nome" value={responsavelFormData.nome} onChange={handleResponsavelChange} required placeholder="Nome completo" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="CPF *" name="cpf" value={responsavelFormData.cpf} onChange={handleResponsavelChange} required placeholder="000.000.000-00" />
+                <Field label="Telefone" name="telefone" type="tel" value={responsavelFormData.telefone} onChange={handleResponsavelChange} placeholder="(11) 99999-9999" />
+              </div>
+              <Field label="Email *" name="email" type="email" value={responsavelFormData.email} onChange={handleResponsavelChange} required placeholder="responsavel@example.com" />
+              <Field label="Data de nascimento" name="data_nascimento" type="date" value={responsavelFormData.data_nascimento} onChange={handleResponsavelChange} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Select
+                  label="Parentesco *"
+                  name="parentesco"
+                  value={responsavelFormData.parentesco}
+                  onChange={handleResponsavelChange}
+                  required
+                  options={[
+                    ["PAI", "Pai"],
+                    ["MAE", "Mãe"],
+                    ["AVO_PATERNA", "Avó Paterna"],
+                    ["AVO_PATERNO", "Avô Paterno"],
+                    ["AVO_MATERNA", "Avó Materna"],
+                    ["AVO_MATERNO", "Avô Materno"],
+                    ["TIA", "Tia"],
+                    ["TIO", "Tio"],
+                    ["TUTOR", "Tutor"],
+                  ]}
+                  placeholder="Selecionar parentesco"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeResponsavelModal}
+                  disabled={savingResponsavel}
+                  className="rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF] disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingResponsavel}
+                  className="rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50"
+                >
+                  {savingResponsavel ? "Cadastrando..." : "Cadastrar Responsável"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

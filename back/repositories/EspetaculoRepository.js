@@ -354,6 +354,24 @@ export default class EspetaculoRepository extends Repository {
             return dados.id;
         }
 
+        const existenteAluno = await this.banco.ExecutaComando(`
+            select id
+            from participacao_coreografia
+            where coreografia_id = ?
+              and aluno_id = ?
+              and status = 'ATIVO'
+            limit 1
+        `, [coreografiaId, dados.aluno_id]);
+
+        if (existenteAluno.length > 0) {
+            await this.banco.ExecutaComandoNonQuery(`
+                update participacao_coreografia
+                set papel_id = ?, papel = ?, valor_fantasia = ?, status = 'ATIVO'
+                where id = ?
+            `, [dados.papel_id, papel.nome, dados.valor_fantasia ?? null, existenteAluno[0].id]);
+            return existenteAluno[0].id;
+        }
+
         const existentes = await this.banco.ExecutaComando(`
             select id
             from participacao_coreografia
@@ -436,6 +454,7 @@ export default class EspetaculoRepository extends Repository {
                     ? Number(participante.valor_papel || 0)
                     : Number(participante.valor_fantasia || 0);
                 const parcelas = this.calcularParcelas(valor, totalParcelas, data_vencimento);
+                const status = valor <= 0 ? 'PAGA' : 'PENDENTE';
 
                 for (const parcela of parcelas) {
                     const result = await this.query(conn, `
@@ -443,7 +462,7 @@ export default class EspetaculoRepository extends Repository {
                             (grupo_financeiro_id, matricula_id, coreografia_id, fantasia_id, participacao_coreografia_id,
                              espetaculo_id, espetaculo_coreografia_id, numero_parcela, total_parcelas, tipo_receita,
                              mes_referencia, ano_referencia, valor_base, valor_final, multa, valor, status, data_vencimento)
-                        values (null, ?, ?, ?, ?, ?, ?, ?, ?, 'FANTASIA', null, null, ?, ?, 0.00, ?, 'PENDENTE', ?)
+                        values (null, ?, ?, ?, ?, ?, ?, ?, ?, 'FANTASIA', null, null, ?, ?, 0.00, ?, ?, ?)
                     `, [
                         matricula[0].id,
                         coreografiaId,
@@ -456,6 +475,7 @@ export default class EspetaculoRepository extends Repository {
                         parcela.valor,
                         parcela.valor,
                         parcela.valor,
+                        status,
                         parcela.vencimento,
                     ]);
                     geradas.push({ participacao_coreografia_id: participante.id, conta_receber_id: result.insertId, parcela: parcela.numero });

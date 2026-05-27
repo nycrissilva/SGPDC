@@ -8,7 +8,7 @@ export default class ProfessorRepository extends Repository {
 
     async listar() {
         let sql = `
-            select pr.*
+            select pr.*, p.data_nascimento
             from professor pr
             join pessoa p on p.id = pr.id
             where p.status = 'ATIVO'`;
@@ -23,7 +23,7 @@ export default class ProfessorRepository extends Repository {
 
     async obter(id) {
         let sql = `
-            select pr.*
+            select pr.*, p.data_nascimento
             from professor pr
             join pessoa p on p.id = pr.id
             where pr.id = ?`;

@@ -12,6 +12,7 @@ type Funcionario = {
   telefone?: string;
   status?: string;
   cargo?: string;
+  data_nascimento?: string;
 };
 
 export default function FuncionariosPage() {
@@ -126,16 +127,27 @@ export default function FuncionariosPage() {
     setEditingId(null);
   };
 
-  const handleEdit = (funcionario: Funcionario) => {
+  const handleEdit = async (funcionario: Funcionario) => {
+    let detalhe = funcionario;
+    if (!funcionario.data_nascimento) {
+      try {
+        const response = await apiFetch(`/api/funcionario/${funcionario.id}`);
+        const data = await response.json();
+        if (response.ok) detalhe = { ...funcionario, ...data };
+      } catch {
+        detalhe = funcionario;
+      }
+    }
+
     setFormData({
-      nome: funcionario.nome || "",
-      cpf: funcionario.cpf || "",
-      telefone: funcionario.telefone || "",
-      email: funcionario.email || "",
-      cargo: funcionario.cargo || "",
-      data_nascimento: "",
+      nome: detalhe.nome || "",
+      cpf: detalhe.cpf || "",
+      telefone: detalhe.telefone || "",
+      email: detalhe.email || "",
+      cargo: detalhe.cargo || "",
+      data_nascimento: detalhe.data_nascimento || "",
     });
-    setEditingId(funcionario.id);
+    setEditingId(detalhe.id);
     setShowForm(true);
   };
 
@@ -226,7 +238,7 @@ export default function FuncionariosPage() {
                           <td className="px-4 py-4">{func.cargo || "-"}</td>
                           <td className="px-4 py-4 flex gap-2">
                             <button
-                              onClick={() => handleEdit(func)}
+                              onClick={() => void handleEdit(func)}
                               className="text-xs rounded-full bg-[#6A4FBF]/10 px-3 py-1 text-[#6A4FBF] hover:bg-[#6A4FBF]/20 transition"
                             >
                               Editar
@@ -317,6 +329,19 @@ export default function FuncionariosPage() {
                       className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#1F2A5A] mb-2">Cargo *</label>
+                  <input
+                    type="text"
+                    name="cargo"
+                    value={formData.cargo}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
+                    placeholder="Ex: Recepcionista, Coordenador, Administrativo"
+                  />
                 </div>
 
                 <div className="flex gap-3">
