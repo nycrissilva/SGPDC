@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 import PessoaRepository from '../repositories/PessoaRepository.js';
 import UsuarioRepository from '../repositories/UsuarioRepository.js';
@@ -5,6 +6,7 @@ import { hashPassword, comparePassword, isStrongPassword } from '../utils/passwo
 
 const JWT_SECRET = process.env.JWT_SECRET || 'SGPDC_SECRET_2026';
 const COOKIE_NAME = 'sgpdc_token';
+const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true';
 
 export default class AuthController {
     constructor() {
@@ -41,7 +43,7 @@ export default class AuthController {
             const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
             res.cookie(COOKIE_NAME, token, {
                 httpOnly: true,
-                secure: false,
+                secure: COOKIE_SECURE,
                 sameSite: 'lax',
                 maxAge: 8 * 60 * 60 * 1000,
             });
@@ -56,7 +58,7 @@ export default class AuthController {
         try {
             res.clearCookie(COOKIE_NAME, {
                 httpOnly: true,
-                secure: false,
+                secure: COOKIE_SECURE,
                 sameSite: 'lax',
             });
             return res.json({ success: true });
@@ -119,7 +121,7 @@ export default class AuthController {
             const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
             res.cookie(COOKIE_NAME, token, {
                 httpOnly: true,
-                secure: false,
+                secure: COOKIE_SECURE,
                 sameSite: 'lax',
                 maxAge: 8 * 60 * 60 * 1000,
             });
@@ -219,7 +221,7 @@ export default class AuthController {
                 firstAccess: usuario.primeiro_acesso === true || usuario.primeiro_acesso === 1,
             };
             const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-            res.cookie(COOKIE_NAME, token, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 8 * 60 * 60 * 1000 });
+            res.cookie(COOKIE_NAME, token, { httpOnly: true, secure: COOKIE_SECURE, sameSite: 'lax', maxAge: 8 * 60 * 60 * 1000 });
             return res.json({ success: true, user: payload, token });
         } catch (error) {
             return res.status(500).json({ error: error.message });

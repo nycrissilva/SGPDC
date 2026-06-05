@@ -2,10 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async rewrites() {
+    const apiProxyUrl = process.env.API_PROXY_URL || "http://localhost:5001";
+
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5001/api/:path*"
+        destination: `${apiProxyUrl.replace(/\/$/, "")}/api/:path*`
       }
     ];
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import AuthGuard from "@/components/AuthGuard";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, clearAuthToken } from "@/lib/api";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -104,6 +104,7 @@ export default function FuncionariosLayout({
       method: "POST",
       credentials: "include",
     });
+    clearAuthToken();
     router.push("/");
   };
 

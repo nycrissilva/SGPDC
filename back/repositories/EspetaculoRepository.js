@@ -119,7 +119,14 @@ export default class EspetaculoRepository extends Repository {
         if (!incluirInativos) {
             sql += ` where e.status = 'ATIVO'`;
         }
-        sql += ` group by e.id order by e.data desc, e.nome asc`;
+        sql += `
+            group by
+                e.id,
+                e.nome,
+                e.data,
+                e.descricao,
+                e.status
+            order by e.data desc, e.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => ({
@@ -210,7 +217,19 @@ export default class EspetaculoRepository extends Repository {
         if (!incluirInativas) {
             sql += ` and c.status = 'ATIVO'`;
         }
-        sql += ` group by ec.id order by e.data desc, c.nome asc`;
+        sql += `
+            group by
+                c.id,
+                ec.id,
+                ec.espetaculo_id,
+                e.nome,
+                e.data,
+                c.nome,
+                c.tipo,
+                c.descricao,
+                c.status,
+                c.valor_fantasia_geral
+            order by e.data desc, c.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => this.mapCoreografiaResumo(row));

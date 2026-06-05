@@ -171,7 +171,7 @@ export default class AlunoController extends PessoaController {
 
         const alunaIds = Array.isArray(planoFinanceiro.aluna_ids) ? planoFinanceiro.aluna_ids : [];
         if (tipoCobranca === 'INDIVIDUAL' && alunaIds.length > 0) {
-            return "Plano financeiro individual permite apenas a aluna matriculada";
+            return "Plano financeiro individual permite apenas o aluno matriculado";
         }
 
         if (acao === 'VINCULAR' || acao === 'SUBSTITUIR') {
@@ -194,7 +194,7 @@ export default class AlunoController extends PessoaController {
             }
 
             if (acao === 'VINCULAR' && grupo.tipo_grupo === 'INDIVIDUAL') {
-                return "Plano financeiro individual nao permite vincular outra aluna";
+                return "Plano financeiro individual nao permite vincular outro aluno";
             }
 
             if (acao === 'SUBSTITUIR' && (grupo.tipo_grupo !== 'INDIVIDUAL' || tipoCobranca !== 'FAMILIAR')) {
@@ -205,13 +205,13 @@ export default class AlunoController extends PessoaController {
         for (const alunaIdBruto of alunaIds) {
             const alunaId = Number(alunaIdBruto);
             if (!Number.isInteger(alunaId) || alunaId <= 0) {
-                return "Aluna vinculada ao plano financeiro invalida";
+                return "Aluno vinculado ao plano financeiro invalido";
             }
 
             const grupoAtivo = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(alunaId);
             const grupoSelecionadoId = Number(planoFinanceiro.grupo_financeiro_id);
             if (grupoAtivo && grupoAtivo.id !== grupoSelecionadoId) {
-                return "Uma das alunas selecionadas ja possui plano financeiro ativo";
+                return "Um dos alunos selecionados ja possui plano financeiro ativo";
             }
         }
 
@@ -228,7 +228,7 @@ export default class AlunoController extends PessoaController {
 
         const alunoJaPossuiPlano = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(alunoId);
         if (alunoJaPossuiPlano) {
-            throw new Error("Aluna ja possui plano financeiro ativo");
+            throw new Error("Aluno ja possui plano financeiro ativo");
         }
 
         const grupoAntigoId = grupoId;
@@ -254,7 +254,7 @@ export default class AlunoController extends PessoaController {
         const idsParaVincular = Array.from(new Set([...alunaIds, alunoId]));
 
         if (tipoCobranca === 'INDIVIDUAL' && idsParaVincular.length > 1) {
-            throw new Error("Plano financeiro individual permite apenas uma aluna");
+            throw new Error("Plano financeiro individual permite apenas um aluno");
         }
 
         for (const idParaVincular of idsParaVincular) {
@@ -264,7 +264,7 @@ export default class AlunoController extends PessoaController {
             const grupoAtivo = await this.planoFinanceiroRepository.alunoPossuiPlanoFinanceiroAtivo(idParaVincular);
             const estaNoPlanoSubstituido = acao === 'SUBSTITUIR' && grupoAtivo?.id === grupoAntigoId;
             if (grupoAtivo && grupoAtivo.id !== grupoId && !estaNoPlanoSubstituido) {
-                throw new Error("Uma das alunas ja possui plano financeiro ativo");
+                throw new Error("Um dos alunos ja possui plano financeiro ativo");
             }
 
             await this.planoFinanceiroRepository.vincularAluno(grupoId, idParaVincular);

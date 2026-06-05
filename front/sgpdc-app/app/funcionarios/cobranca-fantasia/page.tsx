@@ -215,7 +215,7 @@ export default function CobrancaFantasiaPage() {
         <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Espetáculos</p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight">Cobrança de Fantasia</h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-[#F8FAFC]/90">
-          Consulte alunas, valores das fantasias, parcelas e pagamentos em aberto.
+          Consulte alunos, valores das fantasias, parcelas e pagamentos em aberto.
         </p>
       </section>
 
@@ -242,7 +242,7 @@ export default function CobrancaFantasiaPage() {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <SearchableSelect
-            label="Aluna"
+            label="Aluno"
             value={filters.aluno}
             onChange={(value) => setFilters((prev) => ({ ...prev, aluno: value }))}
             options={alunaOptions}
@@ -314,7 +314,7 @@ export default function CobrancaFantasiaPage() {
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Resultado</p>
-            <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Alunas e fantasias ({filteredFantasias.length})</h2>
+            <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Alunos e fantasias ({filteredFantasias.length})</h2>
           </div>
           <p className="text-sm text-[#4B5563]">{loading ? "Atualizando..." : `${fantasias.length} cobrança(s) carregada(s)`}</p>
         </div>
@@ -328,7 +328,7 @@ export default function CobrancaFantasiaPage() {
             <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
               <thead>
                 <tr className="bg-[#F9FAFB]">
-                  <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluna</th>
+                  <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluno</th>
                   <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Espetáculo</th>
                   <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Coreografia</th>
                   <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Papel</th>
@@ -377,7 +377,7 @@ export default function CobrancaFantasiaPage() {
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-[#6A4FBF]">Pagamento</p>
               <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Marcar fantasia como paga</h2>
-              <p className="mt-1 text-sm text-[#4B5563]">{payment.aluno_nome || "Aluna"} - {payment.coreografia_nome || "Coreografia"}</p>
+              <p className="mt-1 text-sm text-[#4B5563]">{payment.aluno_nome || "Aluno"} - {payment.coreografia_nome || "Coreografia"}</p>
             </div>
             <button type="button" onClick={() => setPayment(null)} className="rounded-full bg-[#6A4FBF]/10 px-5 py-3 text-sm font-semibold text-[#6A4FBF] transition hover:bg-[#6A4FBF]/20">
               Cancelar

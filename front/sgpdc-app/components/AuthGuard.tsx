@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         }
 
         setChecking(false);
-      } catch (error) {
+      } catch {
         router.replace("/");
       }
     }

@@ -18,7 +18,12 @@ export default class ModalidadeRepository extends Repository {
             sql += ` and m.status = 'ATIVA'`;
         }
 
-        sql += ` group by m.id order by m.nome asc`;
+        sql += `
+            group by
+                m.id,
+                m.nome,
+                m.status
+            order by m.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => ModalidadeEntity.toMap(row));
@@ -34,7 +39,10 @@ export default class ModalidadeRepository extends Repository {
             from modalidade m
             left join turma t on t.modalidade_id = m.id
             where m.id = ?
-            group by m.id`;
+            group by
+                m.id,
+                m.nome,
+                m.status`;
         const rows = await this.banco.ExecutaComando(sql, [id]);
         if (rows.length === 0) return null;
         return ModalidadeEntity.toMap(rows[0]);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, setAuthToken } from "@/lib/api";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -50,6 +50,10 @@ export default function ChangePasswordPage() {
         return;
       }
 
+      if (data.token) {
+        setAuthToken(data.token);
+      }
+
       setSuccess(true);
       setTimeout(async () => {
         try {
@@ -60,11 +64,11 @@ export default function ChangePasswordPage() {
           } else {
             router.push("/funcionarios");
           }
-        } catch (_error) {
+        } catch {
           router.push("/");
         }
       }, 1200);
-    } catch (err) {
+    } catch {
       setError("Erro ao alterar senha. Tente novamente.");
     } finally {
       setLoading(false);

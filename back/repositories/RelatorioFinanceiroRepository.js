@@ -113,7 +113,18 @@ export default class RelatorioFinanceiroRepository extends Repository {
         }
 
         sql += `
-            group by pg.id, cr.id, responsavel.nome, direto_pessoa.nome
+            group by
+                pg.id,
+                cr.id,
+                cr.tipo_receita,
+                cr.mes_referencia,
+                cr.ano_referencia,
+                responsavel.nome,
+                direto_pessoa.nome,
+                pg.data_pagamento,
+                pg.valor_pago,
+                pg.forma_pagamento,
+                cr.status
             order by pg.data_pagamento desc, pg.id desc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);

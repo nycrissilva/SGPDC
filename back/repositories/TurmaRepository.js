@@ -42,7 +42,21 @@ export default class TurmaRepository extends Repository {
             values.push(professorId);
         }
 
-        sql += ` group by t.id`;
+        sql += `
+            group by
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.modalidade_id,
+                m.nome,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                t.local_id,
+                l.nome`;
 
         if (sort === "nivel") {
             sql += ` order by t.nivel asc, t.nome asc`;
@@ -82,7 +96,20 @@ export default class TurmaRepository extends Repository {
             left join pessoa p on p.id = pt.professor_id
             where t.status = 'ATIVA'
               and pt.professor_id = ?
-            group by t.id
+            group by
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.modalidade_id,
+                m.nome,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                t.local_id,
+                l.nome
             order by t.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql, [professorId]);
@@ -114,7 +141,20 @@ export default class TurmaRepository extends Repository {
             left join professor_turma pt on pt.turma_id = t.id
             left join pessoa p on p.id = pt.professor_id
             where t.id = ?
-            group by t.id`;
+            group by
+                t.id,
+                t.nome,
+                t.modalidade,
+                t.modalidade_id,
+                m.nome,
+                t.nivel,
+                t.descricao,
+                t.status,
+                a.dia_semana,
+                a.horario_inicio,
+                a.horario_fim,
+                t.local_id,
+                l.nome`;
 
         const rows = await this.banco.ExecutaComando(sql, [id]);
         if (rows.length === 0) return null;

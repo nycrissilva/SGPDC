@@ -94,7 +94,21 @@ export default class MensalidadeRepository extends Repository {
         }
 
         sql += `
-            group by cr.id
+            group by
+                cr.id,
+                cr.tipo_receita,
+                cr.mes_referencia,
+                cr.ano_referencia,
+                cr.valor_base,
+                cr.valor_final,
+                cr.multa,
+                cr.status,
+                cr.data_vencimento,
+                gf.id,
+                gf.tipo_grupo,
+                gf.responsavel_id,
+                responsavel.nome,
+                pm.nome
             order by cr.ano_referencia desc, cr.mes_referencia desc, cr.data_vencimento desc, cr.id desc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
@@ -182,7 +196,18 @@ export default class MensalidadeRepository extends Repository {
             values.push(filtros.ano_referencia);
         }
 
-        sql += ` group by gf.id`;
+        sql += `
+            group by
+                gf.id,
+                gf.tipo_grupo,
+                gf.responsavel_id,
+                gf.data_inicio,
+                responsavel.nome,
+                pm.nome,
+                pm.valor_cartao_pix,
+                pm.valor_dinheiro,
+                month(gf.data_inicio),
+                year(gf.data_inicio)`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => {
@@ -419,7 +444,24 @@ export default class MensalidadeRepository extends Repository {
         }
 
         sql += `
-            group by cr.id
+            group by
+                cr.id,
+                cr.tipo_receita,
+                cr.valor_base,
+                cr.valor_final,
+                cr.multa,
+                cr.status,
+                cr.data_vencimento,
+                cr.numero_parcela,
+                cr.total_parcelas,
+                cr.matricula_id,
+                coalesce(m.aluno_id, pc.aluno_id),
+                aluno_pessoa.nome,
+                coalesce(aluno_matricula.responsavel_id, aluno_participacao.responsavel_id),
+                responsavel_pessoa.nome,
+                e.nome,
+                c.nome,
+                coalesce(cp.nome, pc.papel)
             order by cr.data_vencimento desc, cr.id desc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);

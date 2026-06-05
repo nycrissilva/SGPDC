@@ -26,7 +26,20 @@ export default class PlanoFinanceiroRepository extends Repository {
             left join pessoa p on p.id = a.id
             where gf.responsavel_id = ?
               and gf.status = 'ATIVO'
-            group by gf.id
+            group by
+                gf.id,
+                gf.responsavel_id,
+                gf.plano_mensalidade_id,
+                gf.tipo_grupo,
+                gf.data_inicio,
+                gf.data_fim,
+                gf.status,
+                pm.nome,
+                pm.tipo_plano,
+                pm.qtd_alunas,
+                pm.qtd_cursos,
+                pm.valor_cartao_pix,
+                pm.valor_dinheiro
             order by gf.data_inicio desc, gf.id desc`;
 
         const rows = await this.banco.ExecutaComando(sql, [responsavelId]);

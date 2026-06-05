@@ -285,7 +285,7 @@ export default function VendasPage() {
               <h2 className="mt-2 text-xl font-semibold text-[#1F2A5A]">Vendas registradas ({vendas.length})</h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Select label="Aluna" value={filters.aluno_id} onChange={(value) => setFilters((prev) => ({ ...prev, aluno_id: value }))} options={matriculas.map((item) => [String(item.aluno_id), item.aluno_nome])} placeholder="Todas" />
+              <Select label="Aluno" value={filters.aluno_id} onChange={(value) => setFilters((prev) => ({ ...prev, aluno_id: value }))} options={matriculas.map((item) => [String(item.aluno_id), item.aluno_nome])} placeholder="Todos" />
               <Select label="Status" value={filters.status} onChange={(value) => setFilters((prev) => ({ ...prev, status: value }))} options={[["PENDENTE", "Pendente"], ["PAGO", "Pago"], ["CANCELADO", "Cancelado"]]} placeholder="Todos" />
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function VendasPage() {
                 <thead>
                   <tr className="bg-[#F9FAFB]">
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Data</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluna</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluno</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Itens</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Total</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Status</th>

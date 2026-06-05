@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiFetch, apiBase } from "@/lib/api";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -14,12 +11,10 @@ export default function RegisterPage() {
   const [senha, setSenha] = useState("");
   const [perfil, setPerfil] = useState("FUNCIONARIO");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("Cadastro isolado de usuário não é permitido. Usuários são criados automaticamente ao cadastrar um Funcionário ou um Professor.");
-    setLoading(false);
   };
 
   return (

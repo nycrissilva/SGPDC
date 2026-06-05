@@ -377,11 +377,11 @@ export default function CadastroAlunoPage() {
                 )}
                 {planoFinanceiroIndividual && (
                   <p className="mt-2 text-[#E61E4D]">
-                    Este plano é individual, então não permite vincular outra aluna. Para cobrar as alunas juntas, substitua por um plano familiar.
+                    Este plano é individual, então não permite vincular outro aluno. Para cobrar os alunos juntos, substitua por um plano familiar.
                   </p>
                 )}
                 {selectedPlanoFinanceiro?.alunas.length ? (
-                  <p className="mt-2">Alunas vinculadas: {selectedPlanoFinanceiro.alunas.map((aluna) => aluna.nome).join(", ")}</p>
+                  <p className="mt-2">Alunos vinculados: {selectedPlanoFinanceiro.alunas.map((aluna) => aluna.nome).join(", ")}</p>
                 ) : null}
               </div>
             )}
@@ -421,7 +421,7 @@ export default function CadastroAlunoPage() {
             )}
             <Field label="Data de início da cobrança *" name="data_inicio_cobranca" type="date" value={formData.data_inicio_cobranca} onChange={handleChange} required />
             {formData.tipo_cobranca === "FAMILIAR" && formData.acao_plano_financeiro === "CRIAR" && (
-              <Checklist title="Outras alunas deste plano familiar" empty="Nenhuma aluna cadastrada para vincular." items={alunas} selectedIds={formData.aluna_ids} onToggle={handleAlunaToggle} />
+              <Checklist title="Outros alunos deste plano familiar" empty="Nenhum aluno cadastrado para vincular." items={alunas} selectedIds={formData.aluna_ids} onToggle={handleAlunaToggle} />
             )}
           </section>
 

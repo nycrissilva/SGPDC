@@ -8,7 +8,7 @@ function normalizarPlano(body, statusPadrao = 'ATIVO') {
     const tipo_plano = String(body.tipo_plano || '').trim().toUpperCase();
     const qtd_alunas = Number(body.qtd_alunas);
     const qtd_cursos = Number(body.qtd_cursos);
-    const nome = String(body.nome || `${tipo_plano === 'FAMILIAR' ? 'Familiar' : 'Individual'} ${qtd_alunas} aluna(s) ${qtd_cursos} curso(s)`).trim();
+    const nome = String(body.nome || `${tipo_plano === 'FAMILIAR' ? 'Familiar' : 'Individual'} ${qtd_alunas} aluno(s) ${qtd_cursos} curso(s)`).trim();
     const status = String(body.status || statusPadrao).trim().toUpperCase();
     const valor_cartao_pix = Number(body.valor_cartao_pix);
     const valor_dinheiro = Number(body.valor_dinheiro);
@@ -19,7 +19,7 @@ function normalizarPlano(body, statusPadrao = 'ATIVO') {
 function validarPlano(dados) {
     if (!dados.nome) return 'Nome do plano e obrigatorio';
     if (!TIPOS_PLANO.includes(dados.tipo_plano)) return 'Tipo do plano invalido';
-    if (!Number.isInteger(dados.qtd_alunas) || dados.qtd_alunas < 1) return 'Quantidade de alunas deve ser maior que zero';
+    if (!Number.isInteger(dados.qtd_alunas) || dados.qtd_alunas < 1) return 'Quantidade de alunos deve ser maior que zero';
     if (!Number.isInteger(dados.qtd_cursos) || dados.qtd_cursos < 1) return 'Quantidade de cursos deve ser maior que zero';
     if (!Number.isFinite(dados.valor_cartao_pix) || dados.valor_cartao_pix < 0) return 'Valor para cartao/pix invalido';
     if (!Number.isFinite(dados.valor_dinheiro) || dados.valor_dinheiro < 0) return 'Valor para dinheiro invalido';

@@ -136,7 +136,7 @@ export default function PlanosMensalidadePage() {
     }
   };
 
-  const nomeAutomatico = `${formData.tipo_plano === "FAMILIAR" ? "Familiar" : "Individual"} ${formData.qtd_alunas || 1} aluna(s) ${formData.qtd_cursos || 1} curso(s)`;
+  const nomeAutomatico = `${formData.tipo_plano === "FAMILIAR" ? "Familiar" : "Individual"} ${formData.qtd_alunas || 1} aluno(s) ${formData.qtd_cursos || 1} curso(s)`;
 
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans">
@@ -176,7 +176,7 @@ export default function PlanosMensalidadePage() {
                   <tr className="bg-[#F9FAFB]">
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Nome</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Tipo</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunas</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunos</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cursos</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Cartão/Pix</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Dinheiro</th>
@@ -219,7 +219,7 @@ export default function PlanosMensalidadePage() {
               <FormInput label="Nome do plano *" value={nomeAutomatico} onChange={() => undefined} placeholder="Gerado automaticamente" readOnly />
               <FormSelect label="Tipo do plano *" value={formData.tipo_plano} onChange={(value) => setFormData((prev) => ({ ...prev, tipo_plano: value as TipoPlano }))} options={[["INDIVIDUAL", "Individual"], ["FAMILIAR", "Familiar"]]} />
               <FormSelect label="Status" value={formData.status} disabled={!editingId} onChange={(value) => setFormData((prev) => ({ ...prev, status: value as StatusPlano }))} options={[["ATIVO", "Ativo"], ["INATIVO", "Inativo"]]} />
-              <FormInput label="Quantidade de alunas *" type="number" min="1" step="1" value={formData.qtd_alunas} onChange={(value) => setFormData((prev) => ({ ...prev, qtd_alunas: value }))} />
+              <FormInput label="Quantidade de alunos *" type="number" min="1" step="1" value={formData.qtd_alunas} onChange={(value) => setFormData((prev) => ({ ...prev, qtd_alunas: value }))} />
               <FormInput label="Quantidade de cursos *" type="number" min="1" step="1" value={formData.qtd_cursos} onChange={(value) => setFormData((prev) => ({ ...prev, qtd_cursos: value }))} />
               <FormInput label="Valor para cartao/pix *" type="number" min="0" step="0.01" value={formData.valor_cartao_pix} onChange={(value) => setFormData((prev) => ({ ...prev, valor_cartao_pix: value }))} placeholder="0.00" />
               <FormInput label="Valor para dinheiro *" type="number" min="0" step="0.01" value={formData.valor_dinheiro} onChange={(value) => setFormData((prev) => ({ ...prev, valor_dinheiro: value }))} placeholder="0.00" />

@@ -81,7 +81,19 @@ export default class AlunoRepository extends Repository {
             valores.push(`%${turmaFiltro}%`, `%${turmaFiltro}%`, `%${turmaFiltro}%`);
         }
 
-        sql += ` group by p.id order by p.nome asc limit ? offset ?`;
+        sql += `
+            group by
+                p.id,
+                p.nome,
+                p.cpf,
+                p.telefone,
+                p.email,
+                p.status,
+                a.responsavel_id,
+                a.data_nascimento,
+                a.data_matricula
+            order by p.nome asc
+            limit ? offset ?`;
         valores.push(Number(limite) || 200, ((Number(pagina) || 1) - 1) * (Number(limite) || 200));
 
         const rows = await this.banco.ExecutaComando(sql, valores);
@@ -109,7 +121,11 @@ export default class AlunoRepository extends Repository {
             left join matricula m on m.aluno_id = a.id and m.status = 'ATIVA'
             left join matricula_turma mt on mt.matricula_id = m.id
             where a.id = ?
-            group by a.id`;
+            group by
+                a.id,
+                a.responsavel_id,
+                a.data_nascimento,
+                a.data_matricula`;
         let valores = [id];
 
         let rows = await this.banco.ExecutaComando(sql, valores);

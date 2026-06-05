@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import mysql from 'mysql2'
 
 export default class Database {
@@ -10,11 +11,11 @@ export default class Database {
     constructor() {
 
         this.#conexao = mysql.createPool({
-            host: '127.0.0.1', 
-            database: 'SG_PDC', 
-            user: 'root', 
-            password: '', 
-            port: 3306, 
+            host: process.env.DB_HOST || '127.0.0.1',
+            database: process.env.DB_NAME || process.env.DB_DATABASE || 'SG_PDC',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || '',
+            port: Number(process.env.DB_PORT || 3306),
             charset: 'utf8mb4',
             waitForConnections: true,
             connectionLimit: 10,

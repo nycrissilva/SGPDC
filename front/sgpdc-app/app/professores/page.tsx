@@ -1,6 +1,6 @@
 "use client";
 
-import { apiFetch, normalizeText } from "@/lib/api";
+import { apiFetch, clearAuthToken, normalizeText } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -145,6 +145,7 @@ export default function AgendaProfessorPage() {
       method: "POST",
       credentials: "include",
     });
+    clearAuthToken();
     router.push("/");
   };
 

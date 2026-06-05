@@ -3,7 +3,7 @@
 import { apiFetch } from "@/lib/api";
 import SearchableSelect from "@/components/SearchableSelect";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Espetaculo = {
   id: number;
@@ -149,7 +149,7 @@ export default function CoreografiasPage() {
     setCoreografia(data);
   };
 
-  const loadAlunosTurma = async (turmaId: string, detalhe = coreografia) => {
+  const loadAlunosTurma = useCallback(async (turmaId: string, detalhe = coreografia) => {
     setLoteForm((prev) => ({
       ...prev,
       turma_id: turmaId,
@@ -167,12 +167,12 @@ export default function CoreografiasPage() {
 
     const response = await apiFetch(`/api/turmas/${turmaId}/alunos`);
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Erro ao carregar alunas da turma");
+    if (!response.ok) throw new Error(data.error || "Erro ao carregar alunos da turma");
     const lista = Array.isArray(data) ? data : [];
     setAlunosTurma(lista);
     setSelectedAlunoIds(lista.map((item: AlunoTurma) => item.id));
     setAjustesAluna({});
-  };
+  }, [coreografia]);
 
   useEffect(() => {
     if (!coreografia) return;
@@ -188,10 +188,10 @@ export default function CoreografiasPage() {
         setError(null);
         await loadAlunosTurma(loteForm.turma_id, coreografia);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao carregar alunas da turma");
+        setError(err instanceof Error ? err.message : "Erro ao carregar alunos da turma");
       }
     })();
-  }, [loteForm.turma_id, coreografia?.id]);
+  }, [loteForm.turma_id, coreografia, loadAlunosTurma]);
 
   const refresh = async () => {
     await loadInitial();
@@ -334,13 +334,13 @@ export default function CoreografiasPage() {
   const saveParticipantesLote = () => {
     if (!coreografia) return;
     return runAction("Participantes salvas com sucesso.", async () => {
-      if (selectedAlunoIds.length === 0) throw new Error("Selecione ao menos uma aluna");
+      if (selectedAlunoIds.length === 0) throw new Error("Selecione ao menos um aluno");
 
       let salvas = 0;
       for (const alunoId of selectedAlunoIds) {
         const ajuste = ajustesAluna[alunoId];
         const papelId = Number(ajuste?.papel_id || loteForm.papel_id);
-        if (!papelId) throw new Error("Selecione um papel para todas as alunas marcadas");
+        if (!papelId) throw new Error("Selecione um papel para todos os alunos marcados");
 
         const valorIndividual = ajuste?.valor_fantasia ?? loteForm.valor_fantasia;
         const response = await apiFetch(`/api/coreografias/${coreografia.id}/participantes`, {
@@ -570,7 +570,7 @@ export default function CoreografiasPage() {
 
               <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-5">
                 <div className="mb-5">
-                  <FormHeader overline="Participantes" title="Adicionar alunas na coreografia" />
+                  <FormHeader overline="Participantes" title="Adicionar alunos na coreografia" />
                 </div>
 
                 <div className="rounded-lg border border-[#E5E7EB] bg-white p-4">
@@ -585,19 +585,19 @@ export default function CoreografiasPage() {
                   <div className="flex flex-col gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <label className="flex items-center gap-3 text-sm font-semibold text-[#1F2A5A]">
                       <input type="checkbox" checked={alunosTurma.length > 0 && selectedAlunoIds.length === alunosTurma.length} onChange={toggleTodosAlunos} disabled={alunosTurma.length === 0} className="h-4 w-4 accent-[#E61E4D]" />
-                      Alunas da turma
+                      Alunos da turma
                     </label>
-                    <span className="text-sm font-medium text-[#4B5563]">{selectedAlunoIds.length} de {alunosTurma.length} selecionada(s)</span>
+                    <span className="text-sm font-medium text-[#4B5563]">{selectedAlunoIds.length} de {alunosTurma.length} selecionado(s)</span>
                   </div>
 
                   {alunosTurma.length === 0 ? (
-                    <div className="p-6 text-sm text-[#4B5563]">Selecione uma turma para carregar as alunas.</div>
+                    <div className="p-6 text-sm text-[#4B5563]">Selecione uma turma para carregar os alunos.</div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
                         <thead className="bg-white">
                           <tr>
-                            <Th>Aluna</Th>
+                            <Th>Aluno</Th>
                             <Th>Papel diferente</Th>
                             <Th>Valor individual</Th>
                           </tr>
@@ -633,10 +633,10 @@ export default function CoreografiasPage() {
                 </div>
 
                 <details className="mt-5 rounded-lg border border-[#E5E7EB] bg-white">
-                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#1F2A5A]">Adicionar ou editar aluna avulsa</summary>
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-[#1F2A5A]">Adicionar ou editar aluno avulso</summary>
                   <div className="border-t border-[#E5E7EB] p-4">
                     <div className="grid gap-4 md:grid-cols-3">
-                      <Select label="Aluna" value={participanteForm.aluno_id} onChange={(value) => setParticipanteForm((prev) => ({ ...prev, aluno_id: value }))} options={alunos.map((item) => [String(item.id), item.nome])} placeholder="Selecione" />
+                      <Select label="Aluno" value={participanteForm.aluno_id} onChange={(value) => setParticipanteForm((prev) => ({ ...prev, aluno_id: value }))} options={alunos.map((item) => [String(item.id), item.nome])} placeholder="Selecione" />
                       <Select label="Papel" value={participanteForm.papel_id} onChange={(value) => setParticipanteForm((prev) => ({ ...prev, papel_id: value }))} options={coreografia.papeis.filter((item) => item.status === "ATIVO").map((item) => [String(item.id), item.nome])} placeholder="Selecione" />
                       <Field label="Valor individual" value={participanteForm.valor_fantasia} onChange={(value) => setParticipanteForm((prev) => ({ ...prev, valor_fantasia: value }))} placeholder="Opcional" />
                     </div>

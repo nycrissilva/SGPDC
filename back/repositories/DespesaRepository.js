@@ -74,7 +74,17 @@ export default class DespesaRepository extends Repository {
         }
 
         sql += `
-            group by d.id, td.nome
+            group by
+                d.id,
+                d.tipo_despesa_id,
+                td.nome,
+                d.descricao,
+                d.valor_total,
+                d.data_despesa,
+                d.forma_pagamento_prevista,
+                d.quantidade_parcelas,
+                d.data_primeiro_vencimento,
+                d.status
             order by d.data_despesa desc, d.id desc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);

@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
@@ -23,7 +24,12 @@ import coreografiaRoutes from './routes/coreografiaRoutes.js'
 import { requireAuth } from './middleware/authMiddleware.js'
 
 const app = express()
-const PORT = 5001
+const PORT = Number(process.env.PORT || 5001)
+const HOST = process.env.HOST || '0.0.0.0'
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -31,10 +37,12 @@ app.use(cors({
         const allowed = [
             'http://localhost:5000',
             'https://localhost:5000',
+            'http://127.0.0.1:5000',
             'http://localhost:8081',
             'http://localhost:8082',
             'http://127.0.0.1:8081',
             'http://127.0.0.1:8082',
+            ...allowedOrigins,
         ]
         if (
             allowed.includes(origin) ||
@@ -76,6 +84,6 @@ app.use('/api/relatorios-financeiros', relatorioFinanceiroRoutes)
 app.use('/api/espetaculos', espetaculoRoutes)
 app.use('/api/coreografias', coreografiaRoutes)
 
-app.listen(PORT, () => {
-    console.log(`Servidor SGPDC rodando na porta http://localhost:5001`)
+app.listen(PORT, HOST, () => {
+    console.log(`Servidor SGPDC rodando em http://${HOST}:${PORT}`)
 })

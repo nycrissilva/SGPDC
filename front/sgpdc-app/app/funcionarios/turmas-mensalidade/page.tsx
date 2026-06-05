@@ -112,10 +112,10 @@ export default function TurmasMensalidadePage() {
     try {
       const response = await apiFetch(`/api/turmas/${selectedTurmaId}/alunos`);
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erro ao carregar alunas da turma");
+      if (!response.ok) throw new Error(data.error || "Erro ao carregar alunos da turma");
       setAlunas(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar alunas da turma");
+      setError(err instanceof Error ? err.message : "Erro ao carregar alunos da turma");
       setAlunas([]);
     } finally {
       setLoadingAlunas(false);
@@ -211,7 +211,7 @@ export default function TurmasMensalidadePage() {
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-[#6A4FBF]">Mensalidades</p>
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Turmas Mensalidade</h1>
-            <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Consulte as alunas da turma escolhida e o status da mensalidade no mês selecionado.</p>
+            <p className="mt-2 max-w-2xl text-sm text-[#4B5563]">Consulte os alunos da turma escolhida e o status da mensalidade no mês selecionado.</p>
           </div>
           <Link href="/funcionarios" className="inline-flex items-center rounded-full border border-[#1F2A5A] bg-white px-5 py-3 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">
             Voltar
@@ -233,7 +233,7 @@ export default function TurmasMensalidadePage() {
         </section>
 
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard label="Alunas" value={String(resumo.total)} />
+          <SummaryCard label="Alunos" value={String(resumo.total)} />
           <SummaryCard label="Pagas" value={String(resumo.pagas)} />
           <SummaryCard label="Atrasadas" value={String(resumo.atrasadas)} />
           <SummaryCard label="Pendentes" value={String(resumo.pendentes)} />
@@ -247,17 +247,17 @@ export default function TurmasMensalidadePage() {
           </div>
 
           {loadingAlunas ? (
-            <p className="text-sm text-[#2B2B2B]/70">Carregando alunas e mensalidades...</p>
+            <p className="text-sm text-[#2B2B2B]/70">Carregando alunos e mensalidades...</p>
           ) : !turmaId ? (
             <p className="text-sm text-[#2B2B2B]/70">Selecione uma turma para consultar as mensalidades.</p>
           ) : linhas.length === 0 ? (
-            <p className="text-sm text-[#2B2B2B]/70">Nenhuma aluna encontrada nesta turma.</p>
+            <p className="text-sm text-[#2B2B2B]/70">Nenhum aluno encontrado nesta turma.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-[#E5E7EB] text-left text-sm">
                 <thead>
                   <tr className="bg-[#F9FAFB]">
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluna</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Aluno</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Responsável</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Mês</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Plano</th>

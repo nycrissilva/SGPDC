@@ -23,7 +23,17 @@ export default class PlanoMensalidadeRepository extends Repository {
             sql += ` and pm.status = 'ATIVO'`;
         }
 
-        sql += ` group by pm.id order by pm.status asc, pm.nome asc`;
+        sql += `
+            group by
+                pm.id,
+                pm.nome,
+                pm.tipo_plano,
+                pm.qtd_alunas,
+                pm.qtd_cursos,
+                pm.valor_cartao_pix,
+                pm.valor_dinheiro,
+                pm.status
+            order by pm.status asc, pm.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql, values);
         return rows.map((row) => PlanoMensalidadeEntity.toMap(row));
@@ -44,7 +54,15 @@ export default class PlanoMensalidadeRepository extends Repository {
             from plano_mensalidade pm
             left join grupo_financeiro gf on gf.plano_mensalidade_id = pm.id
             where pm.id = ?
-            group by pm.id`;
+            group by
+                pm.id,
+                pm.nome,
+                pm.tipo_plano,
+                pm.qtd_alunas,
+                pm.qtd_cursos,
+                pm.valor_cartao_pix,
+                pm.valor_dinheiro,
+                pm.status`;
         const rows = await this.banco.ExecutaComando(sql, [id]);
         if (rows.length === 0) return null;
         return PlanoMensalidadeEntity.toMap(rows[0]);

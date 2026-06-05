@@ -22,7 +22,17 @@ export default class LocalRepository extends Repository {
             sql += ` and l.status = 'ATIVO'`;
         }
 
-        sql += ` group by l.id order by l.nome asc`;
+        sql += `
+            group by
+                l.id,
+                l.nome,
+                l.cep,
+                l.rua,
+                l.numero,
+                l.bairro,
+                l.cidade,
+                l.status
+            order by l.nome asc`;
 
         const rows = await this.banco.ExecutaComando(sql);
         return rows.map((row) => LocalEntity.toMap(row));
@@ -43,7 +53,15 @@ export default class LocalRepository extends Repository {
             from local_aula l
             left join turma t on t.local_id = l.id
             where l.id = ?
-            group by l.id`;
+            group by
+                l.id,
+                l.nome,
+                l.cep,
+                l.rua,
+                l.numero,
+                l.bairro,
+                l.cidade,
+                l.status`;
         const rows = await this.banco.ExecutaComando(sql, [id]);
         if (rows.length === 0) return null;
         return LocalEntity.toMap(rows[0]);

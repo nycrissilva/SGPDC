@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { apiFetch, apiBase } from "@/lib/api";
+import { apiFetch, setAuthToken } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
@@ -33,6 +33,10 @@ export default function Home() {
         return;
       }
 
+      if (data.token) {
+        setAuthToken(data.token);
+      }
+
       if (data.user?.firstAccess) {
         router.push("/auth/change-password");
         return;
@@ -45,7 +49,7 @@ export default function Home() {
       } else {
         router.push("/");
       }
-    } catch (error) {
+    } catch {
       setError("Erro ao fazer login. Tente novamente.");
     } finally {
       setLoading(false);

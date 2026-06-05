@@ -1,7 +1,31 @@
-// Use the public API URL when set, otherwise default to the local backend in development.
-// This ensures the browser sends the backend auth cookie, since the frontend proxy path would be a different origin.
-export const apiBase =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+// In production behind Nginx, keep this empty so calls go to the same public origin.
+// For local/direct API access, set NEXT_PUBLIC_API_URL to the backend origin.
+export const apiBase = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
+function buildApiUrl(path: string) {
+  if (!apiBase) return path;
+  if (apiBase.endsWith("/api") && path.startsWith("/api/")) {
+    return `${apiBase}${path.slice(4)}`;
+  }
+  return `${apiBase}${path}`;
+}
+
+const AUTH_TOKEN_KEY = "sgpdc_token";
+
+function getAuthToken() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function setAuthToken(token: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(AUTH_TOKEN_KEY, token);
+}
+
+export function clearAuthToken() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+}
 
 const mojibakePattern = /[ÃÂ�]/;
 const windows1252Bytes: Record<number, number> = {
@@ -77,13 +101,20 @@ function normalizeJson<T>(value: T): T {
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}) {
-  const response = await fetch(`${apiBase}${path}`, {
+  const headers = new Headers(options.headers || {});
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const token = getAuthToken();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(buildApiUrl(path), {
     credentials: "include",
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
   const parseJson = response.json.bind(response);

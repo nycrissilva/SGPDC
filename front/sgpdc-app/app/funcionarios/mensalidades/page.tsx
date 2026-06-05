@@ -387,7 +387,7 @@ export default function MensalidadesPage() {
 
           <div className="grid gap-4 md:grid-cols-5">
             <Select label="Responsável" value={filters.responsavel_id} onChange={(value) => handleFilter("responsavel_id", value)} options={responsaveis.map((item) => [String(item.id), item.nome])} placeholder="Todos" />
-            <Select label="Aluna" value={filters.aluno_id} onChange={(value) => handleFilter("aluno_id", value)} options={alunos.map((item) => [String(item.id), item.nome])} placeholder="Todas" />
+            <Select label="Aluno" value={filters.aluno_id} onChange={(value) => handleFilter("aluno_id", value)} options={alunos.map((item) => [String(item.id), item.nome])} placeholder="Todos" />
             <Select label="Mês" value={filters.mes_referencia} onChange={(value) => handleFilter("mes_referencia", value)} options={meses} placeholder="Todos" />
             <Field label="Ano" value={filters.ano_referencia} onChange={(value) => handleFilter("ano_referencia", value)} placeholder="2026" />
             <Select label="Status" value={filters.status} onChange={(value) => handleFilter("status", value)} options={[["PENDENTE", "Pendente"], ["ATRASADA", "Atrasada"], ["ATRASADA_COM_MULTA", "Atrasada com multa"], ["PAGA", "Paga"], ["CANCELADA", "Cancelada"]]} placeholder="Todos" />
@@ -411,7 +411,7 @@ export default function MensalidadesPage() {
                   <tr className="bg-[#F9FAFB]">
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Referência</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Responsável</th>
-                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunas</th>
+                    <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Alunos</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Plano</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Vencimento</th>
                     <th className="px-4 py-3 font-semibold text-[#1F2A5A]">Total</th>
