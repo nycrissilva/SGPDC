@@ -373,11 +373,8 @@ export default class VendaRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table venda
-              add column if not exists conta_receber_id int(11) null after matricula_id,
-              add index if not exists idx_venda_conta_receber (conta_receber_id)
-        `, []);
+        await this.garantirColuna("venda", "conta_receber_id", "int(11) null after matricula_id");
+        await this.garantirIndice("venda", "idx_venda_conta_receber", ["conta_receber_id"]);
     }
 
     async listarItensPorVenda(vendaIds) {

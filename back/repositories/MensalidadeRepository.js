@@ -490,11 +490,8 @@ export default class MensalidadeRepository extends Repository {
     }
 
     async garantirParcelasContaReceber() {
-        await this.banco.ExecutaComando(`
-            alter table conta_receber
-              add column if not exists numero_parcela int(11) not null default 1 after participacao_coreografia_id,
-              add column if not exists total_parcelas int(11) not null default 1 after numero_parcela
-        `, []);
+        await this.garantirColuna("conta_receber", "numero_parcela", "int(11) not null default 1 after participacao_coreografia_id");
+        await this.garantirColuna("conta_receber", "total_parcelas", "int(11) not null default 1 after numero_parcela");
     }
 
     async editarMensalidade(id, dados) {

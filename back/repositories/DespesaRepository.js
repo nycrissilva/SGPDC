@@ -309,12 +309,9 @@ export default class DespesaRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table tipo_despesa
-              add column if not exists descricao varchar(255) null,
-              add column if not exists status varchar(50) default 'ATIVO',
-              add unique index if not exists uk_tipo_despesa_nome (nome)
-        `, []);
+        await this.garantirColuna("tipo_despesa", "descricao", "varchar(255) null");
+        await this.garantirColuna("tipo_despesa", "status", "varchar(50) default 'ATIVO'");
+        await this.garantirIndice("tipo_despesa", "uk_tipo_despesa_nome", ["nome"], { unico: true });
 
         await this.banco.ExecutaComando(`
             create table if not exists despesa (
@@ -334,20 +331,17 @@ export default class DespesaRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table despesa
-              add column if not exists conta_pagar_id int(11) null,
-              add column if not exists valor decimal(10,2) null,
-              add column if not exists data date null,
-              add column if not exists valor_total decimal(10,2) null after descricao,
-              add column if not exists data_despesa date null after valor_total,
-              add column if not exists forma_pagamento_prevista varchar(50) null after data_despesa,
-              add column if not exists quantidade_parcelas int(11) not null default 1 after forma_pagamento_prevista,
-              add column if not exists data_primeiro_vencimento date null after quantidade_parcelas,
-              add column if not exists status varchar(50) default 'PENDENTE' after data_primeiro_vencimento,
-              add index if not exists idx_despesa_tipo (tipo_despesa_id),
-              add index if not exists idx_despesa_status (status)
-        `, []);
+        await this.garantirColuna("despesa", "conta_pagar_id", "int(11) null");
+        await this.garantirColuna("despesa", "valor", "decimal(10,2) null");
+        await this.garantirColuna("despesa", "data", "date null");
+        await this.garantirColuna("despesa", "valor_total", "decimal(10,2) null after descricao");
+        await this.garantirColuna("despesa", "data_despesa", "date null after valor_total");
+        await this.garantirColuna("despesa", "forma_pagamento_prevista", "varchar(50) null after data_despesa");
+        await this.garantirColuna("despesa", "quantidade_parcelas", "int(11) not null default 1 after forma_pagamento_prevista");
+        await this.garantirColuna("despesa", "data_primeiro_vencimento", "date null after quantidade_parcelas");
+        await this.garantirColuna("despesa", "status", "varchar(50) default 'PENDENTE' after data_primeiro_vencimento");
+        await this.garantirIndice("despesa", "idx_despesa_tipo", ["tipo_despesa_id"]);
+        await this.garantirIndice("despesa", "idx_despesa_status", ["status"]);
 
         await this.banco.ExecutaComando(`
             update despesa
@@ -376,19 +370,16 @@ export default class DespesaRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table conta_pagar
-              add column if not exists despesa_id int(11) null after id,
-              add column if not exists numero_parcela int(11) not null default 1 after despesa_id,
-              add column if not exists total_parcelas int(11) not null default 1 after numero_parcela,
-              add column if not exists valor_total decimal(10,2) null,
-              add column if not exists valor decimal(10,2) null after total_parcelas,
-              add column if not exists data_pagamento date null after data_vencimento,
-              add column if not exists forma_pagamento varchar(50) null after data_pagamento,
-              add index if not exists idx_conta_pagar_despesa (despesa_id),
-              add index if not exists idx_conta_pagar_status (status),
-              add index if not exists idx_conta_pagar_vencimento (data_vencimento)
-        `, []);
+        await this.garantirColuna("conta_pagar", "despesa_id", "int(11) null after id");
+        await this.garantirColuna("conta_pagar", "numero_parcela", "int(11) not null default 1 after despesa_id");
+        await this.garantirColuna("conta_pagar", "total_parcelas", "int(11) not null default 1 after numero_parcela");
+        await this.garantirColuna("conta_pagar", "valor_total", "decimal(10,2) null");
+        await this.garantirColuna("conta_pagar", "valor", "decimal(10,2) null after total_parcelas");
+        await this.garantirColuna("conta_pagar", "data_pagamento", "date null after data_vencimento");
+        await this.garantirColuna("conta_pagar", "forma_pagamento", "varchar(50) null after data_pagamento");
+        await this.garantirIndice("conta_pagar", "idx_conta_pagar_despesa", ["despesa_id"]);
+        await this.garantirIndice("conta_pagar", "idx_conta_pagar_status", ["status"]);
+        await this.garantirIndice("conta_pagar", "idx_conta_pagar_vencimento", ["data_vencimento"]);
 
         await this.banco.ExecutaComando(`
             update conta_pagar cp

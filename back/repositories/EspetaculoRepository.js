@@ -13,10 +13,7 @@ export default class EspetaculoRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table evento
-              add column if not exists status varchar(50) not null default 'ATIVO'
-        `, []);
+        await this.garantirColuna("evento", "status", "varchar(50) not null default 'ATIVO'");
 
         await this.banco.ExecutaComando(`
             create table if not exists coreografia (
@@ -35,11 +32,11 @@ export default class EspetaculoRepository extends Repository {
 
         await this.banco.ExecutaComando(`
             alter table coreografia
-              modify column evento_id int(11) null,
-              add column if not exists descricao varchar(255) default null,
-              add column if not exists status varchar(50) not null default 'ATIVO',
-              add column if not exists valor_fantasia_geral decimal(10,2) default null
+              modify column evento_id int(11) null
         `, []);
+        await this.garantirColuna("coreografia", "descricao", "varchar(255) default null");
+        await this.garantirColuna("coreografia", "status", "varchar(50) not null default 'ATIVO'");
+        await this.garantirColuna("coreografia", "valor_fantasia_geral", "decimal(10,2) default null");
 
         await this.banco.ExecutaComando(`
             create table if not exists espetaculo_coreografia (
@@ -76,25 +73,28 @@ export default class EspetaculoRepository extends Repository {
             ) engine=InnoDB default charset=utf8mb4 collate=utf8mb4_general_ci
         `, []);
 
-        await this.banco.ExecutaComando(`
-            alter table participacao_coreografia
-              add column if not exists papel_id int(11) null after coreografia_id,
-              add column if not exists status varchar(50) not null default 'ATIVO',
-              add index if not exists idx_participacao_papel (papel_id),
-              add unique index if not exists uk_participacao_coreografia_aluno_papel (coreografia_id, aluno_id, papel_id)
-        `, []);
+        await this.garantirColuna("participacao_coreografia", "papel_id", "int(11) null after coreografia_id");
+        await this.garantirColuna("participacao_coreografia", "status", "varchar(50) not null default 'ATIVO'");
+        await this.garantirIndice("participacao_coreografia", "idx_participacao_papel", ["papel_id"]);
+        await this.garantirIndice(
+            "participacao_coreografia",
+            "uk_participacao_coreografia_aluno_papel",
+            ["coreografia_id", "aluno_id", "papel_id"],
+            { unico: true }
+        );
 
-        await this.banco.ExecutaComando(`
-            alter table conta_receber
-              add column if not exists coreografia_id int(11) null after matricula_id,
-              add column if not exists espetaculo_id int(11) null after coreografia_id,
-              add column if not exists espetaculo_coreografia_id int(11) null after espetaculo_id,
-              add column if not exists fantasia_id int(11) null after coreografia_id,
-              add column if not exists participacao_coreografia_id int(11) null after fantasia_id,
-              add column if not exists numero_parcela int(11) not null default 1 after participacao_coreografia_id,
-              add column if not exists total_parcelas int(11) not null default 1 after numero_parcela,
-              add index if not exists idx_conta_receber_fantasia_origem (espetaculo_coreografia_id, coreografia_id, fantasia_id, participacao_coreografia_id)
-        `, []);
+        await this.garantirColuna("conta_receber", "coreografia_id", "int(11) null after matricula_id");
+        await this.garantirColuna("conta_receber", "espetaculo_id", "int(11) null after coreografia_id");
+        await this.garantirColuna("conta_receber", "espetaculo_coreografia_id", "int(11) null after espetaculo_id");
+        await this.garantirColuna("conta_receber", "fantasia_id", "int(11) null after coreografia_id");
+        await this.garantirColuna("conta_receber", "participacao_coreografia_id", "int(11) null after fantasia_id");
+        await this.garantirColuna("conta_receber", "numero_parcela", "int(11) not null default 1 after participacao_coreografia_id");
+        await this.garantirColuna("conta_receber", "total_parcelas", "int(11) not null default 1 after numero_parcela");
+        await this.garantirIndice(
+            "conta_receber",
+            "idx_conta_receber_fantasia_origem",
+            ["espetaculo_coreografia_id", "coreografia_id", "fantasia_id", "participacao_coreografia_id"]
+        );
 
         await this.banco.ExecutaComando(`
             update conta_receber cr
