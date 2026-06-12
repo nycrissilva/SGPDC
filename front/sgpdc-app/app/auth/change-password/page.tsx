@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PasswordField from "@/components/PasswordField";
 import { apiFetch, setAuthToken } from "@/lib/api";
 
 export default function ChangePasswordPage() {
@@ -84,39 +85,30 @@ export default function ChangePasswordPage() {
         </p>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="text-sm font-medium text-[#1F2A5A]">Senha atual</span>
-            <input
-              type="password"
-              value={oldPassword}
-              onChange={(event) => setOldPassword(event.target.value)}
-              className="mt-2 w-full rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#2B2B2B] outline-none"
-              required
-            />
-          </label>
+          <PasswordField
+            label="Senha atual"
+            surface="white"
+            value={oldPassword}
+            onChange={(event) => setOldPassword(event.target.value)}
+            required
+          />
 
-          <label className="block">
-            <span className="text-sm font-medium text-[#1F2A5A]">Nova senha</span>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              className="mt-2 w-full rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#2B2B2B] outline-none"
-              required
-              minLength={6}
-            />
-          </label>
+          <PasswordField
+            label="Nova senha"
+            surface="white"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            required
+            minLength={6}
+          />
 
-          <label className="block">
-            <span className="text-sm font-medium text-[#1F2A5A]">Confirmar nova senha</span>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="mt-2 w-full rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#2B2B2B] outline-none"
-              required
-            />
-          </label>
+          <PasswordField
+            label="Confirmar nova senha"
+            surface="white"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            required
+          />
 
           {error && <p className="text-sm text-[#E61E4D]">{error}</p>}
           {success && <p className="text-sm text-[#16A34A]">Senha alterada com sucesso! Redirecionando...</p>}

@@ -33,9 +33,9 @@ export default class ProfessorController extends PessoaController {
                 return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
-            const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
-            if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF já cadastrado" });
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
             }
 
             const usuarioExistente = await this.usuarioRepository.obterPorEmail(email);
@@ -43,7 +43,7 @@ export default class ProfessorController extends PessoaController {
                 return res.status(400).json({ error: "Já existe um usuário cadastrado com este email" });
             }
 
-            const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO", data_nascimento);
+            const pessoa = new PessoaEntity(null, nome, validacaoCpf.cpf, telefone, email, status || "ATIVO", data_nascimento);
             const pessoaCadastrada = await this.pessoaRepository.cadastrar(pessoa);
             if (!pessoaCadastrada) {
                 return res.status(500).json({ error: "Erro ao cadastrar pessoa" });
@@ -92,7 +92,12 @@ export default class ProfessorController extends PessoaController {
                 return res.status(404).json({ error: "Professor não encontrado" });
             }
 
-            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, cpf || pessoaExistente.cpf,
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf ?? pessoaExistente.cpf, id);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
+            }
+
+            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, validacaoCpf.cpf,
                 telefone || pessoaExistente.telefone, email || pessoaExistente.email, status || pessoaExistente.status, data_nascimento || pessoaExistente.data_nascimento);
 
             const pessoaAtualizada = await this.pessoaRepository.alterar(pessoa);

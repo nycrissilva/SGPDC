@@ -3,7 +3,14 @@ import Repository from "./repository.js";
 export default class PresencaRepository extends Repository {
     constructor() {
         super();
-        this.ready = this.ensureSchema();
+        this.ready = this.ensureSchema()
+            .then(() => null)
+            .catch((error) => error);
+    }
+
+    async waitUntilReady() {
+        const error = await this.ready;
+        if (error) throw error;
     }
 
     async ensureSchema() {
@@ -23,7 +30,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async listarPorTurmaData(turmaId, data) {
-        await this.ready;
+        await this.waitUntilReady();
         const sql = `
             select
                 mt.id as matricula_turma_id,
@@ -52,7 +59,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async listarPorProfessorTurmaData(professorId, turmaId, data) {
-        await this.ready;
+        await this.waitUntilReady();
         const sql = `
             select
                 mt.id as matricula_turma_id,
@@ -82,7 +89,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async turmaPertenceAoProfessor(professorId, turmaId) {
-        await this.ready;
+        await this.waitUntilReady();
         const sql = `
             select count(*) as total
             from professor_turma pt
@@ -93,7 +100,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async salvar(matriculaTurmaId, data, presente) {
-        await this.ready;
+        await this.waitUntilReady();
         const existing = await this.banco.ExecutaComando(
             `select id from presenca where matricula_turma_id = ? and data = ?`,
             [matriculaTurmaId, data]
@@ -113,7 +120,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async obterChamada(turmaId, data) {
-        await this.ready;
+        await this.waitUntilReady();
         const rows = await this.banco.ExecutaComando(
             `select id, turma_id, data, finalizada, sem_aula, motivo_sem_aula
              from chamada
@@ -135,7 +142,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async salvarChamada({ turmaId, data, finalizada, semAula, motivoSemAula }) {
-        await this.ready;
+        await this.waitUntilReady();
         const existing = await this.banco.ExecutaComando(
             `select id from chamada where turma_id = ? and data = ?`,
             [turmaId, data]
@@ -158,7 +165,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async listarChamadasPorTurma(turmaId, dataInicial, dataFinal) {
-        await this.ready;
+        await this.waitUntilReady();
         const rows = await this.banco.ExecutaComando(
             `select id, turma_id, data, finalizada, sem_aula, motivo_sem_aula
              from chamada
@@ -172,7 +179,7 @@ export default class PresencaRepository extends Repository {
     }
 
     async listarRelatorio({ turmaId, alunoId, dataInicial, dataFinal }) {
-        await this.ready;
+        await this.waitUntilReady();
         let sql = `
             select
                 a.id as aluno_id,

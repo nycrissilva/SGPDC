@@ -1,9 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PasswordField from "@/components/PasswordField";
 import { apiFetch, setAuthToken } from "@/lib/api";
+import logoPDC from "./logoPDC.jpg";
 
 export default function Home() {
   const router = useRouter();
@@ -59,9 +62,22 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-[#2B2B2B] font-sans flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
       <main className="w-full max-w-4xl space-y-6">
-        <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">Projeto Dança Comunidade</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight">Fazer Login</h1>
+        <div className="rounded-[32px] bg-[#1F2A5A] p-6 text-white shadow-sm sm:p-8">
+          <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+            <Image
+              src={logoPDC}
+              alt="Logo do Projeto Dança Comunidade"
+              priority
+              className="h-28 w-28 shrink-0 rounded-full object-cover shadow-lg ring-4 ring-white/90 sm:h-32 sm:w-32"
+            />
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-[#F2F2F2]/80">
+                Projeto Dança Comunidade
+              </p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight">Fazer Login</h1>
+              <p className="mt-2 text-sm text-white/75">Sistema de Gestão do Projeto Dança Comunidade</p>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-[32px] bg-white p-6 shadow-sm">
@@ -77,17 +93,13 @@ export default function Home() {
                 required
               />
             </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium text-[#1F2A5A]">Senha</label>
-              <input
-                value={senha}
-                onChange={(event) => setSenha(event.target.value)}
-                type="password"
-                placeholder="Digite sua senha"
-                className="w-full rounded-3xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 text-sm text-[#2B2B2B] outline-none transition focus:border-[#E61E4D] focus:ring-2 focus:ring-[#E61E4D]/20"
-                required
-              />
-            </div>
+            <PasswordField
+              label="Senha"
+              value={senha}
+              onChange={(event) => setSenha(event.target.value)}
+              placeholder="Digite sua senha"
+              required
+            />
             {error && <p className="text-sm text-[#E61E4D]">{error}</p>}
             <button
               type="submit"

@@ -3,7 +3,14 @@ import Repository from "./repository.js";
 export default class PeriodoLetivoRepository extends Repository {
     constructor() {
         super();
-        this.ready = this.ensureSchema();
+        this.ready = this.ensureSchema()
+            .then(() => null)
+            .catch((error) => error);
+    }
+
+    async waitUntilReady() {
+        const error = await this.ready;
+        if (error) throw error;
     }
 
     async ensureSchema() {
@@ -19,7 +26,7 @@ export default class PeriodoLetivoRepository extends Repository {
     }
 
     async listar() {
-        await this.ready;
+        await this.waitUntilReady();
         const rows = await this.banco.ExecutaComando(
             `select id, nome, data_inicio, data_fim, ativo
              from periodo_letivo
@@ -30,7 +37,7 @@ export default class PeriodoLetivoRepository extends Repository {
     }
 
     async obterAtual() {
-        await this.ready;
+        await this.waitUntilReady();
         const rows = await this.banco.ExecutaComando(
             `select id, nome, data_inicio, data_fim, ativo
              from periodo_letivo
@@ -43,7 +50,7 @@ export default class PeriodoLetivoRepository extends Repository {
     }
 
     async salvar({ id, nome, data_inicio, data_fim }) {
-        await this.ready;
+        await this.waitUntilReady();
         await this.banco.ExecutaComandoNonQuery(`update periodo_letivo set ativo = 0 where ativo = 1`, []);
 
         if (id) {

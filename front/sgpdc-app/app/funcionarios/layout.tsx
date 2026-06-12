@@ -5,6 +5,7 @@ import { apiFetch, clearAuthToken } from "@/lib/api";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import AjudaDaPagina from "@/components/AjudaDaPagina";
 
 type MenuItem = {
   href: string;
@@ -146,6 +147,12 @@ export default function FuncionariosLayout({
                 >
                   Meu Perfil
                 </Link>
+                <Link
+                  href="/ajuda"
+                  className={`block rounded-3xl border px-4 py-3 text-sm font-semibold transition ${pathname === "/ajuda" ? "border-[#6A4FBF] bg-[#6A4FBF]/10 text-[#6A4FBF]" : "border-transparent bg-white text-[#1F2A5A] hover:border-[#6A4FBF]"}`}
+                >
+                  Central de Ajuda
+                </Link>
 
                 <nav className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
                   {menuGroups.map((group) => {
@@ -198,7 +205,10 @@ export default function FuncionariosLayout({
               </div>
             </aside>
 
-            <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm lg:min-h-[600px]">
+            <section data-help-scope className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm lg:min-h-[600px]">
+              <div className="mb-4 flex justify-end">
+                <AjudaDaPagina />
+              </div>
               {children}
             </section>
           </div>

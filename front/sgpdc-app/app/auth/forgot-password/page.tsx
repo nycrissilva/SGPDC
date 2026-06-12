@@ -1,6 +1,7 @@
 "use client";
 
 import { apiFetch } from "@/lib/api";
+import PasswordField from "@/components/PasswordField";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -45,8 +46,8 @@ export default function ForgotPasswordPage() {
           {error && <div className="rounded-lg bg-[#E61E4D]/10 p-4 text-sm text-[#E61E4D]">{error}</div>}
           {success && <div className="rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">Senha redefinida com sucesso.</div>}
           <Field label="CPF ou e-mail" value={identificador} onChange={setIdentificador} required />
-          <Field label="Nova senha" type="password" value={newPassword} onChange={setNewPassword} required />
-          <Field label="Confirmar senha" type="password" value={confirmPassword} onChange={setConfirmPassword} required />
+          <PasswordField label="Nova senha" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required />
+          <PasswordField label="Confirmar senha" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required />
           <button type="submit" disabled={loading} className="w-full rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
             {loading ? "Redefinindo..." : "Redefinir senha"}
           </button>

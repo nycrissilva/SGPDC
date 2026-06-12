@@ -30,12 +30,12 @@ export default class ResponsavelController extends PessoaController {
                 return res.status(400).json({ error: "Campos obrigatórios faltando" });
             }
 
-            const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
-            if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF já cadastrado" });
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
             }
 
-            const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO", data_nascimento || null);
+            const pessoa = new PessoaEntity(null, nome, validacaoCpf.cpf, telefone, email, status || "ATIVO", data_nascimento || null);
             const pessoaCadastrada = await this.pessoaRepository.cadastrar(pessoa);
             if (!pessoaCadastrada) {
                 return res.status(500).json({ error: "Erro ao cadastrar pessoa" });
@@ -43,7 +43,7 @@ export default class ResponsavelController extends PessoaController {
 
             let pessoaId = Number(pessoa.id);
             if (!Number.isInteger(pessoaId) || pessoaId <= 0) {
-                const pessoaCriada = await this.pessoaRepository.obterPorCpf(cpf);
+                const pessoaCriada = await this.pessoaRepository.obterPorCpf(validacaoCpf.cpf);
                 pessoaId = Number(pessoaCriada?.id);
             }
 
@@ -78,7 +78,12 @@ export default class ResponsavelController extends PessoaController {
                 return res.status(404).json({ error: "Responsável não encontrado" });
             }
 
-            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, cpf || pessoaExistente.cpf,
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf ?? pessoaExistente.cpf, id);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
+            }
+
+            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, validacaoCpf.cpf,
                 telefone || pessoaExistente.telefone, email || pessoaExistente.email, status || pessoaExistente.status,
                 data_nascimento || pessoaExistente.data_nascimento);
 

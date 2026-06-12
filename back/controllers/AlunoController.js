@@ -63,9 +63,9 @@ export default class AlunoController extends PessoaController {
                 return res.status(400).json({ error: "Selecione ao menos uma turma ativa" });
             }
 
-            const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpf);
-            if (pessoaExistente) {
-                return res.status(400).json({ error: "CPF já cadastrado" });
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
             }
 
             const turmaIds = turma_ids.map(Number).filter((id) => Number.isInteger(id) && id > 0);
@@ -79,7 +79,7 @@ export default class AlunoController extends PessoaController {
             }
 
             const dataMatricula = data_matricula || this.today();
-            const pessoa = new PessoaEntity(null, nome, cpf, telefone, email, status || "ATIVO", data_nascimento);
+            const pessoa = new PessoaEntity(null, nome, validacaoCpf.cpf, telefone, email, status || "ATIVO", data_nascimento);
             const pessoaCadastrada = await this.pessoaRepository.cadastrar(pessoa);
             if (!pessoaCadastrada) {
                 return res.status(500).json({ error: "Erro ao cadastrar pessoa" });
@@ -324,7 +324,12 @@ export default class AlunoController extends PessoaController {
                 return res.status(404).json({ error: "Aluno não encontrado" });
             }
 
-            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, cpf || pessoaExistente.cpf,
+            const validacaoCpf = await this.validarCpfParaSalvar(cpf ?? pessoaExistente.cpf, id);
+            if (validacaoCpf.error) {
+                return res.status(400).json({ error: validacaoCpf.error });
+            }
+
+            const pessoa = new PessoaEntity(id, nome || pessoaExistente.nome, validacaoCpf.cpf,
                 telefone || pessoaExistente.telefone, email || pessoaExistente.email, status || pessoaExistente.status,
                 data_nascimento || pessoaExistente.data_nascimento || alunoExistente.data_nascimento);
 

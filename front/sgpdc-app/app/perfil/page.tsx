@@ -1,6 +1,7 @@
 "use client";
 
 import AuthGuard from "@/components/AuthGuard";
+import PasswordField from "@/components/PasswordField";
 import { apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -70,9 +71,9 @@ export default function PerfilPage() {
               {success && <div className="rounded-lg bg-[#6A4FBF]/10 p-4 text-sm text-[#6A4FBF]">Perfil atualizado com sucesso.</div>}
               <Field label="E-mail" type="email" value={formData.email} onChange={(value) => setFormData((prev) => ({ ...prev, email: value }))} required />
               <Field label="Número" type="tel" value={formData.telefone} onChange={(value) => setFormData((prev) => ({ ...prev, telefone: value }))} />
-              <Field label="Senha atual" type="password" value={formData.currentPassword} onChange={(value) => setFormData((prev) => ({ ...prev, currentPassword: value }))} />
-              <Field label="Nova senha" type="password" value={formData.newPassword} onChange={(value) => setFormData((prev) => ({ ...prev, newPassword: value }))} />
-              <Field label="Confirmar nova senha" type="password" value={formData.confirmPassword} onChange={(value) => setFormData((prev) => ({ ...prev, confirmPassword: value }))} />
+              <PasswordField label="Senha atual" value={formData.currentPassword} onChange={(event) => setFormData((prev) => ({ ...prev, currentPassword: event.target.value }))} />
+              <PasswordField label="Nova senha" value={formData.newPassword} onChange={(event) => setFormData((prev) => ({ ...prev, newPassword: event.target.value }))} />
+              <PasswordField label="Confirmar nova senha" value={formData.confirmPassword} onChange={(event) => setFormData((prev) => ({ ...prev, confirmPassword: event.target.value }))} />
               <button type="submit" disabled={saving} className="w-full rounded-full bg-[#E61E4D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#F04A6A] disabled:opacity-50">
                 {saving ? "Salvando..." : "Salvar perfil"}
               </button>

@@ -30,12 +30,15 @@ export default class PessoaRepository extends Repository {
             left join responsavel r on r.id = p.id
             left join professor pr on pr.id = p.id
             left join diretoria d on d.id = p.id
-            where 1 = 1`;
+            where p.status = 'ATIVO'`;
 
         let valores = [];
         if (filtro) {
-            sql += " and (p.nome like ? or p.cpf = ? or p.email like ?)";
-            valores.push(`%${filtro}%`, filtro, `%${filtro}%`);
+            const cpfNormalizado = String(filtro).replace(/\D/g, "");
+            sql += ` and (p.nome like ?
+                or replace(replace(replace(replace(p.cpf, '.', ''), '-', ''), '/', ''), ' ', '') = ?
+                or p.email like ?)`;
+            valores.push(`%${filtro}%`, cpfNormalizado || filtro, `%${filtro}%`);
         }
 
         if (tipo) {
@@ -73,8 +76,10 @@ export default class PessoaRepository extends Repository {
     }
 
     async obterPorCpf(cpf) {
-        let sql = "select * from pessoa where cpf = ?";
-        let valores = [cpf];
+        const cpfNormalizado = String(cpf ?? "").replace(/\D/g, "");
+        let sql = `select * from pessoa
+                   where replace(replace(replace(replace(cpf, '.', ''), '-', ''), '/', ''), ' ', '') = ?`;
+        let valores = [cpfNormalizado];
 
         let rows = await this.banco.ExecutaComando(sql, valores);
         if (rows.length === 0)

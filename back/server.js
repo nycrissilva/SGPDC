@@ -31,29 +31,38 @@ const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '
     .map((origin) => origin.trim())
     .filter(Boolean)
 
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true)
-        const allowed = [
-            'http://localhost:5000',
-            'https://localhost:5000',
-            'http://127.0.0.1:5000',
-            'http://localhost:8081',
-            'http://localhost:8082',
-            'http://127.0.0.1:8081',
-            'http://127.0.0.1:8082',
-            ...allowedOrigins,
-        ]
-        if (
-            allowed.includes(origin) ||
-            /^http:\/\/172\.17\.17\.188:\d+$/.test(origin) ||
-            /https:\/\/.*\.ngrok\.(free\.app|io|free\.dev)$/.test(origin)
-        ) {
-            return callback(null, true)
+app.use(cors((req, callback) => {
+    const origin = req.get('origin')
+    const forwardedHost = req.get('x-forwarded-host')?.split(',')[0].trim()
+    const requestHost = forwardedHost || req.get('host')
+    const allowed = [
+        'http://localhost:5000',
+        'https://localhost:5000',
+        'http://127.0.0.1:5000',
+        'http://localhost:8081',
+        'http://localhost:8082',
+        'http://127.0.0.1:8081',
+        'http://127.0.0.1:8082',
+        ...allowedOrigins,
+    ]
+
+    let samePublicHost = false
+    if (origin && requestHost) {
+        try {
+            samePublicHost = new URL(origin).host === requestHost
+        } catch {
+            samePublicHost = false
         }
-        callback(new Error('Origin not allowed by CORS'))
-    },
-    credentials: true,
+    }
+
+    const isAllowed = !origin ||
+        allowed.includes(origin) ||
+        samePublicHost ||
+        /^http:\/\/172\.17\.17\.188(?::\d+)?$/.test(origin) ||
+        /https:\/\/.*\.ngrok\.(free\.app|io|free\.dev)$/.test(origin)
+
+    if (!isAllowed) return callback(new Error('Origin not allowed by CORS'))
+    callback(null, { origin: true, credentials: true })
 }))
 app.use(express.json())
 app.use(cookieParser())

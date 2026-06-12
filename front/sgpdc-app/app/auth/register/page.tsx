@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import PasswordField from "@/components/PasswordField";
 
 export default function RegisterPage() {
   const [nome, setNome] = useState("");
@@ -78,16 +79,13 @@ export default function RegisterPage() {
             />
           </label>
 
-          <label className="block">
-            <span className="text-sm font-medium text-[#1F2A5A]">Senha</span>
-            <input
-              type="password"
-              value={senha}
-              onChange={(event) => setSenha(event.target.value)}
-              className="mt-2 w-full rounded-3xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#2B2B2B] outline-none"
-              required
-            />
-          </label>
+          <PasswordField
+            label="Senha"
+            surface="white"
+            value={senha}
+            onChange={(event) => setSenha(event.target.value)}
+            required
+          />
 
           {error && <p className="text-sm text-[#E61E4D]">{error}</p>}
 

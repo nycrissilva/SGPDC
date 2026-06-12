@@ -6,6 +6,44 @@ export default class PessoaController {
         this.pessoaRepository = new PessoaRepository();
     }
 
+    normalizarCpf(cpf) {
+        return String(cpf ?? "").replace(/\D/g, "");
+    }
+
+    cpfValido(cpf) {
+        const digitos = this.normalizarCpf(cpf);
+        if (digitos.length !== 11 || /^(\d)\1{10}$/.test(digitos)) {
+            return false;
+        }
+
+        const calcularDigito = (tamanho) => {
+            let soma = 0;
+            for (let i = 0; i < tamanho; i += 1) {
+                soma += Number(digitos[i]) * (tamanho + 1 - i);
+            }
+
+            const resto = (soma * 10) % 11;
+            return resto === 10 ? 0 : resto;
+        };
+
+        return calcularDigito(9) === Number(digitos[9])
+            && calcularDigito(10) === Number(digitos[10]);
+    }
+
+    async validarCpfParaSalvar(cpf, idIgnorado = null) {
+        const cpfNormalizado = this.normalizarCpf(cpf);
+        if (!this.cpfValido(cpfNormalizado)) {
+            return { error: "CPF inválido" };
+        }
+
+        const pessoaExistente = await this.pessoaRepository.obterPorCpf(cpfNormalizado);
+        if (pessoaExistente && Number(pessoaExistente.id) !== Number(idIgnorado)) {
+            return { error: "CPF já cadastrado" };
+        }
+
+        return { cpf: cpfNormalizado };
+    }
+
     /**
      * Retorna o tipo de filtro para busca (ex: "ALUNO", "PROFESSOR")
      * Deve ser sobrescrito pelas subclasses

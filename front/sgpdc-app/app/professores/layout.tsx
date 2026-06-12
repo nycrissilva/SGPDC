@@ -1,6 +1,8 @@
 "use client";
 
 import AuthGuard from "@/components/AuthGuard";
+import AjudaDaPagina from "@/components/AjudaDaPagina";
+import Link from "next/link";
 
 export default function ProfessoresLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +14,16 @@ export default function ProfessoresLayout({ children }: { children: React.ReactN
             <h1 className="mt-2 text-3xl font-semibold text-[#1F2A5A]">Área de Professores</h1>
           </div>
 
-          <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">{children}</section>
+          <nav className="mb-6 flex flex-wrap gap-3" aria-label="Menu da área do professor">
+            <Link href="/professores" className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">Minha Agenda</Link>
+            <Link href="/professores/presencas" className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">Registrar Presenças</Link>
+            <Link href="/ajuda" className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#1F2A5A] transition hover:border-[#6A4FBF] hover:text-[#6A4FBF]">Central de Ajuda</Link>
+          </nav>
+
+          <section data-help-scope className="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="mb-4 flex justify-end"><AjudaDaPagina /></div>
+            {children}
+          </section>
         </main>
       </div>
     </AuthGuard>
